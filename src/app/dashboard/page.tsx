@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, StatCard, Badge, EmptyState } from "@/components/ui";
+import { MonthlyTrendChart, type MonthlyTrendPoint } from "@/components/MonthlyTrendChart";
 
 type InvoiceRow = {
   id: string;
@@ -99,6 +100,37 @@ export default async function DashboardPage() {
   const lowStockCount = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold).length;
   const pendingPOs = (pos ?? []).filter((p) => p.status === "pending" || p.status === "ordered").length;
 
+  const MONTH_LABELS = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+  const now = new Date();
+  const monthKeys = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    return { year: d.getFullYear(), month: d.getMonth(), key: `${d.getFullYear()}-${d.getMonth()}` };
+  });
+
+  const monthlyTrend: MonthlyTrendPoint[] = monthKeys.map(({ year, month, key }) => {
+    const revenue = (payments ?? [])
+      .filter((p) => {
+        const d = new Date(p.paid_at);
+        return d.getFullYear() === year && d.getMonth() === month;
+      })
+      .reduce((s, p) => s + Number(p.amount), 0);
+    const monthExpenses = (expenses ?? [])
+      .filter((e) => {
+        const d = new Date(e.expense_date);
+        return d.getFullYear() === year && d.getMonth() === month;
+      })
+      .reduce((s, e) => s + Number(e.amount), 0);
+    return {
+      month: key,
+      label: `${MONTH_LABELS[month]} ${String(year).slice(2)}`,
+      revenue: Math.round(revenue),
+      expenses: Math.round(monthExpenses),
+      net: Math.round(revenue - monthExpenses),
+    };
+  });
+
   return (
     <div className="mx-auto max-w-6xl p-6 md:p-8">
       <PageHeader title="Dashboard" description="Live performance and financial overview." />
@@ -120,6 +152,11 @@ export default async function DashboardPage() {
         <StatCard label="Low Stock Parts" value={String(lowStockCount)} accent={lowStockCount > 0 ? "amber" : "slate"} />
         <StatCard label="Open Purchase Orders" value={String(pendingPOs)} />
       </div>
+
+      <Card className="p-5 mb-8">
+        <p className="text-sm font-semibold text-slate-700 mb-4">Last 6 Months: Revenue vs Expenses</p>
+        <MonthlyTrendChart data={monthlyTrend} />
+      </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="p-5">
