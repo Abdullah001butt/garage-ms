@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Card, Badge } from "@/components/ui";
 
@@ -63,10 +64,7 @@ export default async function PortalPage({
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4">
       <div className="w-full max-w-lg">
         <div className="flex flex-col items-center mb-8">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white font-bold text-lg mb-3">
-            AB
-          </div>
-          <h1 className="text-xl font-semibold text-slate-900">Al Bahir Garage</h1>
+          <Image src="/logo.png" alt="Al Bahir Garage" width={180} height={72} className="h-20 w-auto object-contain mb-2" priority />
           <p className="text-sm text-slate-500">Check your vehicle&apos;s service status</p>
         </div>
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { signIn } from "@/app/login/actions";
 import { Card, PrimaryButton, Field } from "@/components/ui";
 
@@ -11,14 +12,9 @@ export default async function LoginPage({
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
       <Card className="w-full max-w-sm p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-sm">
-            AB
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-900 leading-none">Al Bahir Garage</p>
-            <p className="text-xs text-slate-500 mt-0.5">Staff sign in</p>
-          </div>
+        <div className="flex flex-col items-center mb-6">
+          <Image src="/logo.png" alt="Al Bahir Garage" width={160} height={64} className="h-16 w-auto object-contain mb-2" priority />
+          <p className="text-xs text-slate-500">Staff sign in</p>
         </div>
 
         {error && (

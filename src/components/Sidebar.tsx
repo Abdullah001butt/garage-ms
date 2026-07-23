@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Role } from "@/lib/types";
 
 const NAV_GROUPS: {
@@ -50,13 +51,9 @@ export function Sidebar({ role }: { role: Role | null }) {
   const groups = NAV_GROUPS.filter((g) => !g.ownerOnly || isOwner);
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-slate-900 print:hidden">
-      <div className="flex items-center gap-2 px-5 h-16 border-b border-slate-800">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-sm">
-          AB
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-white leading-none">Al Bahir Garage</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Management System</p>
+      <div className="flex items-center justify-center h-20 border-b border-slate-800 px-5">
+        <div className="rounded-lg bg-white p-2">
+          <Image src="/logo.png" alt="Al Bahir Garage" width={140} height={56} className="h-12 w-auto object-contain" priority />
         </div>
       </div>
 
