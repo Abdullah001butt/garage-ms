@@ -16,11 +16,17 @@ type PortalAppointment = {
   notes: string | null;
 };
 
+type PortalWarranty = {
+  description: string;
+  until: string;
+};
+
 type PortalResult = {
   customer_name: string;
   vehicle: { plate_number: string; make: string | null; model: string | null; year: number | null };
   jobs: PortalJob[];
   appointments: PortalAppointment[];
+  warranties: PortalWarranty[];
 };
 
 const JOB_STATUS_COLOR: Record<string, "gray" | "amber" | "green"> = {
@@ -125,6 +131,24 @@ export default async function PortalPage({
               </p>
               <p className="text-sm text-slate-500">{result.customer_name}</p>
             </Card>
+
+            {result.warranties.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-slate-700 mb-2">Active Warranty Coverage</h2>
+                <Card className="overflow-hidden">
+                  <ul className="divide-y divide-slate-100">
+                    {result.warranties.map((w, i) => (
+                      <li key={i} className="px-4 py-3 flex items-center justify-between gap-3">
+                        <p className="text-slate-900">🛡 {w.description}</p>
+                        <span className="text-xs text-emerald-600 font-medium">
+                          until {new Date(w.until).toLocaleDateString()}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              </div>
+            )}
 
             <div>
               <h2 className="text-sm font-semibold text-slate-700 mb-2">Service History</h2>

@@ -74,7 +74,7 @@ export function InvoiceItemForm({
         <span className={labelClass}>Quantity</span>
         <input type="number" name="quantity" step="0.01" defaultValue={1} required className={inputClass} />
       </label>
-      <label className="block col-span-2">
+      <label className="block">
         <span className={labelClass}>Unit Price (AED)</span>
         <input
           type="number"
@@ -83,6 +83,15 @@ export function InvoiceItemForm({
           required
           value={unitPrice}
           onChange={(e) => setUnitPrice(e.target.value)}
+          className={inputClass}
+        />
+      </label>
+      <label className="block">
+        <span className={labelClass}>Warranty (days, optional)</span>
+        <input
+          type="number"
+          name="warranty_days"
+          placeholder="e.g. 90"
           className={inputClass}
         />
       </label>

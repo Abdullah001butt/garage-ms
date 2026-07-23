@@ -60,6 +60,7 @@ export type InvoiceItem = {
   item_type: InvoiceItemType;
   quantity: number;
   unit_price: number;
+  warranty_days: number | null;
   created_at: string;
 };
 

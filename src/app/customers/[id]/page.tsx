@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Customer, Vehicle } from "@/lib/types";
 import { addVehicle } from "@/app/customers/actions";
-import { Card, PageHeader, EmptyState, Field } from "@/components/ui";
+import { Card, PageHeader, EmptyState, Field, Badge } from "@/components/ui";
+import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
 
 export default async function CustomerDetailPage({
   params,
@@ -27,6 +28,8 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
+  const warrantyMap = await getActiveWarrantiesForVehicles((vehicles ?? []).map((v) => v.id));
+
   const addVehicleWithId = addVehicle.bind(null, id);
 
   return (
@@ -43,19 +46,31 @@ export default async function CustomerDetailPage({
       <h2 className="text-sm font-semibold text-slate-700 mb-3">Vehicles</h2>
       <Card className="mb-6 overflow-hidden">
         <ul className="divide-y divide-slate-100">
-          {vehicles?.map((vehicle) => (
-            <li key={vehicle.id} className="px-4 py-3">
-              <p className="font-medium text-slate-900">
-                {vehicle.plate_number}
-                {vehicle.make || vehicle.model
-                  ? ` — ${[vehicle.make, vehicle.model].filter(Boolean).join(" ")}`
-                  : ""}
-              </p>
-              <p className="text-sm text-slate-500">
-                {[vehicle.year, vehicle.color].filter(Boolean).join(" · ") || "—"}
-              </p>
-            </li>
-          ))}
+          {vehicles?.map((vehicle) => {
+            const warranties = warrantyMap.get(vehicle.id) ?? [];
+            return (
+              <li key={vehicle.id} className="px-4 py-3 flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-medium text-slate-900">
+                    {vehicle.plate_number}
+                    {vehicle.make || vehicle.model
+                      ? ` — ${[vehicle.make, vehicle.model].filter(Boolean).join(" ")}`
+                      : ""}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {[vehicle.year, vehicle.color].filter(Boolean).join(" · ") || "—"}
+                  </p>
+                  {warranties.length > 0 && (
+                    <p className="text-xs text-emerald-600 mt-1">
+                      🛡 {warranties.map((w) => w.description).join(", ")} — until{" "}
+                      {warranties[0].until.toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+                {warranties.length > 0 && <Badge color="green">Under Warranty</Badge>}
+              </li>
+            );
+          })}
         </ul>
         {vehicles?.length === 0 && <EmptyState message="No vehicles on file yet." />}
       </Card>

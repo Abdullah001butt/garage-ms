@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createJobCard } from "@/app/jobs/actions";
 import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
+import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
 
 type VehicleOption = {
   id: string;
@@ -20,6 +21,8 @@ export default async function NewJobCardPage() {
     .order("plate_number")
     .returns<VehicleOption[]>();
 
+  const warrantyMap = await getActiveWarrantiesForVehicles((vehicles ?? []).map((v) => v.id));
+
   return (
     <div className="mx-auto max-w-2xl p-6 md:p-8">
       <Link href="/jobs" className="text-sm text-indigo-600 hover:underline">
@@ -37,6 +40,17 @@ export default async function NewJobCardPage() {
         </p>
       )}
 
+      {warrantyMap.size > 0 && (
+        <Card className="mb-4 border-emerald-200 bg-emerald-50 p-4">
+          <p className="text-sm font-semibold text-emerald-800 mb-1">
+            🛡 {warrantyMap.size} vehicle{warrantyMap.size > 1 ? "s" : ""} under active warranty
+          </p>
+          <p className="text-xs text-emerald-700">
+            Marked with ⚠ in the dropdown below — check before charging again for the same issue.
+          </p>
+        </Card>
+      )}
+
       <Card className="p-5">
         <form action={createJobCard} className="space-y-4">
           <label className="block">
@@ -45,12 +59,17 @@ export default async function NewJobCardPage() {
             </span>
             <select name="vehicle_customer" required className={inputClass}>
               <option value="">Select a vehicle...</option>
-              {vehicles?.map((v) => (
-                <option key={v.id} value={`${v.id}::${v.customer_id}`}>
-                  {v.plate_number} — {[v.make, v.model].filter(Boolean).join(" ")} (
-                  {v.customers?.name})
-                </option>
-              ))}
+              {vehicles?.map((v) => {
+                const hasWarranty = (warrantyMap.get(v.id)?.length ?? 0) > 0;
+                return (
+                  <option key={v.id} value={`${v.id}::${v.customer_id}`}>
+                    {hasWarranty ? "⚠ " : ""}
+                    {v.plate_number} — {[v.make, v.model].filter(Boolean).join(" ")} (
+                    {v.customers?.name})
+                    {hasWarranty ? " — active warranty" : ""}
+                  </option>
+                );
+              })}
             </select>
           </label>
 

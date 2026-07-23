@@ -84,6 +84,8 @@ export async function addInvoiceItem(invoiceId: string, formData: FormData) {
   const quantity = Number(formData.get("quantity") ?? 1);
   const unit_price = Number(formData.get("unit_price") ?? 0);
   const part_id = String(formData.get("part_id") ?? "").trim() || null;
+  const warrantyRaw = String(formData.get("warranty_days") ?? "").trim();
+  const warranty_days = warrantyRaw ? Number(warrantyRaw) : null;
 
   if (!description || !quantity || unit_price < 0) {
     throw new Error("Description, quantity, and unit price are required.");
@@ -96,6 +98,7 @@ export async function addInvoiceItem(invoiceId: string, formData: FormData) {
     quantity,
     unit_price,
     part_id,
+    warranty_days,
   });
 
   if (error) {

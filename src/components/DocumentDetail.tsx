@@ -132,9 +132,22 @@ export async function DocumentDetail({
             </tr>
           </thead>
           <tbody>
-            {items?.map((item) => (
+            {items?.map((item) => {
+              const warrantyUntil = item.warranty_days
+                ? new Date(new Date(doc.created_at).getTime() + item.warranty_days * 86400000)
+                : null;
+              const warrantyActive = warrantyUntil && warrantyUntil.getTime() > Date.now();
+              return (
               <tr key={item.id} className="border-b border-slate-50">
-                <td className="py-2">{item.description}</td>
+                <td className="py-2">
+                  {item.description}
+                  {warrantyUntil && (
+                    <p className={`text-xs mt-0.5 ${warrantyActive ? "text-emerald-600" : "text-slate-400"}`}>
+                      🛡 {item.warranty_days}-day warranty{" "}
+                      {warrantyActive ? "until" : "expired"} {warrantyUntil.toLocaleDateString()}
+                    </p>
+                  )}
+                </td>
                 <td className="py-2 capitalize text-slate-500">{item.item_type}</td>
                 <td className="py-2 text-right">{item.quantity}</td>
                 <td className="py-2 text-right">{item.unit_price.toFixed(2)}</td>
@@ -149,7 +162,8 @@ export async function DocumentDetail({
                   </form>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {items?.length === 0 && (
               <tr>
                 <td colSpan={6} className="py-4 text-center text-slate-400">
