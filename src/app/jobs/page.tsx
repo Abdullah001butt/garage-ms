@@ -56,7 +56,7 @@ export default async function JobsPage({
         }
       />
 
-      <div className="flex gap-2 mb-6 text-sm">
+      <div className="flex flex-wrap gap-2 mb-6 text-sm">
         {["", "pending", "in_progress", "completed"].map((s) => (
           <Link
             key={s || "all"}

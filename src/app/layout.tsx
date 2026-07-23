@@ -34,7 +34,7 @@ export default async function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-slate-50">
+      <body className="min-h-full bg-slate-50 overflow-x-hidden">
         {!user ? (
           children
         ) : (

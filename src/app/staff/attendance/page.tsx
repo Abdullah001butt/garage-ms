@@ -67,7 +67,7 @@ export default async function AttendancePage({
       />
 
       <Card className="p-4 mb-6">
-        <form className="flex items-end gap-4">
+        <form className="flex flex-wrap items-end gap-3 sm:gap-4">
           <label className="block">
             <span className="block text-xs font-medium text-slate-700 mb-1">Month</span>
             <input
@@ -83,13 +83,13 @@ export default async function AttendancePage({
           >
             View
           </button>
-          <div className="flex gap-3 text-xs text-slate-500 ml-4">
-            <span><span className="inline-block w-3 h-3 rounded-sm bg-emerald-100 mr-1 align-middle" />Present</span>
-            <span><span className="inline-block w-3 h-3 rounded-sm bg-red-100 mr-1 align-middle" />Absent</span>
-            <span><span className="inline-block w-3 h-3 rounded-sm bg-blue-100 mr-1 align-middle" />Paid Leave</span>
-            <span><span className="inline-block w-3 h-3 rounded-sm bg-slate-200 mr-1 align-middle" />Holiday</span>
-          </div>
         </form>
+        <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100">
+          <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-emerald-100" />Present</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-red-100" />Absent</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-blue-100" />Paid Leave</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-slate-200" />Holiday</span>
+        </div>
       </Card>
 
       <Card className="overflow-x-auto">

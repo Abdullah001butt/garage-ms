@@ -65,7 +65,7 @@ export default async function DailyCashflowPage({
         title="Daily Cash Flow"
         description="Cash in (payments received) and out (expenses) for a single day."
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <a href={`/reports/monthly-summary/export?month=${selectedDate.slice(0, 7)}`}>
               <SecondaryButton type="button">Export Month Summary</SecondaryButton>
             </a>
@@ -77,7 +77,7 @@ export default async function DailyCashflowPage({
       />
 
       <Card className="p-4 mb-6">
-        <form className="flex items-end gap-4">
+        <form className="flex flex-wrap items-end gap-4">
           <label className="block">
             <span className="block text-xs font-medium text-slate-700 mb-1">Date</span>
             <input

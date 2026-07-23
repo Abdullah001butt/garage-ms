@@ -43,7 +43,7 @@ export default async function PartnerProfitReportPage({
       <PageHeader title="Partner Profit Split" description="Net profit shared by each partner's percentage." />
 
       <Card className="p-4 mb-6">
-        <form className="flex items-end gap-4">
+        <form className="flex flex-wrap items-end gap-4">
           <label className="block">
             <span className="block text-xs font-medium text-slate-700 mb-1">Month</span>
             <input
