@@ -39,18 +39,15 @@ export default async function AttendancePage({
 
   const supabase = await createClient();
 
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("*")
-    .order("created_at")
-    .returns<Profile[]>();
-
-  const { data: attendance } = await supabase
-    .from("attendance")
-    .select("*")
-    .gte("attendance_date", monthStart)
-    .lte("attendance_date", monthEnd)
-    .returns<Attendance[]>();
+  const [{ data: profiles }, { data: attendance }] = await Promise.all([
+    supabase.from("profiles").select("*").order("created_at").returns<Profile[]>(),
+    supabase
+      .from("attendance")
+      .select("*")
+      .gte("attendance_date", monthStart)
+      .lte("attendance_date", monthEnd)
+      .returns<Attendance[]>(),
+  ]);
 
   const attendanceMap = new Map<string, AttendanceStatus>();
   for (const a of attendance ?? []) {

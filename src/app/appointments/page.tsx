@@ -27,17 +27,18 @@ const STATUS_COLOR: Record<AppointmentStatus, "blue" | "green" | "gray"> = {
 export default async function AppointmentsPage() {
   const supabase = await createClient();
 
-  const { data: appointments, error } = await supabase
-    .from("appointments")
-    .select("id, scheduled_at, notes, status, customers(name, phone), vehicles(plate_number)")
-    .order("scheduled_at", { ascending: true })
-    .returns<AppointmentRow[]>();
-
-  const { data: customers } = await supabase
-    .from("customers")
-    .select("id, name, vehicles(id, plate_number)")
-    .order("name")
-    .returns<CustomerVehicleOption[]>();
+  const [{ data: appointments, error }, { data: customers }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("id, scheduled_at, notes, status, customers(name, phone), vehicles(plate_number)")
+      .order("scheduled_at", { ascending: true })
+      .returns<AppointmentRow[]>(),
+    supabase
+      .from("customers")
+      .select("id, name, vehicles(id, plate_number)")
+      .order("name")
+      .returns<CustomerVehicleOption[]>(),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-8">

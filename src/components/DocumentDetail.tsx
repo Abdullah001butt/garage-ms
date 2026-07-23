@@ -46,41 +46,32 @@ export async function DocumentDetail({
 }) {
   const supabase = await createClient();
 
-  const { data: doc } = await supabase
-    .from("invoices")
-    .select("id, status, document_type, vat_rate, created_at, paid_at, customers(name, phone, address)")
-    .eq("id", id)
-    .single<DocDetail>();
+  const [{ data: doc }, { data: items }, { data: parts }, { data: settings }, { data: payments }] =
+    await Promise.all([
+      supabase
+        .from("invoices")
+        .select("id, status, document_type, vat_rate, created_at, paid_at, customers(name, phone, address)")
+        .eq("id", id)
+        .single<DocDetail>(),
+      supabase
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", id)
+        .order("created_at")
+        .returns<InvoiceItem[]>(),
+      supabase.from("parts").select("*").order("name").returns<Part[]>(),
+      supabase.from("shop_settings").select("*").limit(1).maybeSingle<ShopSettings>(),
+      supabase
+        .from("payments")
+        .select("*")
+        .eq("invoice_id", id)
+        .order("paid_at", { ascending: false })
+        .returns<Payment[]>(),
+    ]);
 
   if (!doc || doc.document_type !== expectedType) {
     notFound();
   }
-
-  const { data: items } = await supabase
-    .from("invoice_items")
-    .select("*")
-    .eq("invoice_id", id)
-    .order("created_at")
-    .returns<InvoiceItem[]>();
-
-  const { data: parts } = await supabase
-    .from("parts")
-    .select("*")
-    .order("name")
-    .returns<Part[]>();
-
-  const { data: settings } = await supabase
-    .from("shop_settings")
-    .select("*")
-    .limit(1)
-    .maybeSingle<ShopSettings>();
-
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("*")
-    .eq("invoice_id", id)
-    .order("paid_at", { ascending: false })
-    .returns<Payment[]>();
 
   const subtotal = (items ?? []).reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
   const vatAmount = subtotal * (doc.vat_rate / 100);

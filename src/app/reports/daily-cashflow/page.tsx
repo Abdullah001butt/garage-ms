@@ -36,20 +36,24 @@ export default async function DailyCashflowPage({
 
   const supabase = await createClient();
 
-  const { data: payments, error: paymentsError } = await supabase
-    .from("payments")
-    .select(
-      "id, amount, paid_at, invoices(job_card_id, customers(name), job_cards(description, vehicles(plate_number, make, model)))"
-    )
-    .gte("paid_at", `${selectedDate}T00:00:00`)
-    .lte("paid_at", `${selectedDate}T23:59:59`)
-    .returns<PaymentRow[]>();
-
-  const { data: expenses, error: expensesError } = await supabase
-    .from("expenses")
-    .select("id, category, description, amount")
-    .eq("expense_date", selectedDate)
-    .returns<ExpenseRow[]>();
+  const [
+    { data: payments, error: paymentsError },
+    { data: expenses, error: expensesError },
+  ] = await Promise.all([
+    supabase
+      .from("payments")
+      .select(
+        "id, amount, paid_at, invoices(job_card_id, customers(name), job_cards(description, vehicles(plate_number, make, model)))"
+      )
+      .gte("paid_at", `${selectedDate}T00:00:00`)
+      .lte("paid_at", `${selectedDate}T23:59:59`)
+      .returns<PaymentRow[]>(),
+    supabase
+      .from("expenses")
+      .select("id, category, description, amount")
+      .eq("expense_date", selectedDate)
+      .returns<ExpenseRow[]>(),
+  ]);
 
   const totalIn = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
   const totalOut = (expenses ?? []).reduce((s, e) => s + Number(e.amount), 0);

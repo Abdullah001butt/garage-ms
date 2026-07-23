@@ -45,23 +45,20 @@ export default async function JobDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: job } = await supabase
-    .from("job_cards")
-    .select(
-      "id, description, mechanic_name, odometer, status, created_at, completed_at, customer_id, vehicle_id, vehicles(plate_number, make, model, year), customers(name, phone)"
-    )
-    .eq("id", id)
-    .single<JobDetail>();
+  const [{ data: job }, { data: existingInvoice }] = await Promise.all([
+    supabase
+      .from("job_cards")
+      .select(
+        "id, description, mechanic_name, odometer, status, created_at, completed_at, customer_id, vehicle_id, vehicles(plate_number, make, model, year), customers(name, phone)"
+      )
+      .eq("id", id)
+      .single<JobDetail>(),
+    supabase.from("invoices").select("id").eq("job_card_id", id).maybeSingle(),
+  ]);
 
   if (!job) {
     notFound();
   }
-
-  const { data: existingInvoice } = await supabase
-    .from("invoices")
-    .select("id")
-    .eq("job_card_id", id)
-    .maybeSingle();
 
   return (
     <div className="mx-auto max-w-2xl p-6 md:p-8">

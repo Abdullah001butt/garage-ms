@@ -21,23 +21,15 @@ export default async function PartnerProfitReportPage({
 
   const supabase = await createClient();
 
-  const { data: partners } = await supabase
-    .from("partners")
-    .select("*")
-    .order("created_at")
-    .returns<Partner[]>();
-
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("amount")
-    .gte("paid_at", monthStart)
-    .lt("paid_at", nextMonth);
-
-  const { data: expenses } = await supabase
-    .from("expenses")
-    .select("amount")
-    .gte("expense_date", monthStart)
-    .lt("expense_date", nextMonth);
+  const [{ data: partners }, { data: payments }, { data: expenses }] = await Promise.all([
+    supabase.from("partners").select("*").order("created_at").returns<Partner[]>(),
+    supabase.from("payments").select("amount").gte("paid_at", monthStart).lt("paid_at", nextMonth),
+    supabase
+      .from("expenses")
+      .select("amount")
+      .gte("expense_date", monthStart)
+      .lt("expense_date", nextMonth),
+  ]);
 
   const totalRevenue = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
   const totalExpenses = (expenses ?? []).reduce((s, e) => s + Number(e.amount), 0);

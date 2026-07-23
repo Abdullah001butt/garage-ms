@@ -13,22 +13,19 @@ export default async function CustomerDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: customer } = await supabase
-    .from("customers")
-    .select("*")
-    .eq("id", id)
-    .single<Customer>();
+  const [{ data: customer }, { data: vehicles }] = await Promise.all([
+    supabase.from("customers").select("*").eq("id", id).single<Customer>(),
+    supabase
+      .from("vehicles")
+      .select("*")
+      .eq("customer_id", id)
+      .order("created_at", { ascending: false })
+      .returns<Vehicle[]>(),
+  ]);
 
   if (!customer) {
     notFound();
   }
-
-  const { data: vehicles } = await supabase
-    .from("vehicles")
-    .select("*")
-    .eq("customer_id", id)
-    .order("created_at", { ascending: false })
-    .returns<Vehicle[]>();
 
   const addVehicleWithId = addVehicle.bind(null, id);
 
