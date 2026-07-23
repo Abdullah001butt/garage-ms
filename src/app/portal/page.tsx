@@ -64,7 +64,7 @@ export default async function PortalPage({
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4">
       <div className="w-full max-w-lg">
         <div className="flex flex-col items-center mb-8">
-          <Image src="/logo.png" alt="Al Bahir Garage" width={180} height={72} className="h-20 w-auto object-contain mb-2" priority />
+          <Image src="/logoalbahir.png" alt="Al Bahir Garage" width={320} height={68} className="h-16 w-auto object-contain mb-2" priority />
           <p className="text-sm text-slate-500">Check your vehicle&apos;s service status</p>
         </div>
 

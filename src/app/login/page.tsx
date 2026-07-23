@@ -13,7 +13,7 @@ export default async function LoginPage({
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
       <Card className="w-full max-w-sm p-6">
         <div className="flex flex-col items-center mb-6">
-          <Image src="/logo.png" alt="Al Bahir Garage" width={160} height={64} className="h-16 w-auto object-contain mb-2" priority />
+          <Image src="/logoalbahir.png" alt="Al Bahir Garage" width={280} height={60} className="h-14 w-auto object-contain mb-2" priority />
           <p className="text-xs text-slate-500">Staff sign in</p>
         </div>
 

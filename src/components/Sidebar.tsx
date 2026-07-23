@@ -53,7 +53,7 @@ export function Sidebar({ role }: { role: Role | null }) {
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-slate-900 print:hidden">
       <div className="flex items-center justify-center h-20 border-b border-slate-800 px-5">
         <div className="rounded-lg bg-white p-2">
-          <Image src="/logo.png" alt="Al Bahir Garage" width={140} height={56} className="h-12 w-auto object-contain" priority />
+          <Image src="/logoalbahir.png" alt="Al Bahir Garage" width={220} height={48} className="h-10 w-auto object-contain" priority />
         </div>
       </div>
 
