@@ -47,8 +47,8 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between mb-6 print:hidden">
-      <div>
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6 print:hidden">
+      <div className="min-w-0">
         <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
         {description && <p className="text-sm text-slate-500 mt-0.5">{description}</p>}
       </div>

@@ -27,7 +27,7 @@ export function InvoiceItemForm({
   }
 
   return (
-    <form action={action} className="grid grid-cols-2 gap-4 mt-4">
+    <form action={action} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
       {parts.length > 0 && (
         <label className="block col-span-2">
           <span className={labelClass}>Use existing part (optional)</span>

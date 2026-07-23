@@ -82,7 +82,7 @@ export default async function AppointmentsPage() {
 
       <Card className="p-5">
         <p className="text-sm font-semibold text-slate-700 mb-4">Book an appointment</p>
-        <form action={createAppointment} className="grid grid-cols-2 gap-4">
+        <form action={createAppointment} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="block col-span-2">
             <span className={labelClass}>
               Customer / Vehicle <span className="text-red-500">*</span>

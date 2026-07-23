@@ -38,7 +38,7 @@ export default async function PurchaseOrdersPage() {
         <p className="text-red-600 text-sm mb-4">Failed to load purchase orders: {error.message}</p>
       )}
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>

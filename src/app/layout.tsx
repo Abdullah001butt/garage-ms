@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
+import { MobileNav } from "@/components/MobileNav";
 import { getCurrentUserAndProfile } from "@/lib/auth";
 import { signOut } from "@/app/login/actions";
 
@@ -41,26 +42,27 @@ export default async function RootLayout({
             <Sidebar role={role} />
             <div className="md:pl-64 flex flex-col min-h-full">
               <header className="border-b border-slate-200 bg-white sticky top-0 z-10 print:hidden">
-                <div className="flex items-center justify-between px-4 md:px-8 py-3">
-                  <nav className="md:hidden flex items-center gap-4 overflow-x-auto text-sm font-medium text-slate-600">
-                    <a href="/" className="font-semibold text-slate-900 shrink-0">
+                <div className="flex items-center justify-between gap-3 px-3 md:px-8 py-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <MobileNav role={role} />
+                    <a href="/" className="md:hidden font-semibold text-slate-900 truncate">
                       Al Bahir
                     </a>
-                  </nav>
-                  <div className="flex items-center gap-3 ml-auto">
-                    <span className="text-sm text-slate-500">
+                  </div>
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                    <span className="text-sm text-slate-500 truncate max-w-[40vw] md:max-w-none">
                       {profile?.full_name ?? user.email}
-                      {role && <span className="ml-1.5 text-xs text-slate-400">({role})</span>}
+                      {role && <span className="ml-1.5 text-xs text-slate-400 hidden sm:inline">({role})</span>}
                     </span>
                     <form action={signOut}>
-                      <button className="text-sm text-slate-500 hover:text-slate-900">
+                      <button className="text-sm text-slate-500 hover:text-slate-900 shrink-0">
                         Sign out
                       </button>
                     </form>
                   </div>
                 </div>
               </header>
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 min-w-0">{children}</main>
             </div>
           </>
         )}

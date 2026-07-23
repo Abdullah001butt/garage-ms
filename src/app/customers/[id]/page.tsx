@@ -65,7 +65,7 @@ export default async function CustomerDetailPage({
           <summary className="cursor-pointer text-sm font-semibold text-slate-700">
             + Add a vehicle
           </summary>
-          <form action={addVehicleWithId} className="grid grid-cols-2 gap-4 mt-4">
+          <form action={addVehicleWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <Field label="Plate number" name="plate_number" required />
             <Field label="Make" name="make" placeholder="Toyota" />
             <Field label="Model" name="model" placeholder="Corolla" />

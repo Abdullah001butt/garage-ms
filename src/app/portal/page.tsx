@@ -69,7 +69,7 @@ export default async function PortalPage({
         </div>
 
         <Card className="p-5 mb-6">
-          <form className="grid grid-cols-2 gap-4">
+          <form className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block col-span-2">
               <span className="block text-sm font-medium text-slate-700 mb-1">Phone number</span>
               <input

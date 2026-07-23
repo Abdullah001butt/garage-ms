@@ -26,7 +26,7 @@ export default async function ExpenseTemplatesPage() {
 
       {error && <p className="text-red-600 text-sm mb-4">Failed to load templates: {error.message}</p>}
 
-      <Card className="mb-6 overflow-hidden">
+      <Card className="mb-6 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
@@ -69,7 +69,7 @@ export default async function ExpenseTemplatesPage() {
 
       <Card className="p-5">
         <p className="text-sm font-semibold text-slate-700 mb-4">New recurring expense</p>
-        <form action={createTemplate} className="grid grid-cols-2 gap-4">
+        <form action={createTemplate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="block">
             <span className={labelClass}>Category</span>
             <select name="category" required className={inputClass}>

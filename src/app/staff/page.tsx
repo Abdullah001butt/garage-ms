@@ -26,7 +26,7 @@ export default async function StaffPage() {
 
       {error && <p className="text-red-600 text-sm mb-4">Failed to load staff: {error.message}</p>}
 
-      <Card className="mb-6 overflow-hidden">
+      <Card className="mb-6 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
@@ -88,7 +88,7 @@ export default async function StaffPage() {
           <li>Copy the new user&apos;s UID from that page.</li>
           <li>Paste it below along with their name, role, and salary.</li>
         </ol>
-        <form action={createProfile} className="grid grid-cols-2 gap-4">
+        <form action={createProfile} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="block col-span-2">
             <span className={labelClass}>User ID (UID from Supabase Auth)</span>
             <input type="text" name="user_id" required placeholder="00000000-0000-0000-0000-000000000000" className={inputClass} />

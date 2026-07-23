@@ -231,7 +231,7 @@ export async function DocumentDetail({
           </ul>
 
           {balanceDue > 0 && (
-            <form action={recordPaymentWithId} className="grid grid-cols-2 gap-4">
+            <form action={recordPaymentWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field
                 label="Amount (AED)"
                 name="amount"

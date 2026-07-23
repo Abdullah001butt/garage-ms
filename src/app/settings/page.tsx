@@ -28,7 +28,7 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-2xl p-6 md:p-8">
       <PageHeader title="Settings" description="Shop details shown on invoices and estimates." />
       <Card className="p-5">
-        <form action={updateWithId} className="grid grid-cols-2 gap-4">
+        <form action={updateWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Shop Name" name="shop_name" defaultValue={settings.shop_name} required className="col-span-2" />
           <Field label="TRN (Tax Registration Number)" name="trn" defaultValue={settings.trn ?? ""} />
           <Field label="VAT Rate (%)" name="vat_rate" type="number" step="0.01" defaultValue={settings.vat_rate} />

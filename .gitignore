@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Sensitive business data files, never commit
 *.xlsx
+
+# Claude Code harness artifacts
+.claude/scheduled_tasks.lock

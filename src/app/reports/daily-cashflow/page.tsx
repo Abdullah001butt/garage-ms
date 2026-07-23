@@ -111,7 +111,7 @@ export default async function DailyCashflowPage({
       <div className="grid md:grid-cols-2 gap-6">
         <div>
           <h2 className="text-sm font-semibold text-slate-700 mb-2">In</h2>
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-left text-slate-500">
                 <tr>
@@ -138,7 +138,7 @@ export default async function DailyCashflowPage({
 
         <div>
           <h2 className="text-sm font-semibold text-slate-700 mb-2">Out</h2>
-          <Card className="overflow-hidden">
+          <Card className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-left text-slate-500">
                 <tr>

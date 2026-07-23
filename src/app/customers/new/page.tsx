@@ -15,7 +15,7 @@ export default function NewCustomerPage() {
           <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
             Customer details
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Full name" name="name" required />
             <Field label="Phone" name="phone" required />
             <Field label="Email" name="email" type="email" />
@@ -27,7 +27,7 @@ export default function NewCustomerPage() {
           <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
             Vehicle (optional — can add later)
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Plate number" name="plate_number" />
             <Field label="Make" name="make" placeholder="Toyota" />
             <Field label="Model" name="model" placeholder="Corolla" />

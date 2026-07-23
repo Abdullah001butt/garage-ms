@@ -36,7 +36,7 @@ export default async function PartnersPage() {
         </Card>
       )}
 
-      <Card className="mb-6 overflow-hidden">
+      <Card className="mb-6 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
@@ -77,7 +77,7 @@ export default async function PartnersPage() {
 
       <Card className="p-5">
         <p className="text-sm font-semibold text-slate-700 mb-4">Add a partner</p>
-        <form action={createPartner} className="grid grid-cols-2 gap-4">
+        <form action={createPartner} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Full name" name="full_name" required />
           <Field label="Share %" name="share_percentage" type="number" step="0.01" required />
           <div className="col-span-2">

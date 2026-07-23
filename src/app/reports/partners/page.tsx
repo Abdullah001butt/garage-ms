@@ -68,7 +68,7 @@ export default async function PartnerProfitReportPage({
         <StatCard label="Net Profit" value={`AED ${netProfit.toFixed(2)}`} accent={netProfit >= 0 ? "indigo" : "red"} />
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
