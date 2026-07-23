@@ -5,11 +5,23 @@ import type { DocumentType } from "@/lib/types";
 
 type Row = {
   id: string;
-  status: "unpaid" | "paid";
+  status: "unpaid" | "partial" | "paid";
   created_at: string;
   vat_rate: number;
   customers: { name: string } | null;
   invoice_items: { quantity: number; unit_price: number }[];
+};
+
+const STATUS_COLOR: Record<string, "green" | "amber" | "red"> = {
+  paid: "green",
+  partial: "amber",
+  unpaid: "red",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  paid: "Paid",
+  partial: "Partial",
+  unpaid: "Unpaid",
 };
 
 export async function DocumentList({
@@ -71,9 +83,7 @@ export async function DocumentList({
                     </p>
                   </div>
                   {documentType === "invoice" && (
-                    <Badge color={doc.status === "paid" ? "green" : "red"}>
-                      {doc.status === "paid" ? "Paid" : "Unpaid"}
-                    </Badge>
+                    <Badge color={STATUS_COLOR[doc.status]}>{STATUS_LABEL[doc.status]}</Badge>
                   )}
                 </Link>
               </li>

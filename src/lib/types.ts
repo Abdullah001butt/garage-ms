@@ -35,7 +35,7 @@ export type JobCard = {
   completed_at: string | null;
 };
 
-export type InvoiceStatus = "unpaid" | "paid";
+export type InvoiceStatus = "unpaid" | "partial" | "paid";
 export type DocumentType = "estimate" | "invoice";
 
 export type Invoice = {
@@ -100,6 +100,36 @@ export type Profile = {
   id: string;
   full_name: string;
   role: Role;
+  monthly_salary: number | null;
+  created_at: string;
+};
+
+export type PaymentMethod = "cash" | "card" | "bank_transfer" | "ziina" | "other";
+
+export type Payment = {
+  id: string;
+  invoice_id: string;
+  amount: number;
+  method: PaymentMethod;
+  paid_at: string;
+  notes: string | null;
+  created_at: string;
+};
+
+export type Partner = {
+  id: string;
+  full_name: string;
+  share_percentage: number;
+  created_at: string;
+};
+
+export type AttendanceStatus = "present" | "absent" | "paid_leave" | "holiday";
+
+export type Attendance = {
+  id: string;
+  profile_id: string;
+  attendance_date: string;
+  status: AttendanceStatus;
   created_at: string;
 };
 

@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 import { createProfile, updateProfileRole, deleteProfile } from "@/app/staff/actions";
-import { Card, PageHeader, EmptyState, PrimaryButton, labelClass, inputClass } from "@/components/ui";
+import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, labelClass, inputClass } from "@/components/ui";
 
 export default async function StaffPage() {
   const supabase = await createClient();
@@ -15,7 +16,12 @@ export default async function StaffPage() {
     <div className="mx-auto max-w-3xl p-6 md:p-8">
       <PageHeader
         title="Staff"
-        description="Manage staff accounts and their access level."
+        description="Manage staff accounts, access level, and salary."
+        action={
+          <Link href="/staff/attendance">
+            <SecondaryButton type="button">Attendance & Salary</SecondaryButton>
+          </Link>
+        }
       />
 
       {error && <p className="text-red-600 text-sm mb-4">Failed to load staff: {error.message}</p>}
@@ -25,7 +31,7 @@ export default async function StaffPage() {
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
               <th className="px-4 py-2.5 font-medium">Name</th>
-              <th className="px-4 py-2.5 font-medium">Role</th>
+              <th className="px-4 py-2.5 font-medium">Role & Monthly Salary</th>
               <th className="px-4 py-2.5" />
             </tr>
           </thead>
@@ -40,6 +46,13 @@ export default async function StaffPage() {
                       <option value="receptionist">Receptionist</option>
                       <option value="mechanic">Mechanic</option>
                     </select>
+                    <input
+                      type="number"
+                      name="monthly_salary"
+                      placeholder="Salary AED"
+                      defaultValue={p.monthly_salary ?? ""}
+                      className="w-28 rounded-md border border-slate-300 px-2 py-1 text-sm"
+                    />
                     <button type="submit" className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50">
                       Save
                     </button>
@@ -73,7 +86,7 @@ export default async function StaffPage() {
             page and click &quot;Add user&quot; with their email + a temporary password.
           </li>
           <li>Copy the new user&apos;s UID from that page.</li>
-          <li>Paste it below along with their name and role.</li>
+          <li>Paste it below along with their name, role, and salary.</li>
         </ol>
         <form action={createProfile} className="grid grid-cols-2 gap-4">
           <label className="block col-span-2">
@@ -91,6 +104,10 @@ export default async function StaffPage() {
               <option value="mechanic">Mechanic</option>
               <option value="owner">Owner</option>
             </select>
+          </label>
+          <label className="block col-span-2">
+            <span className={labelClass}>Monthly Salary (AED, optional)</span>
+            <input type="number" name="monthly_salary" step="0.01" className={inputClass} />
           </label>
           <div className="col-span-2">
             <PrimaryButton type="submit">Add Staff Member</PrimaryButton>

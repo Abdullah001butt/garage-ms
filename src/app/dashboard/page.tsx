@@ -3,7 +3,7 @@ import { Card, PageHeader, StatCard, Badge, EmptyState } from "@/components/ui";
 
 type InvoiceRow = {
   id: string;
-  status: "unpaid" | "paid";
+  status: "unpaid" | "partial" | "paid";
   document_type: "estimate" | "invoice";
   vat_rate: number;
   created_at: string;
@@ -28,7 +28,7 @@ function isThisMonth(dateStr: string) {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ data: invoices }, { data: jobs }, { data: expenses }, { data: parts }, { data: pos }] =
+  const [{ data: invoices }, { data: jobs }, { data: expenses }, { data: parts }, { data: pos }, { data: payments }] =
     await Promise.all([
       supabase
         .from("invoices")
@@ -41,6 +41,7 @@ export default async function DashboardPage() {
       supabase.from("expenses").select("amount, expense_date"),
       supabase.from("parts").select("id, stock_qty, reorder_threshold"),
       supabase.from("purchase_orders").select("id, status"),
+      supabase.from("payments").select("amount, paid_at"),
     ]);
 
   const realInvoices = (invoices ?? []).filter((i) => i.document_type === "invoice");
@@ -49,9 +50,9 @@ export default async function DashboardPage() {
     return subtotal * (1 + inv.vat_rate / 100);
   };
 
-  const revenueThisMonth = realInvoices
-    .filter((i) => i.status === "paid" && i.paid_at && isThisMonth(i.paid_at))
-    .reduce((s, i) => s + invoiceTotal(i), 0);
+  const revenueThisMonth = (payments ?? [])
+    .filter((p) => isThisMonth(p.paid_at))
+    .reduce((s, p) => s + Number(p.amount), 0);
 
   const aro = realInvoices.length
     ? realInvoices.reduce((s, i) => s + invoiceTotal(i), 0) / realInvoices.length
@@ -103,7 +104,7 @@ export default async function DashboardPage() {
       <PageHeader title="Dashboard" description="Live performance and financial overview." />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Revenue (this month)" value={`AED ${revenueThisMonth.toFixed(0)}`} accent="green" />
+        <StatCard label="Revenue (this month)" value={`AED ${revenueThisMonth.toFixed(0)}`} accent="green" hint="Cash actually received" />
         <StatCard label="Avg. Repair Order (ARO)" value={`AED ${aro.toFixed(0)}`} accent="indigo" hint={`Across ${realInvoices.length} invoices`} />
         <StatCard label="Expenses (this month)" value={`AED ${expensesThisMonth.toFixed(0)}`} accent="red" />
         <StatCard

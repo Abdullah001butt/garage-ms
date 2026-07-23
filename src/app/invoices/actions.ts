@@ -102,6 +102,8 @@ export async function addInvoiceItem(invoiceId: string, formData: FormData) {
     throw new Error(error.message);
   }
 
+  await recalculateInvoiceStatus(invoiceId);
+
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath(`/estimates/${invoiceId}`);
   revalidatePath("/inventory");
@@ -116,21 +118,82 @@ export async function deleteInvoiceItem(invoiceId: string, itemId: string) {
     throw new Error(error.message);
   }
 
+  await recalculateInvoiceStatus(invoiceId);
+
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath(`/estimates/${invoiceId}`);
 }
 
-export async function markInvoicePaid(invoiceId: string) {
+async function recalculateInvoiceStatus(invoiceId: string) {
   const supabase = await createClient();
 
-  const { error } = await supabase
+  const { data: items } = await supabase
+    .from("invoice_items")
+    .select("quantity, unit_price")
+    .eq("invoice_id", invoiceId);
+
+  const { data: invoice } = await supabase
     .from("invoices")
-    .update({ status: "paid", paid_at: new Date().toISOString() })
+    .select("vat_rate")
+    .eq("id", invoiceId)
+    .single();
+
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("amount")
+    .eq("invoice_id", invoiceId);
+
+  const subtotal = (items ?? []).reduce((s, it) => s + it.quantity * it.unit_price, 0);
+  const total = subtotal * (1 + (invoice?.vat_rate ?? 5) / 100);
+  const totalPaid = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
+
+  const status = totalPaid <= 0 ? "unpaid" : totalPaid >= total - 0.01 ? "paid" : "partial";
+
+  await supabase
+    .from("invoices")
+    .update({ status, paid_at: status === "paid" ? new Date().toISOString() : null })
     .eq("id", invoiceId);
+}
+
+export async function recordPayment(invoiceId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const amount = Number(formData.get("amount") ?? 0);
+  const method = String(formData.get("method") ?? "cash");
+  const notes = String(formData.get("notes") ?? "").trim() || null;
+
+  if (!amount || amount <= 0) {
+    throw new Error("Payment amount must be greater than zero.");
+  }
+
+  const { error } = await supabase.from("payments").insert({
+    invoice_id: invoiceId,
+    amount,
+    method,
+    notes,
+  });
 
   if (error) {
     throw new Error(error.message);
   }
+
+  await recalculateInvoiceStatus(invoiceId);
+
+  revalidatePath(`/invoices/${invoiceId}`);
+  revalidatePath("/invoices");
+  revalidatePath("/dashboard");
+}
+
+export async function deletePayment(invoiceId: string, paymentId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("payments").delete().eq("id", paymentId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await recalculateInvoiceStatus(invoiceId);
 
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath("/invoices");
