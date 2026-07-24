@@ -77,6 +77,17 @@ export default async function SettingsPage() {
       </Card>
 
       <Card className="p-5 mt-6">
+        <p className="text-sm font-semibold text-slate-700 mb-1">Public Booking Page</p>
+        <p className="text-xs text-slate-500 mb-2">
+          Share this link with customers (WhatsApp status, Google Business profile, business card)
+          so they can request an appointment anytime, even outside business hours:
+        </p>
+        <p className="text-sm font-mono text-indigo-600 bg-indigo-50 rounded-md px-3 py-2 break-all">
+          {settings.portal_url ? settings.portal_url.replace(/\/portal\/?$/, "/book") : "/book"}
+        </p>
+      </Card>
+
+      <Card className="p-5 mt-6">
         <p className="text-sm font-semibold text-slate-700 mb-1">Full Data Backup</p>
         <p className="text-xs text-slate-500 mb-4">
           Download a single zip with customers, invoices, expenses, this month&apos;s attendance,

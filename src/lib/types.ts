@@ -184,5 +184,6 @@ export type Appointment = {
   scheduled_at: string;
   notes: string | null;
   status: AppointmentStatus;
+  booked_online: boolean;
   created_at: string;
 };

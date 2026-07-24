@@ -9,6 +9,7 @@ type AppointmentRow = {
   scheduled_at: string;
   notes: string | null;
   status: AppointmentStatus;
+  booked_online: boolean;
   customers: { name: string; phone: string } | null;
   vehicles: { plate_number: string } | null;
 };
@@ -31,7 +32,7 @@ export default async function AppointmentsPage() {
   const [{ data: appointments, error }, { data: customers }] = await Promise.all([
     supabase
       .from("appointments")
-      .select("id, scheduled_at, notes, status, customers(name, phone), vehicles(plate_number)")
+      .select("id, scheduled_at, notes, status, booked_online, customers(name, phone), vehicles(plate_number)")
       .order("scheduled_at", { ascending: true })
       .returns<AppointmentRow[]>(),
     supabase
@@ -56,6 +57,11 @@ export default async function AppointmentsPage() {
               <div>
                 <p className="font-medium text-slate-900">
                   {new Date(apt.scheduled_at).toLocaleString()} — {apt.customers?.name}
+                  {apt.booked_online && (
+                    <span className="ml-2 inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+                      Online
+                    </span>
+                  )}
                 </p>
                 <p className="text-sm text-slate-500">
                   {apt.vehicles?.plate_number ?? "No vehicle specified"}

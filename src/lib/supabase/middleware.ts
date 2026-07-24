@@ -28,7 +28,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isLoginPage = request.nextUrl.pathname.startsWith("/login");
-  const isPublicPage = request.nextUrl.pathname.startsWith("/portal");
+  const isPublicPage =
+    request.nextUrl.pathname.startsWith("/portal") || request.nextUrl.pathname.startsWith("/book");
 
   if (!user && !isLoginPage && !isPublicPage) {
     const url = request.nextUrl.clone();
