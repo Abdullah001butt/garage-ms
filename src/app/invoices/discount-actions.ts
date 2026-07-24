@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function updateDiscount(invoiceId: string, formData: FormData) {
   const supabase = await createClient();
@@ -15,6 +16,8 @@ export async function updateDiscount(invoiceId: string, formData: FormData) {
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("invoice.discount_update", "invoice", invoiceId, { discount });
 
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath(`/estimates/${invoiceId}`);

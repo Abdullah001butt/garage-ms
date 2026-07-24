@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 import type { JobStatus } from "@/lib/types";
 
 export async function createJobCard(formData: FormData) {
@@ -47,6 +48,8 @@ export async function updateJobStatus(jobId: string, status: JobStatus) {
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("job.status_change", "job_card", jobId, { new_status: status });
 
   revalidatePath(`/jobs/${jobId}`);
   revalidatePath("/jobs");

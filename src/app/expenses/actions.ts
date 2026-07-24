@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function createExpense(formData: FormData) {
   const supabase = await createClient();
@@ -15,13 +16,17 @@ export async function createExpense(formData: FormData) {
     throw new Error("Category, amount, and date are required.");
   }
 
-  const { error } = await supabase
+  const { data: expense, error } = await supabase
     .from("expenses")
-    .insert({ category, description, amount, expense_date });
+    .insert({ category, description, amount, expense_date })
+    .select()
+    .single();
 
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("expense.create", "expense", expense.id, { category, amount, expense_date });
 
   revalidatePath("/expenses");
   revalidatePath("/dashboard");
@@ -65,10 +70,20 @@ export async function ensureMonthlyExpensesGenerated() {
 
 export async function deleteExpense(expenseId: string) {
   const supabase = await createClient();
+
+  const { data: expense } = await supabase
+    .from("expenses")
+    .select("category, amount, expense_date")
+    .eq("id", expenseId)
+    .maybeSingle();
+
   const { error } = await supabase.from("expenses").delete().eq("id", expenseId);
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("expense.delete", "expense", expenseId, expense ?? undefined);
+
   revalidatePath("/expenses");
   revalidatePath("/dashboard");
 }

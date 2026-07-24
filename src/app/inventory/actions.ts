@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function createPart(formData: FormData) {
   const supabase = await createClient();
@@ -33,6 +34,12 @@ export async function adjustStock(partId: string, formData: FormData) {
 
   const stock_qty = Number(formData.get("stock_qty") ?? 0);
 
+  const { data: before } = await supabase
+    .from("parts")
+    .select("stock_qty")
+    .eq("id", partId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("parts")
     .update({ stock_qty })
@@ -41,6 +48,11 @@ export async function adjustStock(partId: string, formData: FormData) {
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("part.stock_adjust", "part", partId, {
+    before: before?.stock_qty,
+    after: stock_qty,
+  });
 
   revalidatePath("/inventory");
 }

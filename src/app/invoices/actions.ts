@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export async function createInvoiceFromJobCard(
   jobCardId: string,
@@ -19,6 +20,8 @@ export async function createInvoiceFromJobCard(
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("invoice.create", "invoice", invoice.id, { from_job_card: jobCardId });
 
   revalidatePath(`/jobs/${jobCardId}`);
   redirect(`/invoices/${invoice.id}`);
@@ -41,6 +44,8 @@ export async function createEstimate(formData: FormData) {
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("estimate.create", "invoice", estimate.id);
 
   revalidatePath("/estimates");
   redirect(`/estimates/${estimate.id}`);
@@ -67,6 +72,8 @@ export async function convertEstimateToInvoice(estimateId: string) {
   for (const item of items ?? []) {
     await supabase.rpc("decrement_stock", { p_part_id: item.part_id, p_quantity: item.quantity });
   }
+
+  await logAudit("estimate.convert_to_invoice", "invoice", estimateId);
 
   revalidatePath(`/estimates/${estimateId}`);
   revalidatePath(`/invoices/${estimateId}`);
@@ -106,6 +113,7 @@ export async function addInvoiceItem(invoiceId: string, formData: FormData) {
   }
 
   await recalculateInvoiceStatus(invoiceId);
+  await logAudit("invoice_item.add", "invoice", invoiceId, { description, quantity, unit_price });
 
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath(`/estimates/${invoiceId}`);
@@ -115,6 +123,12 @@ export async function addInvoiceItem(invoiceId: string, formData: FormData) {
 export async function deleteInvoiceItem(invoiceId: string, itemId: string) {
   const supabase = await createClient();
 
+  const { data: item } = await supabase
+    .from("invoice_items")
+    .select("description, quantity, unit_price")
+    .eq("id", itemId)
+    .maybeSingle();
+
   const { error } = await supabase.from("invoice_items").delete().eq("id", itemId);
 
   if (error) {
@@ -122,6 +136,7 @@ export async function deleteInvoiceItem(invoiceId: string, itemId: string) {
   }
 
   await recalculateInvoiceStatus(invoiceId);
+  await logAudit("invoice_item.delete", "invoice", invoiceId, item ?? undefined);
 
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath(`/estimates/${invoiceId}`);
@@ -181,6 +196,7 @@ export async function recordPayment(invoiceId: string, formData: FormData) {
   }
 
   await recalculateInvoiceStatus(invoiceId);
+  await logAudit("payment.record", "invoice", invoiceId, { amount, method });
 
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath("/invoices");
@@ -190,6 +206,12 @@ export async function recordPayment(invoiceId: string, formData: FormData) {
 export async function deletePayment(invoiceId: string, paymentId: string) {
   const supabase = await createClient();
 
+  const { data: payment } = await supabase
+    .from("payments")
+    .select("amount, method")
+    .eq("id", paymentId)
+    .maybeSingle();
+
   const { error } = await supabase.from("payments").delete().eq("id", paymentId);
 
   if (error) {
@@ -197,6 +219,7 @@ export async function deletePayment(invoiceId: string, paymentId: string) {
   }
 
   await recalculateInvoiceStatus(invoiceId);
+  await logAudit("payment.delete", "invoice", invoiceId, payment ?? undefined);
 
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath("/invoices");

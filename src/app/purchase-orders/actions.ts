@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 import type { PurchaseOrderStatus } from "@/lib/types";
 
 export async function createPurchaseOrder(partId: string, formData: FormData) {
@@ -19,6 +20,8 @@ export async function createPurchaseOrder(partId: string, formData: FormData) {
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("purchase_order.create", "part", partId, { quantity });
 
   revalidatePath("/purchase-orders");
   revalidatePath("/inventory");
@@ -41,6 +44,8 @@ export async function updatePurchaseOrderStatus(
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("purchase_order.status_change", "purchase_order", poId, { new_status: status });
 
   revalidatePath("/purchase-orders");
   revalidatePath("/inventory");

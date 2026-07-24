@@ -133,6 +133,17 @@ export type Partner = {
 
 export type AttendanceStatus = "present" | "absent" | "paid_leave" | "holiday";
 
+export type AuditLog = {
+  id: string;
+  actor_id: string | null;
+  actor_name: string;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string;
+};
+
 export type Attendance = {
   id: string;
   profile_id: string;

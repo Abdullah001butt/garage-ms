@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 import type { Role } from "@/lib/types";
 
 export async function createProfile(formData: FormData) {
@@ -24,6 +25,8 @@ export async function createProfile(formData: FormData) {
     throw new Error(error.message);
   }
 
+  await logAudit("staff.create", "profile", id, { full_name, role });
+
   revalidatePath("/staff");
 }
 
@@ -34,6 +37,12 @@ export async function updateProfileRole(profileId: string, formData: FormData) {
     ? Number(formData.get("monthly_salary"))
     : null;
 
+  const { data: before } = await supabase
+    .from("profiles")
+    .select("role, monthly_salary")
+    .eq("id", profileId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("profiles")
     .update({ role, monthly_salary })
@@ -43,16 +52,30 @@ export async function updateProfileRole(profileId: string, formData: FormData) {
     throw new Error(error.message);
   }
 
+  await logAudit("staff.update", "profile", profileId, {
+    before,
+    after: { role, monthly_salary },
+  });
+
   revalidatePath("/staff");
 }
 
 export async function deleteProfile(profileId: string) {
   const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, role")
+    .eq("id", profileId)
+    .maybeSingle();
+
   const { error } = await supabase.from("profiles").delete().eq("id", profileId);
 
   if (error) {
     throw new Error(error.message);
   }
+
+  await logAudit("staff.delete", "profile", profileId, profile ?? undefined);
 
   revalidatePath("/staff");
 }
