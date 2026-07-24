@@ -12,10 +12,29 @@ export async function updateShopSettings(settingsId: string, formData: FormData)
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const vat_rate = Number(formData.get("vat_rate") ?? 5);
   const portal_url = String(formData.get("portal_url") ?? "").trim() || null;
+  const email = String(formData.get("email") ?? "").trim() || null;
+  const website = String(formData.get("website") ?? "").trim() || null;
+  const facsimile = String(formData.get("facsimile") ?? "").trim() || null;
+  const payment_method_note = String(formData.get("payment_method_note") ?? "").trim() || null;
+  const payment_instructions = String(formData.get("payment_instructions") ?? "").trim() || null;
+  const invoice_disclaimer = String(formData.get("invoice_disclaimer") ?? "").trim() || null;
 
   const { error } = await supabase
     .from("shop_settings")
-    .update({ shop_name, trn, address, phone, vat_rate, portal_url })
+    .update({
+      shop_name,
+      trn,
+      address,
+      phone,
+      vat_rate,
+      portal_url,
+      email,
+      website,
+      facsimile,
+      payment_method_note,
+      payment_instructions,
+      invoice_disclaimer,
+    })
     .eq("id", settingsId);
 
   if (error) {

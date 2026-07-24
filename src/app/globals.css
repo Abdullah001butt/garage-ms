@@ -22,4 +22,19 @@ body {
   .print\:hidden {
     display: none !important;
   }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .print\:full-width {
+    max-width: none !important;
+    width: 100% !important;
+  }
 }

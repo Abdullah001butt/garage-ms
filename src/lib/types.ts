@@ -45,6 +45,7 @@ export type Invoice = {
   status: InvoiceStatus;
   document_type: DocumentType;
   vat_rate: number;
+  discount: number;
   converted_from_estimate_id: string | null;
   created_at: string;
   paid_at: string | null;
@@ -83,6 +84,12 @@ export type ShopSettings = {
   phone: string | null;
   vat_rate: number;
   portal_url: string | null;
+  email: string | null;
+  website: string | null;
+  facsimile: string | null;
+  payment_method_note: string | null;
+  payment_instructions: string | null;
+  invoice_disclaimer: string | null;
   created_at: string;
 };
 

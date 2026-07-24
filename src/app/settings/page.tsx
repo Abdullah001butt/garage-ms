@@ -34,6 +34,9 @@ export default async function SettingsPage() {
           <Field label="VAT Rate (%)" name="vat_rate" type="number" step="0.01" defaultValue={settings.vat_rate} />
           <Field label="Address" name="address" defaultValue={settings.address ?? ""} className="col-span-2" />
           <Field label="Phone" name="phone" defaultValue={settings.phone ?? ""} />
+          <Field label="Facsimile / Alt Phone" name="facsimile" defaultValue={settings.facsimile ?? ""} />
+          <Field label="Email" name="email" type="email" defaultValue={settings.email ?? ""} />
+          <Field label="Website" name="website" defaultValue={settings.website ?? ""} placeholder="http://www.yourdomain.com" />
           <Field
             label="Customer Portal URL"
             name="portal_url"
@@ -41,6 +44,25 @@ export default async function SettingsPage() {
             placeholder="https://yourdomain.com/portal"
             className="col-span-2"
           />
+          <Field
+            label="Payment Method Note"
+            name="payment_method_note"
+            defaultValue={settings.payment_method_note ?? "Cash Only"}
+          />
+          <Field
+            label="Payment Instructions (bold line on invoice)"
+            name="payment_instructions"
+            defaultValue={settings.payment_instructions ?? ""}
+          />
+          <label className="block col-span-2">
+            <span className="block text-sm font-medium text-slate-700 mb-1">Invoice Disclaimer</span>
+            <textarea
+              name="invoice_disclaimer"
+              rows={2}
+              defaultValue={settings.invoice_disclaimer ?? ""}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </label>
           <div className="col-span-2">
             <PrimaryButton type="submit">Save Settings</PrimaryButton>
           </div>
