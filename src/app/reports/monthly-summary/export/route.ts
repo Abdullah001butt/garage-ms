@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import ExcelJS from "exceljs";
 import { createClient } from "@/lib/supabase/server";
+import { applyHeaderRow, applyBodyRow, applyTotalRow, CURRENCY_FORMAT, xlsxResponse } from "@/lib/xlsx-style";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -21,7 +23,20 @@ export async function GET(request: NextRequest) {
     .gte("expense_date", `${month}-01`)
     .lte("expense_date", `${month}-${String(daysInMonth).padStart(2, "0")}`);
 
-  const lines = ["Day,Cash In,Cash Out,Net"];
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Al Bahir Garage";
+  const sheet = workbook.addWorksheet(`Summary ${month}`, {
+    views: [{ state: "frozen", ySplit: 1 }],
+  });
+
+  sheet.columns = [
+    { header: "Day", key: "day", width: 10 },
+    { header: "Cash In", key: "in", width: 16, style: { numFmt: CURRENCY_FORMAT } },
+    { header: "Cash Out", key: "out", width: 16, style: { numFmt: CURRENCY_FORMAT } },
+    { header: "Net", key: "net", width: 16, style: { numFmt: CURRENCY_FORMAT } },
+  ];
+  applyHeaderRow(sheet.getRow(1));
+
   let totalIn = 0;
   let totalOut = 0;
 
@@ -35,17 +50,17 @@ export async function GET(request: NextRequest) {
       .reduce((s, e) => s + Number(e.amount), 0);
     totalIn += dayIn;
     totalOut += dayOut;
-    lines.push(`${day},${dayIn.toFixed(2)},${dayOut.toFixed(2)},${(dayIn - dayOut).toFixed(2)}`);
+
+    const row = sheet.addRow({ day, in: dayIn, out: dayOut, net: dayIn - dayOut });
+    applyBodyRow(row, day - 1);
+    if (dayIn - dayOut < 0) {
+      row.getCell("net").font = { color: { argb: "FFDC2626" }, bold: true };
+    }
   }
 
-  lines.push(`Total,${totalIn.toFixed(2)},${totalOut.toFixed(2)},${(totalIn - totalOut).toFixed(2)}`);
+  const totalRow = sheet.addRow({ day: "Total", in: totalIn, out: totalOut, net: totalIn - totalOut });
+  applyTotalRow(totalRow);
 
-  const csv = lines.join("\n");
-
-  return new NextResponse(csv, {
-    headers: {
-      "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="summary-${month}.csv"`,
-    },
-  });
+  const buffer = await workbook.xlsx.writeBuffer();
+  return xlsxResponse(buffer, `summary-${month}.xlsx`);
 }

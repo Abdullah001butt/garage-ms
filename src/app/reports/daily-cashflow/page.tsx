@@ -67,10 +67,10 @@ export default async function DailyCashflowPage({
         action={
           <div className="flex flex-wrap gap-2">
             <a href={`/reports/monthly-summary/export?month=${selectedDate.slice(0, 7)}`}>
-              <SecondaryButton type="button">Export Month Summary</SecondaryButton>
+              <SecondaryButton type="button">Export Month Summary (Excel)</SecondaryButton>
             </a>
             <a href={`/reports/daily-cashflow/export?date=${selectedDate}`}>
-              <SecondaryButton type="button">Export Day CSV</SecondaryButton>
+              <SecondaryButton type="button">Export Day (Excel)</SecondaryButton>
             </a>
           </div>
         }

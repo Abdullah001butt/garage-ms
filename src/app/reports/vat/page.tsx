@@ -55,7 +55,7 @@ export default async function VatReportPage({
         description="Tax collected per period, ready for filing."
         action={
           <a href={`/reports/vat/export?start=${startDate}&end=${endDate}`}>
-            <SecondaryButton type="button">Export CSV</SecondaryButton>
+            <SecondaryButton type="button">Export Excel</SecondaryButton>
           </a>
         }
       />
