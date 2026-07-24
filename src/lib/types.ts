@@ -18,6 +18,7 @@ export type Vehicle = {
   color: string | null;
   vin: string | null;
   notes: string | null;
+  service_interval_days: number | null;
   created_at: string;
 };
 
@@ -90,6 +91,7 @@ export type ShopSettings = {
   payment_method_note: string | null;
   payment_instructions: string | null;
   invoice_disclaimer: string | null;
+  default_service_interval_days: number;
   created_at: string;
 };
 

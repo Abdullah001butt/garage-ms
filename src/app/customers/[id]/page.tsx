@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Customer, Vehicle } from "@/lib/types";
-import { addVehicle } from "@/app/customers/actions";
+import { addVehicle, updateVehicleServiceInterval } from "@/app/customers/actions";
 import { Card, PageHeader, EmptyState, Field, Badge } from "@/components/ui";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
 
@@ -66,12 +66,31 @@ export default async function CustomerDetailPage({
                       {warranties[0].until.toLocaleDateString()}
                     </p>
                   )}
-                  <Link
-                    href={`/vehicles/${vehicle.id}/qr`}
-                    className="inline-block text-xs text-indigo-600 hover:underline mt-1"
-                  >
-                    View QR Code &rarr;
-                  </Link>
+                  <div className="flex items-center gap-3 mt-1">
+                    <Link
+                      href={`/vehicles/${vehicle.id}/qr`}
+                      className="text-xs text-indigo-600 hover:underline"
+                    >
+                      View QR Code &rarr;
+                    </Link>
+                    <form
+                      action={updateVehicleServiceInterval.bind(null, id, vehicle.id)}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-xs text-slate-400">Service every</span>
+                      <input
+                        type="number"
+                        name="service_interval_days"
+                        defaultValue={vehicle.service_interval_days ?? ""}
+                        placeholder="90"
+                        className="w-14 rounded border border-slate-300 px-1 py-0.5 text-xs"
+                      />
+                      <span className="text-xs text-slate-400">days</span>
+                      <button type="submit" className="text-xs text-indigo-600 hover:underline">
+                        Save
+                      </button>
+                    </form>
+                  </div>
                 </div>
                 {warranties.length > 0 && <Badge color="green">Under Warranty</Badge>}
               </li>

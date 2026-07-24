@@ -18,6 +18,7 @@ export async function updateShopSettings(settingsId: string, formData: FormData)
   const payment_method_note = String(formData.get("payment_method_note") ?? "").trim() || null;
   const payment_instructions = String(formData.get("payment_instructions") ?? "").trim() || null;
   const invoice_disclaimer = String(formData.get("invoice_disclaimer") ?? "").trim() || null;
+  const default_service_interval_days = Number(formData.get("default_service_interval_days") ?? 90);
 
   const { error } = await supabase
     .from("shop_settings")
@@ -34,6 +35,7 @@ export async function updateShopSettings(settingsId: string, formData: FormData)
       payment_method_note,
       payment_instructions,
       invoice_disclaimer,
+      default_service_interval_days,
     })
     .eq("id", settingsId);
 

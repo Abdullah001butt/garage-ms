@@ -83,3 +83,24 @@ export async function addVehicle(customerId: string, formData: FormData) {
 
   revalidatePath(`/customers/${customerId}`);
 }
+
+export async function updateVehicleServiceInterval(
+  customerId: string,
+  vehicleId: string,
+  formData: FormData
+) {
+  const supabase = await createClient();
+  const raw = String(formData.get("service_interval_days") ?? "").trim();
+  const service_interval_days = raw ? Number(raw) : null;
+
+  const { error } = await supabase
+    .from("vehicles")
+    .update({ service_interval_days })
+    .eq("id", vehicleId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath(`/customers/${customerId}`);
+}

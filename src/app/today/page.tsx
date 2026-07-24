@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, EmptyState } from "@/components/ui";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { getServiceDueVehicles } from "@/lib/service-due";
 
 type JobRow = {
   id: string;
@@ -84,6 +85,7 @@ export default async function TodayPage() {
     .sort((a, b) => b.balance - a.balance);
 
   const lowStockParts = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold);
+  const serviceDue = await getServiceDueVehicles();
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-8">
@@ -187,6 +189,37 @@ export default async function TodayPage() {
             {lowStockParts.length === 0 && <EmptyState message="All parts sufficiently stocked." />}
           </Card>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-slate-700">
+            Service Due {serviceDue.length > 0 && `(${serviceDue.length})`}
+          </h2>
+          <Link href="/service-reminders" className="text-xs text-indigo-600 hover:underline">
+            View all &rarr;
+          </Link>
+        </div>
+        <Card className="overflow-hidden">
+          <ul className="divide-y divide-slate-100">
+            {serviceDue.slice(0, 5).map((v) => (
+              <li key={v.vehicleId} className="px-4 py-3 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900 truncate">
+                    {v.plateNumber} — {v.customerName}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Last serviced {v.lastServiceAt.toLocaleDateString()}
+                  </p>
+                </div>
+                <Badge color={v.status === "overdue" ? "red" : "amber"}>
+                  {v.status === "overdue" ? "Overdue" : `Due ${v.dueAt.toLocaleDateString()}`}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+          {serviceDue.length === 0 && <EmptyState message="Nothing due for service soon." />}
+        </Card>
       </div>
     </div>
   );
