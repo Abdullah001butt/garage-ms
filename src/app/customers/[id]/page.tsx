@@ -66,6 +66,12 @@ export default async function CustomerDetailPage({
                       {warranties[0].until.toLocaleDateString()}
                     </p>
                   )}
+                  <Link
+                    href={`/vehicles/${vehicle.id}/qr`}
+                    className="inline-block text-xs text-indigo-600 hover:underline mt-1"
+                  >
+                    View QR Code &rarr;
+                  </Link>
                 </div>
                 {warranties.length > 0 && <Badge color="green">Under Warranty</Badge>}
               </li>
