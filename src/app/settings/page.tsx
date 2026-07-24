@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ShopSettings } from "@/lib/types";
 import { updateShopSettings } from "@/app/settings/actions";
-import { Card, PageHeader, PrimaryButton, Field } from "@/components/ui";
+import { Card, PageHeader, PrimaryButton, SecondaryButton, Field } from "@/components/ui";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -74,6 +74,17 @@ export default async function SettingsPage() {
             <PrimaryButton type="submit">Save Settings</PrimaryButton>
           </div>
         </form>
+      </Card>
+
+      <Card className="p-5 mt-6">
+        <p className="text-sm font-semibold text-slate-700 mb-1">Full Data Backup</p>
+        <p className="text-xs text-slate-500 mb-4">
+          Download a single zip with customers, invoices, expenses, this month&apos;s attendance,
+          and this month&apos;s profit &amp; loss — all as Excel files, independent of Supabase.
+        </p>
+        <a href="/backup/export">
+          <SecondaryButton type="button">Download Full Backup</SecondaryButton>
+        </a>
       </Card>
     </div>
   );

@@ -29,9 +29,14 @@ export default async function ExpensesPage() {
         title="Expenses"
         description={`This month: AED ${monthTotal.toFixed(2)}`}
         action={
-          <Link href="/expenses/templates">
-            <SecondaryButton type="button">Recurring Templates</SecondaryButton>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <a href="/expenses/export">
+              <SecondaryButton type="button">Export Excel</SecondaryButton>
+            </a>
+            <Link href="/expenses/templates">
+              <SecondaryButton type="button">Recurring Templates</SecondaryButton>
+            </Link>
+          </div>
         }
       />
 
