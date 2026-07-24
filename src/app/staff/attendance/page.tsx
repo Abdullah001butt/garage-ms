@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Attendance, AttendanceStatus, Profile } from "@/lib/types";
 import { cycleAttendance } from "@/app/staff/attendance/actions";
-import { Card, PageHeader } from "@/components/ui";
+import { Card, PageHeader, SecondaryButton } from "@/components/ui";
 
 function currentMonthValue() {
   const d = new Date();
@@ -64,6 +64,11 @@ export default async function AttendancePage({
       <PageHeader
         title="Attendance & Salary"
         description="Click a day to cycle: Present → Absent → Paid Leave → Holiday."
+        action={
+          <a href={`/staff/attendance/export?month=${monthValue}`}>
+            <SecondaryButton type="button">Export Excel</SecondaryButton>
+          </a>
+        }
       />
 
       <Card className="p-4 mb-6">

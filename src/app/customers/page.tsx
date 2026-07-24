@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Customer } from "@/lib/types";
-import { Card, PageHeader, EmptyState, PrimaryButton, inputClass } from "@/components/ui";
+import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, inputClass } from "@/components/ui";
 
 export default async function CustomersPage({
   searchParams,
@@ -28,9 +28,14 @@ export default async function CustomersPage({
         title="Customers"
         description="Customer records and their linked vehicles."
         action={
-          <Link href="/customers/new">
-            <PrimaryButton type="button">+ Add Customer</PrimaryButton>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <a href="/customers/export">
+              <SecondaryButton type="button">Export Excel</SecondaryButton>
+            </a>
+            <Link href="/customers/new">
+              <PrimaryButton type="button">+ Add Customer</PrimaryButton>
+            </Link>
+          </div>
         }
       />
 
