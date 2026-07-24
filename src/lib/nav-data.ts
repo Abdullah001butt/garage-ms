@@ -7,7 +7,10 @@ export type NavGroup = {
 export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Overview",
-    items: [{ href: "/dashboard", label: "Dashboard", icon: "M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v6H4zM14 15h6v6h-6z" }],
+    items: [
+      { href: "/today", label: "Today", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM9 16h.01M13 16h.01" },
+      { href: "/dashboard", label: "Dashboard", icon: "M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v6H4zM14 15h6v6h-6z" },
+    ],
   },
   {
     label: "Operations",

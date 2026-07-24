@@ -5,6 +5,7 @@ import { updateJobStatus } from "@/app/jobs/actions";
 import { createInvoiceFromJobCard } from "@/app/invoices/actions";
 import type { JobStatus } from "@/lib/types";
 import { Card, PageHeader, Badge, PrimaryButton, SecondaryButton } from "@/components/ui";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 type JobDetail = {
   id: string;
@@ -60,6 +61,15 @@ export default async function JobDetailPage({
     notFound();
   }
 
+  const vehicleLabel = [job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "vehicle";
+  const customerFirstName = job.customers?.name?.split(" ")[0] ?? "there";
+  const message =
+    job.status === "completed"
+      ? `Hi ${customerFirstName}, your ${vehicleLabel} (${job.vehicles?.plate_number}) is ready for pickup at Al Bahir Garage. Please let us know when you'd like to collect it.`
+      : job.status === "in_progress"
+      ? `Hi ${customerFirstName}, your ${vehicleLabel} (${job.vehicles?.plate_number}) is currently being serviced at Al Bahir Garage. We'll notify you once it's ready.`
+      : `Hi ${customerFirstName}, we've received your ${vehicleLabel} (${job.vehicles?.plate_number}) at Al Bahir Garage for: ${job.description}.`;
+
   return (
     <div className="mx-auto max-w-2xl p-6 md:p-8">
       <Link href="/jobs" className="text-sm text-indigo-600 hover:underline">
@@ -96,7 +106,7 @@ export default async function JobDetailPage({
         )}
       </Card>
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-4">
         {(["pending", "in_progress", "completed"] as JobStatus[]).map((s) => (
           <form key={s} action={updateJobStatus.bind(null, job.id, s)}>
             <SecondaryButton type="submit" disabled={job.status === s}>
@@ -105,6 +115,12 @@ export default async function JobDetailPage({
           </form>
         ))}
       </div>
+
+      {job.customers?.phone && (
+        <div className="mb-6">
+          <WhatsAppButton phone={job.customers.phone} message={message} />
+        </div>
+      )}
 
       {existingInvoice ? (
         <Link href={`/invoices/${existingInvoice.id}`}>

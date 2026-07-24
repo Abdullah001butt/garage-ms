@@ -12,6 +12,7 @@ import { updateDiscount } from "@/app/invoices/discount-actions";
 import { PrintButton } from "@/components/PrintButton";
 import { InvoiceItemForm } from "@/components/InvoiceItemForm";
 import { ClassicInvoiceTemplate } from "@/components/ClassicInvoiceTemplate";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Badge, Card, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import type { DocumentType, InvoiceItem, Part, Payment, ShopSettings } from "@/lib/types";
 
@@ -94,6 +95,14 @@ export async function DocumentDetail({
   const deleteItemWithId = deleteInvoiceItem.bind(null, id);
   const updateDiscountWithId = updateDiscount.bind(null, id);
 
+  const customerFirstName = doc.customers?.name?.split(" ")[0] ?? "there";
+  const vehicleLabel = doc.job_cards?.vehicles?.plate_number ?? "your vehicle";
+  const notifyMessage = isEstimate
+    ? `Hi ${customerFirstName}, here's the estimate for ${vehicleLabel}: AED ${total.toFixed(2)}. Let us know if you'd like to go ahead. — Al Bahir Garage`
+    : balanceDue > 0
+    ? `Hi ${customerFirstName}, your invoice for ${vehicleLabel} is AED ${total.toFixed(2)}, with a remaining balance of AED ${balanceDue.toFixed(2)}. — Al Bahir Garage`
+    : `Hi ${customerFirstName}, your invoice for ${vehicleLabel} (AED ${total.toFixed(2)}) is fully paid. Thank you for choosing Al Bahir Garage!`;
+
   return (
     <div className="mx-auto max-w-3xl p-6 md:p-8 print:full-width">
       <Link href={backHref} className="text-sm text-indigo-600 hover:underline print:hidden">
@@ -138,6 +147,7 @@ export async function DocumentDetail({
             <PrimaryButton type="submit">Convert to Invoice</PrimaryButton>
           </form>
         )}
+        {doc.customers?.phone && <WhatsAppButton phone={doc.customers.phone} message={notifyMessage} />}
       </div>
 
       {!isEstimate && (

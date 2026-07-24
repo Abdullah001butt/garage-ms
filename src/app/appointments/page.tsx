@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { AppointmentStatus } from "@/lib/types";
 import { createAppointment, updateAppointmentStatus } from "@/app/appointments/actions";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, labelClass, inputClass } from "@/components/ui";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 type AppointmentRow = {
   id: string;
@@ -63,6 +64,21 @@ export default async function AppointmentsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Badge color={STATUS_COLOR[apt.status]}>{apt.status}</Badge>
+                {apt.status === "scheduled" && apt.customers?.phone && (
+                  <a
+                    href={buildWhatsAppLink(
+                      apt.customers.phone,
+                      `Hi ${apt.customers.name.split(" ")[0]}, this is a reminder of your appointment at Al Bahir Garage on ${new Date(
+                        apt.scheduled_at
+                      ).toLocaleString()}${apt.vehicles?.plate_number ? ` for ${apt.vehicles.plate_number}` : ""}.`
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-emerald-700 hover:underline"
+                  >
+                    Remind
+                  </a>
+                )}
                 {apt.status === "scheduled" && (
                   <>
                     <form action={updateAppointmentStatus.bind(null, apt.id, "completed")}>
