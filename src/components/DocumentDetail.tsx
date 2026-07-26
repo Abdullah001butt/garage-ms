@@ -7,6 +7,7 @@ import {
   recordPayment,
   deletePayment,
   convertEstimateToInvoice,
+  applyJobTemplate,
 } from "@/app/invoices/actions";
 import { updateDiscount } from "@/app/invoices/discount-actions";
 import { PrintButton } from "@/components/PrintButton";
@@ -14,7 +15,7 @@ import { InvoiceItemForm } from "@/components/InvoiceItemForm";
 import { ClassicInvoiceTemplate } from "@/components/ClassicInvoiceTemplate";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Badge, Card, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
-import type { DocumentType, InvoiceItem, Part, Payment, ShopSettings } from "@/lib/types";
+import type { DocumentType, InvoiceItem, JobTemplate, Part, Payment, ShopSettings } from "@/lib/types";
 
 type DocDetail = {
   id: string;
@@ -55,7 +56,7 @@ export async function DocumentDetail({
 }) {
   const supabase = await createClient();
 
-  const [{ data: doc }, { data: items }, { data: parts }, { data: settings }, { data: payments }] =
+  const [{ data: doc }, { data: items }, { data: parts }, { data: settings }, { data: payments }, { data: jobTemplates }] =
     await Promise.all([
       supabase
         .from("invoices")
@@ -78,6 +79,7 @@ export async function DocumentDetail({
         .eq("invoice_id", id)
         .order("paid_at", { ascending: false })
         .returns<Payment[]>(),
+      supabase.from("job_templates").select("*").order("created_at").returns<JobTemplate[]>(),
     ]);
 
   if (!doc || doc.document_type !== expectedType) {
@@ -94,6 +96,7 @@ export async function DocumentDetail({
   const recordPaymentWithId = recordPayment.bind(null, id);
   const deleteItemWithId = deleteInvoiceItem.bind(null, id);
   const updateDiscountWithId = updateDiscount.bind(null, id);
+  const applyTemplateWithId = applyJobTemplate.bind(null, id);
 
   const customerFirstName = doc.customers?.name?.split(" ")[0] ?? "there";
   const vehicleLabel = doc.job_cards?.vehicles?.plate_number ?? "your vehicle";
@@ -207,6 +210,23 @@ export async function DocumentDetail({
               </div>
             </form>
           )}
+        </Card>
+      )}
+
+      {jobTemplates && jobTemplates.length > 0 && (
+        <Card className="p-4 mb-6 print:hidden">
+          <p className="text-sm font-semibold text-slate-700 mb-2">Apply a Job Template</p>
+          <form action={applyTemplateWithId} className="flex flex-wrap items-end gap-3">
+            <select name="template_id" required className={inputClass + " max-w-xs"}>
+              <option value="">Select a template...</option>
+              {jobTemplates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <SecondaryButton type="submit">Add Its Items</SecondaryButton>
+          </form>
         </Card>
       )}
 

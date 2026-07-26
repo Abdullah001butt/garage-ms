@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createJobCard } from "@/app/jobs/actions";
 import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
+import { JobDescriptionField } from "@/components/JobDescriptionField";
+import type { JobTemplate } from "@/lib/types";
 
 type VehicleOption = {
   id: string;
@@ -15,11 +17,14 @@ type VehicleOption = {
 
 export default async function NewJobCardPage() {
   const supabase = await createClient();
-  const { data: vehicles } = await supabase
-    .from("vehicles")
-    .select("id, customer_id, plate_number, make, model, customers(name)")
-    .order("plate_number")
-    .returns<VehicleOption[]>();
+  const [{ data: vehicles }, { data: templates }] = await Promise.all([
+    supabase
+      .from("vehicles")
+      .select("id, customer_id, plate_number, make, model, customers(name)")
+      .order("plate_number")
+      .returns<VehicleOption[]>(),
+    supabase.from("job_templates").select("*").order("created_at").returns<JobTemplate[]>(),
+  ]);
 
   const warrantyMap = await getActiveWarrantiesForVehicles((vehicles ?? []).map((v) => v.id));
 
@@ -73,18 +78,7 @@ export default async function NewJobCardPage() {
             </select>
           </label>
 
-          <label className="block">
-            <span className={labelClass}>
-              Description <span className="text-red-500">*</span>
-            </span>
-            <textarea
-              name="description"
-              required
-              rows={3}
-              placeholder="e.g. Oil change, brake pad replacement"
-              className={inputClass}
-            />
-          </label>
+          <JobDescriptionField templates={templates ?? []} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Mechanic" name="mechanic_name" />

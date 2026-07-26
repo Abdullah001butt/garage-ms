@@ -105,6 +105,23 @@ export type Expense = {
   created_at: string;
 };
 
+export type JobTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+};
+
+export type JobTemplateItem = {
+  id: string;
+  template_id: string;
+  description: string;
+  item_type: InvoiceItemType;
+  quantity: number;
+  unit_price: number;
+  sort_order: number;
+};
+
 export type Role = "owner" | "receptionist" | "mechanic";
 
 export type Profile = {

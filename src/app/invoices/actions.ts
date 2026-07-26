@@ -5,6 +5,45 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 
+export async function applyJobTemplate(invoiceId: string, formData: FormData) {
+  const supabase = await createClient();
+  const templateId = String(formData.get("template_id") ?? "").trim();
+  if (!templateId) {
+    throw new Error("Select a template first.");
+  }
+
+  const { data: templateItems, error } = await supabase
+    .from("job_template_items")
+    .select("description, item_type, quantity, unit_price")
+    .eq("template_id", templateId)
+    .order("sort_order");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (templateItems && templateItems.length > 0) {
+    const { error: insertError } = await supabase.from("invoice_items").insert(
+      templateItems.map((item) => ({
+        invoice_id: invoiceId,
+        description: item.description,
+        item_type: item.item_type,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+      }))
+    );
+    if (insertError) {
+      throw new Error(insertError.message);
+    }
+  }
+
+  await recalculateInvoiceStatus(invoiceId);
+  await logAudit("invoice.apply_template", "invoice", invoiceId, { template_id: templateId });
+
+  revalidatePath(`/invoices/${invoiceId}`);
+  revalidatePath(`/estimates/${invoiceId}`);
+}
+
 export async function createInvoiceFromJobCard(
   jobCardId: string,
   customerId: string

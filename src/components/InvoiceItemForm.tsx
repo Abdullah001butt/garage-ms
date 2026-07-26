@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { Part } from "@/lib/types";
-import { inputClass, labelClass, PrimaryButton } from "@/components/ui";
+import { inputClass, labelClass, PrimaryButton, SecondaryButton } from "@/components/ui";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 
 export function InvoiceItemForm({
   parts,
@@ -15,6 +16,8 @@ export function InvoiceItemForm({
   const [unitPrice, setUnitPrice] = useState<string>("");
   const [itemType, setItemType] = useState("part");
   const [partId, setPartId] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanMessage, setScanMessage] = useState<string | null>(null);
 
   function handlePartSelect(id: string) {
     setPartId(id);
@@ -26,23 +29,43 @@ export function InvoiceItemForm({
     }
   }
 
+  function handleScan(text: string) {
+    setShowScanner(false);
+    const match = parts.find((p) => p.sku && p.sku.toLowerCase() === text.trim().toLowerCase());
+    if (match) {
+      handlePartSelect(match.id);
+      setScanMessage(`Matched: ${match.name}`);
+    } else {
+      setScanMessage(`No part found with SKU "${text.trim()}"`);
+    }
+  }
+
   return (
     <form action={action} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+      {showScanner && (
+        <BarcodeScanner onScan={handleScan} onClose={() => setShowScanner(false)} />
+      )}
       {parts.length > 0 && (
         <label className="block col-span-2">
           <span className={labelClass}>Use existing part (optional)</span>
-          <select
-            value={partId}
-            onChange={(e) => handlePartSelect(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Custom line item...</option>
-            {parts.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} {p.sku ? `(${p.sku})` : ""} — stock {p.stock_qty}
-              </option>
-            ))}
-          </select>
+          <div className="flex gap-2">
+            <select
+              value={partId}
+              onChange={(e) => handlePartSelect(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Custom line item...</option>
+              {parts.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} {p.sku ? `(${p.sku})` : ""} — stock {p.stock_qty}
+                </option>
+              ))}
+            </select>
+            <SecondaryButton type="button" onClick={() => setShowScanner(true)}>
+              📷 Scan
+            </SecondaryButton>
+          </div>
+          {scanMessage && <span className="mt-1 block text-xs text-slate-500">{scanMessage}</span>}
         </label>
       )}
       <input type="hidden" name="part_id" value={partId} />
