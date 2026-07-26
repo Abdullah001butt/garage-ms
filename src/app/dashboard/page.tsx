@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, StatCard, Badge, EmptyState } from "@/components/ui";
 import { MonthlyTrendChart, type MonthlyTrendPoint } from "@/components/MonthlyTrendChart";
+import { GenerateInsightsButton } from "@/components/GenerateInsightsButton";
+import { generateAndSaveWeeklyInsights } from "@/app/dashboard/insights-actions";
 
 type InvoiceRow = {
   id: string;
@@ -31,7 +33,7 @@ function isThisMonth(dateStr: string) {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ data: invoices }, { data: jobs }, { data: expenses }, { data: parts }, { data: pos }, { data: payments }] =
+  const [{ data: invoices }, { data: jobs }, { data: expenses }, { data: parts }, { data: pos }, { data: payments }, { data: latestInsight }] =
     await Promise.all([
       supabase
         .from("invoices")
@@ -47,6 +49,12 @@ export default async function DashboardPage() {
       supabase.from("parts").select("id, stock_qty, reorder_threshold"),
       supabase.from("purchase_orders").select("id, status"),
       supabase.from("payments").select("amount, paid_at"),
+      supabase
+        .from("weekly_insights")
+        .select("content, created_at")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
   const realInvoices = (invoices ?? []).filter((i) => i.document_type === "invoice");
@@ -166,6 +174,23 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl p-6 md:p-8">
       <PageHeader title="Dashboard" description="Live performance and financial overview." />
+
+      <Card className="p-5 mb-6">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+          <p className="text-sm font-semibold text-slate-700">🤖 Weekly AI Insights</p>
+          <GenerateInsightsButton action={generateAndSaveWeeklyInsights} />
+        </div>
+        {latestInsight ? (
+          <>
+            <p className="text-sm text-slate-700 leading-relaxed">{latestInsight.content}</p>
+            <p className="text-xs text-slate-400 mt-2">
+              Generated {new Date(latestInsight.created_at).toLocaleString()}
+            </p>
+          </>
+        ) : (
+          <EmptyState message="No insights generated yet. Click the button to get an AI summary of this week's business." />
+        )}
+      </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard
