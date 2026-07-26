@@ -31,21 +31,30 @@ export async function DocumentList({
   description,
   newHref,
   detailBaseHref,
+  searchParams,
 }: {
   documentType: DocumentType;
   title: string;
   description: string;
   newHref?: string;
   detailBaseHref: string;
+  searchParams?: Promise<{ q?: string; status?: string }>;
 }) {
   const supabase = await createClient();
+  const { q, status: statusFilter } = (await searchParams) ?? {};
 
-  const { data: docs, error } = await supabase
+  const { data: allDocs, error } = await supabase
     .from("invoices")
     .select("id, status, created_at, vat_rate, discount, customers(name), invoice_items(quantity, unit_price)")
     .eq("document_type", documentType)
     .order("created_at", { ascending: false })
     .returns<Row[]>();
+
+  const docs = (allDocs ?? []).filter((doc) => {
+    const matchesQ = !q || (doc.customers?.name ?? "").toLowerCase().includes(q.toLowerCase());
+    const matchesStatus = !statusFilter || doc.status === statusFilter;
+    return matchesQ && matchesStatus;
+  });
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-8">
@@ -67,6 +76,35 @@ export async function DocumentList({
           </div>
         }
       />
+
+      <form className="flex flex-wrap gap-2 mb-4 text-sm" action={detailBaseHref === "/invoices" ? "/invoices" : "/estimates"}>
+        <input
+          type="text"
+          name="q"
+          defaultValue={q ?? ""}
+          placeholder="Search by customer name..."
+          className="rounded-lg border border-slate-300 px-3 py-1.5"
+        />
+        {documentType === "invoice" && (
+          <select name="status" defaultValue={statusFilter ?? ""} className="rounded-lg border border-slate-300 px-3 py-1.5">
+            <option value="">All statuses</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="partial">Partial</option>
+            <option value="paid">Paid</option>
+          </select>
+        )}
+        <button type="submit" className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50">
+          Filter
+        </button>
+        {(q || statusFilter) && (
+          <a
+            href={detailBaseHref === "/invoices" ? "/invoices" : "/estimates"}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-500 hover:bg-slate-50"
+          >
+            Clear
+          </a>
+        )}
+      </form>
 
       {error && <p className="text-red-600 text-sm mb-4">Failed to load: {error.message}</p>}
 
@@ -98,7 +136,9 @@ export async function DocumentList({
             );
           })}
         </ul>
-        {docs?.length === 0 && <EmptyState message={`No ${documentType}s yet.`} />}
+        {docs?.length === 0 && (
+          <EmptyState message={q || statusFilter ? "No matching results." : `No ${documentType}s yet.`} />
+        )}
       </Card>
     </div>
   );

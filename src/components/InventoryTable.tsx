@@ -4,19 +4,23 @@ import { useRef, useState } from "react";
 import type { Part } from "@/lib/types";
 import { Badge, EmptyState, SecondaryButton } from "@/components/ui";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 export function InventoryTable({
   parts,
   adjustStock,
   createPurchaseOrder,
+  updatePartSupplier,
 }: {
   parts: Part[];
   adjustStock: (partId: string, formData: FormData) => void;
   createPurchaseOrder: (partId: string, formData: FormData) => void;
+  updatePartSupplier: (partId: string, formData: FormData) => void;
 }) {
   const [showScanner, setShowScanner] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
+  const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
   function handleScan(text: string) {
@@ -50,6 +54,7 @@ export function InventoryTable({
               <th className="px-4 py-2.5 font-medium text-right">Stock</th>
               <th className="px-4 py-2.5 font-medium text-right">Cost</th>
               <th className="px-4 py-2.5 font-medium text-right">Price</th>
+              <th className="px-4 py-2.5 font-medium">Supplier</th>
               <th className="px-4 py-2.5 font-medium">Update Stock</th>
               <th className="px-4 py-2.5 font-medium">Reorder</th>
             </tr>
@@ -72,6 +77,74 @@ export function InventoryTable({
                   </td>
                   <td className="px-4 py-2.5 text-right">{part.unit_cost?.toFixed(2) ?? "—"}</td>
                   <td className="px-4 py-2.5 text-right">{part.unit_price?.toFixed(2) ?? "—"}</td>
+                  <td className="px-4 py-2.5">
+                    {editingSupplierId === part.id ? (
+                      <form
+                        action={(fd) => {
+                          updatePartSupplier(part.id, fd);
+                          setEditingSupplierId(null);
+                        }}
+                        className="flex flex-col gap-1"
+                      >
+                        <input
+                          type="text"
+                          name="supplier_name"
+                          defaultValue={part.supplier_name ?? ""}
+                          placeholder="Supplier name"
+                          className="w-32 rounded-md border border-slate-300 px-2 py-1 text-xs"
+                        />
+                        <input
+                          type="text"
+                          name="supplier_phone"
+                          defaultValue={part.supplier_phone ?? ""}
+                          placeholder="Phone"
+                          className="w-32 rounded-md border border-slate-300 px-2 py-1 text-xs"
+                        />
+                        <div className="flex gap-1">
+                          <button type="submit" className="rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100">
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingSupplierId(null)}
+                            className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="flex flex-col gap-1">
+                        {part.supplier_name ? (
+                          <>
+                            <span className="text-slate-700">{part.supplier_name}</span>
+                            {part.supplier_phone && (
+                              <a
+                                href={buildWhatsAppLink(
+                                  part.supplier_phone,
+                                  `Hi ${part.supplier_name}, we'd like to restock "${part.name}"${part.sku ? ` (SKU ${part.sku})` : ""} at Al Bahir Garage. Please let us know availability and price.`
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-emerald-600 hover:underline"
+                              >
+                                WhatsApp
+                              </a>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setEditingSupplierId(part.id)}
+                          className="text-left text-xs text-indigo-600 hover:underline"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5">
                     <form action={adjustStock.bind(null, part.id)} className="flex gap-2">
                       <input

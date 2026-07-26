@@ -50,57 +50,83 @@ export default async function AppointmentsPage() {
         <p className="text-red-600 text-sm mb-4">Failed to load appointments: {error.message}</p>
       )}
 
-      <Card className="mb-8 overflow-hidden">
-        <ul className="divide-y divide-slate-100">
-          {appointments?.map((apt) => (
-            <li key={apt.id} className="flex items-center justify-between px-4 py-3">
-              <div>
-                <p className="font-medium text-slate-900">
-                  {new Date(apt.scheduled_at).toLocaleString()} — {apt.customers?.name}
-                  {apt.booked_online && (
-                    <span className="ml-2 inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
-                      Online
-                    </span>
-                  )}
+      {(() => {
+        const groups = new Map<string, AppointmentRow[]>();
+        for (const apt of appointments ?? []) {
+          const dayKey = new Date(apt.scheduled_at).toDateString();
+          const arr = groups.get(dayKey) ?? [];
+          arr.push(apt);
+          groups.set(dayKey, arr);
+        }
+        const todayKey = new Date().toDateString();
+        return (
+          <div className="mb-8 space-y-4">
+            {[...groups.entries()].map(([dayKey, apts]) => (
+              <div key={dayKey}>
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {dayKey === todayKey ? "Today" : new Date(dayKey).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
                 </p>
-                <p className="text-sm text-slate-500">
-                  {apt.vehicles?.plate_number ?? "No vehicle specified"}
-                  {apt.notes ? ` · ${apt.notes}` : ""}
-                </p>
+                <Card className="overflow-hidden">
+                  <ul className="divide-y divide-slate-100">
+                    {apts.map((apt) => (
+                      <li key={apt.id} className="flex items-center justify-between px-4 py-3">
+                        <div>
+                          <p className="font-medium text-slate-900">
+                            {new Date(apt.scheduled_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} —{" "}
+                            {apt.customers?.name}
+                            {apt.booked_online && (
+                              <span className="ml-2 inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+                                Online
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-sm text-slate-500">
+                            {apt.vehicles?.plate_number ?? "No vehicle specified"}
+                            {apt.notes ? ` · ${apt.notes}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge color={STATUS_COLOR[apt.status]}>{apt.status}</Badge>
+                          {apt.status === "scheduled" && apt.customers?.phone && (
+                            <a
+                              href={buildWhatsAppLink(
+                                apt.customers.phone,
+                                `Hi ${apt.customers.name.split(" ")[0]}, this is a reminder of your appointment at Al Bahir Garage on ${new Date(
+                                  apt.scheduled_at
+                                ).toLocaleString()}${apt.vehicles?.plate_number ? ` for ${apt.vehicles.plate_number}` : ""}.`
+                              )}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-emerald-700 hover:underline"
+                            >
+                              Remind
+                            </a>
+                          )}
+                          {apt.status === "scheduled" && (
+                            <>
+                              <form action={updateAppointmentStatus.bind(null, apt.id, "completed")}>
+                                <button className="text-xs text-emerald-700 hover:underline">Complete</button>
+                              </form>
+                              <form action={updateAppointmentStatus.bind(null, apt.id, "cancelled")}>
+                                <button className="text-xs text-red-600 hover:underline">Cancel</button>
+                              </form>
+                            </>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge color={STATUS_COLOR[apt.status]}>{apt.status}</Badge>
-                {apt.status === "scheduled" && apt.customers?.phone && (
-                  <a
-                    href={buildWhatsAppLink(
-                      apt.customers.phone,
-                      `Hi ${apt.customers.name.split(" ")[0]}, this is a reminder of your appointment at Al Bahir Garage on ${new Date(
-                        apt.scheduled_at
-                      ).toLocaleString()}${apt.vehicles?.plate_number ? ` for ${apt.vehicles.plate_number}` : ""}.`
-                    )}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-emerald-700 hover:underline"
-                  >
-                    Remind
-                  </a>
-                )}
-                {apt.status === "scheduled" && (
-                  <>
-                    <form action={updateAppointmentStatus.bind(null, apt.id, "completed")}>
-                      <button className="text-xs text-emerald-700 hover:underline">Complete</button>
-                    </form>
-                    <form action={updateAppointmentStatus.bind(null, apt.id, "cancelled")}>
-                      <button className="text-xs text-red-600 hover:underline">Cancel</button>
-                    </form>
-                  </>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-        {appointments?.length === 0 && <EmptyState message="No appointments yet." />}
-      </Card>
+            ))}
+            {(appointments?.length ?? 0) === 0 && (
+              <Card>
+                <EmptyState message="No appointments yet." />
+              </Card>
+            )}
+          </div>
+        );
+      })()}
 
       <Card className="p-5">
         <p className="text-sm font-semibold text-slate-700 mb-4">Book an appointment</p>

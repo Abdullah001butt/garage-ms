@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Part } from "@/lib/types";
-import { createPart, adjustStock } from "@/app/inventory/actions";
+import { createPart, adjustStock, updatePartSupplier } from "@/app/inventory/actions";
 import { createPurchaseOrder } from "@/app/purchase-orders/actions";
 import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import { InventoryTable } from "@/components/InventoryTable";
@@ -42,6 +42,7 @@ export default async function InventoryPage() {
           parts={parts ?? []}
           adjustStock={adjustStock}
           createPurchaseOrder={createPurchaseOrder}
+          updatePartSupplier={updatePartSupplier}
         />
       </Card>
 
@@ -57,6 +58,8 @@ export default async function InventoryPage() {
           <Field label="Reorder Threshold" name="reorder_threshold" type="number" defaultValue={5} />
           <Field label="Unit Cost" name="unit_cost" type="number" step="0.01" />
           <Field label="Unit Price" name="unit_price" type="number" step="0.01" />
+          <Field label="Supplier Name (optional)" name="supplier_name" />
+          <Field label="Supplier Phone (optional)" name="supplier_phone" />
           <div className="col-span-2">
             <PrimaryButton type="submit">Add Part</PrimaryButton>
           </div>

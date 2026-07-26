@@ -13,6 +13,8 @@ export async function createPart(formData: FormData) {
   const reorder_threshold = Number(formData.get("reorder_threshold") ?? 5);
   const unit_cost = formData.get("unit_cost") ? Number(formData.get("unit_cost")) : null;
   const unit_price = formData.get("unit_price") ? Number(formData.get("unit_price")) : null;
+  const supplier_name = String(formData.get("supplier_name") ?? "").trim() || null;
+  const supplier_phone = String(formData.get("supplier_phone") ?? "").trim() || null;
 
   if (!name) {
     throw new Error("Name is required.");
@@ -20,7 +22,25 @@ export async function createPart(formData: FormData) {
 
   const { error } = await supabase
     .from("parts")
-    .insert({ name, sku, stock_qty, reorder_threshold, unit_cost, unit_price });
+    .insert({ name, sku, stock_qty, reorder_threshold, unit_cost, unit_price, supplier_name, supplier_phone });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/inventory");
+}
+
+export async function updatePartSupplier(partId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const supplier_name = String(formData.get("supplier_name") ?? "").trim() || null;
+  const supplier_phone = String(formData.get("supplier_phone") ?? "").trim() || null;
+
+  const { error } = await supabase
+    .from("parts")
+    .update({ supplier_name, supplier_phone })
+    .eq("id", partId);
 
   if (error) {
     throw new Error(error.message);

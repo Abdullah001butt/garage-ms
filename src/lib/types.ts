@@ -74,6 +74,8 @@ export type Part = {
   unit_cost: number | null;
   unit_price: number | null;
   reorder_threshold: number;
+  supplier_name: string | null;
+  supplier_phone: string | null;
   created_at: string;
 };
 
