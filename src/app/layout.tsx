@@ -49,7 +49,7 @@ export default async function RootLayout({
                     <a href="/" className="md:hidden font-semibold text-slate-900 truncate shrink-0">
                       Al Bahir
                     </a>
-                    <div className="flex-1 max-w-35 sm:max-w-xs">
+                    <div className="min-w-0 flex-1 max-w-35 sm:max-w-xs">
                       <GlobalSearch />
                     </div>
                   </div>

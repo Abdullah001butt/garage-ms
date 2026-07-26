@@ -111,12 +111,12 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-400 hover:border-slate-300 hover:text-slate-500 w-full max-w-xs"
+        className="flex min-w-0 w-full max-w-xs items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-400 hover:border-slate-300 hover:text-slate-500"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
         </svg>
-        <span className="truncate">Search customers, plates, jobs...</span>
+        <span className="min-w-0 flex-1 truncate text-left">Search customers, plates, jobs...</span>
         <kbd className="ml-auto hidden sm:inline text-xs text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">
           Ctrl K
         </kbd>
