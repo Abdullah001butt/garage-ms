@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
+import { NoZoomGuard } from "@/components/NoZoomGuard";
 import { MobileNav } from "@/components/MobileNav";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { getCurrentUserAndProfile } from "@/lib/auth";
@@ -43,6 +44,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-slate-50 overflow-x-hidden">
+        <NoZoomGuard />
         {!user ? (
           children
         ) : (
