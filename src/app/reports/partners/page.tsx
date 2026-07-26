@@ -62,7 +62,7 @@ export default async function PartnerProfitReportPage({
         </form>
       </Card>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard label="Revenue" value={`AED ${totalRevenue.toFixed(2)}`} accent="green" />
         <StatCard label="Expenses" value={`AED ${totalExpenses.toFixed(2)}`} accent="red" />
         <StatCard label="Net Profit" value={`AED ${netProfit.toFixed(2)}`} accent={netProfit >= 0 ? "indigo" : "red"} />

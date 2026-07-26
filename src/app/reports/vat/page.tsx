@@ -91,7 +91,7 @@ export default async function VatReportPage({
 
       {error && <p className="text-red-600 text-sm mb-4">Failed to load: {error.message}</p>}
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard label="Net Sales" value={`AED ${totalSubtotal.toFixed(2)}`} />
         <StatCard label="VAT Collected" value={`AED ${totalVat.toFixed(2)}`} accent="indigo" />
         <StatCard label="Total Invoiced" value={`AED ${totalAmount.toFixed(2)}`} accent="green" />

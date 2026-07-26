@@ -2,8 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Customer, Vehicle } from "@/lib/types";
-import { addVehicle, updateVehicleServiceInterval } from "@/app/customers/actions";
-import { Card, PageHeader, EmptyState, Field, Badge } from "@/components/ui";
+import {
+  addVehicle,
+  updateVehicleServiceInterval,
+  updateCustomer,
+  deleteCustomer,
+  updateVehicle,
+  deleteVehicle,
+} from "@/app/customers/actions";
+import { Card, PageHeader, EmptyState, Field, Badge, SecondaryButton } from "@/components/ui";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
 
 export default async function CustomerDetailPage({
@@ -31,6 +39,8 @@ export default async function CustomerDetailPage({
   const warrantyMap = await getActiveWarrantiesForVehicles((vehicles ?? []).map((v) => v.id));
 
   const addVehicleWithId = addVehicle.bind(null, id);
+  const updateCustomerWithId = updateCustomer.bind(null, id);
+  const deleteCustomerWithId = deleteCustomer.bind(null, id);
 
   return (
     <div className="mx-auto max-w-3xl p-6 md:p-8">
@@ -42,6 +52,30 @@ export default async function CustomerDetailPage({
         title={customer.name}
         description={[customer.phone, customer.email, customer.address].filter(Boolean).join(" · ")}
       />
+
+      <Card className="mb-6 p-4">
+        <details>
+          <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+            Edit customer details
+          </summary>
+          <form action={updateCustomerWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <Field label="Name" name="name" defaultValue={customer.name} required />
+            <Field label="Phone" name="phone" defaultValue={customer.phone} required />
+            <Field label="Email" name="email" defaultValue={customer.email ?? ""} />
+            <Field label="Address" name="address" defaultValue={customer.address ?? ""} />
+            <div className="col-span-2">
+              <SecondaryButton type="submit">Save Changes</SecondaryButton>
+            </div>
+          </form>
+          <form action={deleteCustomerWithId} className="mt-3">
+            <ConfirmSubmitButton
+              confirmMessage={`Delete customer "${customer.name}" and all their records? This cannot be undone.`}
+            >
+              Delete Customer
+            </ConfirmSubmitButton>
+          </form>
+        </details>
+      </Card>
 
       <h2 className="text-sm font-semibold text-slate-700 mb-3">Vehicles</h2>
       <Card className="mb-6 overflow-hidden">
@@ -66,7 +100,7 @@ export default async function CustomerDetailPage({
                       {warranties[0].until.toLocaleDateString()}
                     </p>
                   )}
-                  <div className="flex items-center gap-3 mt-1">
+                  <div className="flex flex-wrap items-center gap-3 mt-1">
                     <Link
                       href={`/vehicles/${vehicle.id}/qr`}
                       className="text-xs text-indigo-600 hover:underline"
@@ -89,6 +123,33 @@ export default async function CustomerDetailPage({
                       <button type="submit" className="text-xs text-indigo-600 hover:underline">
                         Save
                       </button>
+                    </form>
+                    <details className="inline-block">
+                      <summary className="cursor-pointer text-xs text-slate-500 hover:underline">
+                        Edit vehicle
+                      </summary>
+                      <form
+                        action={updateVehicle.bind(null, id, vehicle.id)}
+                        className="mt-2 grid grid-cols-2 gap-2 w-64"
+                      >
+                        <Field label="Plate" name="plate_number" defaultValue={vehicle.plate_number} required className="col-span-2" />
+                        <Field label="Make" name="make" defaultValue={vehicle.make ?? ""} />
+                        <Field label="Model" name="model" defaultValue={vehicle.model ?? ""} />
+                        <Field label="Year" name="year" type="number" defaultValue={vehicle.year ?? ""} />
+                        <Field label="Color" name="color" defaultValue={vehicle.color ?? ""} />
+                        <Field label="VIN" name="vin" defaultValue={vehicle.vin ?? ""} className="col-span-2" />
+                        <button
+                          type="submit"
+                          className="col-span-2 rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
+                        >
+                          Save Vehicle
+                        </button>
+                      </form>
+                    </details>
+                    <form action={deleteVehicle.bind(null, id, vehicle.id)}>
+                      <ConfirmSubmitButton confirmMessage={`Delete vehicle "${vehicle.plate_number}"? This cannot be undone.`}>
+                        Delete
+                      </ConfirmSubmitButton>
                     </form>
                   </div>
                 </div>

@@ -102,7 +102,7 @@ export default async function DailyCashflowPage({
         </p>
       )}
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard label="Cash In" value={`AED ${totalIn.toFixed(2)}`} accent="green" />
         <StatCard label="Cash Out" value={`AED ${totalOut.toFixed(2)}`} accent="red" />
         <StatCard label="Net" value={`AED ${net.toFixed(2)}`} accent={net >= 0 ? "indigo" : "red"} />

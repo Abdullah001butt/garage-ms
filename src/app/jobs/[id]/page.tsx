@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateJobStatus } from "@/app/jobs/actions";
+import { updateJobStatus, updateJobCard, deleteJobCard } from "@/app/jobs/actions";
 import { createInvoiceFromJobCard } from "@/app/invoices/actions";
 import type { JobStatus } from "@/lib/types";
-import { Card, PageHeader, Badge, PrimaryButton, SecondaryButton } from "@/components/ui";
+import { Card, PageHeader, Badge, PrimaryButton, SecondaryButton, Field } from "@/components/ui";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 type JobDetail = {
   id: string;
@@ -105,6 +106,36 @@ export default async function JobDetailPage({
             Completed {new Date(job.completed_at).toLocaleString()}
           </p>
         )}
+      </Card>
+
+      <Card className="p-4 mb-6">
+        <details>
+          <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+            Edit job card
+          </summary>
+          <form action={updateJobCard.bind(null, job.id)} className="space-y-4 mt-4">
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Description</span>
+              <textarea
+                name="description"
+                required
+                rows={3}
+                defaultValue={job.description}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Mechanic" name="mechanic_name" defaultValue={job.mechanic_name ?? ""} />
+              <Field label="Odometer" name="odometer" type="number" defaultValue={job.odometer ?? ""} />
+            </div>
+            <SecondaryButton type="submit">Save Changes</SecondaryButton>
+          </form>
+          <form action={deleteJobCard.bind(null, job.id)} className="mt-3">
+            <ConfirmSubmitButton confirmMessage="Delete this job card? This cannot be undone.">
+              Delete Job Card
+            </ConfirmSubmitButton>
+          </form>
+        </details>
       </Card>
 
       <div className="flex flex-wrap gap-2 mb-4">

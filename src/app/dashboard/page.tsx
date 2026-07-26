@@ -213,24 +213,26 @@ export default async function DashboardPage() {
           {mechanicRows.length === 0 ? (
             <EmptyState message="No completed jobs with a mechanic assigned yet." />
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-slate-500">
-                  <th className="pb-2 font-medium">Mechanic</th>
-                  <th className="pb-2 font-medium text-right">Completed</th>
-                  <th className="pb-2 font-medium text-right">Avg. Turnaround</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {mechanicRows.map((m) => (
-                  <tr key={m.name}>
-                    <td className="py-2 font-medium text-slate-900">{m.name}</td>
-                    <td className="py-2 text-right">{m.completed}</td>
-                    <td className="py-2 text-right">{m.avgHours.toFixed(1)}h</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-slate-500">
+                    <th className="pb-2 font-medium">Mechanic</th>
+                    <th className="pb-2 font-medium text-right">Completed</th>
+                    <th className="pb-2 font-medium text-right">Avg. Turnaround</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {mechanicRows.map((m) => (
+                    <tr key={m.name}>
+                      <td className="py-2 font-medium text-slate-900">{m.name}</td>
+                      <td className="py-2 text-right">{m.completed}</td>
+                      <td className="py-2 text-right">{m.avgHours.toFixed(1)}h</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </Card>
       </div>

@@ -1,26 +1,32 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import type { Part } from "@/lib/types";
-import { Badge, EmptyState, SecondaryButton } from "@/components/ui";
+import { Badge, EmptyState, Field, SecondaryButton } from "@/components/ui";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 export function InventoryTable({
   parts,
   adjustStock,
   createPurchaseOrder,
   updatePartSupplier,
+  updatePart,
+  deletePart,
 }: {
   parts: Part[];
   adjustStock: (partId: string, formData: FormData) => void;
   createPurchaseOrder: (partId: string, formData: FormData) => void;
   updatePartSupplier: (partId: string, formData: FormData) => void;
+  updatePart: (partId: string, formData: FormData) => void;
+  deletePart: (partId: string) => void;
 }) {
   const [showScanner, setShowScanner] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
+  const [editingPartId, setEditingPartId] = useState<string | null>(null);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
   function handleScan(text: string) {
@@ -57,14 +63,15 @@ export function InventoryTable({
               <th className="px-4 py-2.5 font-medium">Supplier</th>
               <th className="px-4 py-2.5 font-medium">Update Stock</th>
               <th className="px-4 py-2.5 font-medium">Reorder</th>
+              <th className="px-4 py-2.5 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {parts.map((part) => {
               const isLow = part.stock_qty <= part.reorder_threshold;
               return (
+                <Fragment key={part.id}>
                 <tr
-                  key={part.id}
                   ref={(el) => {
                     rowRefs.current[part.id] = el;
                   }}
@@ -178,7 +185,55 @@ export function InventoryTable({
                       </button>
                     </form>
                   </td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditingPartId(editingPartId === part.id ? null : part.id)}
+                        className="text-left text-xs text-indigo-600 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <form action={deletePart.bind(null, part.id)}>
+                        <ConfirmSubmitButton confirmMessage={`Delete part "${part.name}"? This cannot be undone.`}>
+                          Delete
+                        </ConfirmSubmitButton>
+                      </form>
+                    </div>
+                  </td>
                 </tr>
+                {editingPartId === part.id && (
+                  <tr className="bg-slate-50">
+                    <td colSpan={8} className="px-4 py-3">
+                      <form
+                        action={(fd) => {
+                          updatePart(part.id, fd);
+                          setEditingPartId(null);
+                        }}
+                        className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+                      >
+                        <Field label="Name" name="name" defaultValue={part.name} required />
+                        <Field label="SKU" name="sku" defaultValue={part.sku ?? ""} />
+                        <Field label="Reorder Threshold" name="reorder_threshold" type="number" defaultValue={part.reorder_threshold} />
+                        <Field label="Unit Cost" name="unit_cost" type="number" step="0.01" defaultValue={part.unit_cost ?? ""} />
+                        <Field label="Unit Price" name="unit_price" type="number" step="0.01" defaultValue={part.unit_price ?? ""} />
+                        <div className="flex items-end gap-2">
+                          <button type="submit" className="rounded-md border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100">
+                            Save Part
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingPartId(null)}
+                            className="rounded-md border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               );
             })}
           </tbody>

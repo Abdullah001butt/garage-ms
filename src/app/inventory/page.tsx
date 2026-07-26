@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Part } from "@/lib/types";
-import { createPart, adjustStock, updatePartSupplier } from "@/app/inventory/actions";
+import { createPart, adjustStock, updatePartSupplier, updatePart, deletePart } from "@/app/inventory/actions";
 import { createPurchaseOrder } from "@/app/purchase-orders/actions";
 import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import { InventoryTable } from "@/components/InventoryTable";
@@ -43,6 +43,8 @@ export default async function InventoryPage() {
           adjustStock={adjustStock}
           createPurchaseOrder={createPurchaseOrder}
           updatePartSupplier={updatePartSupplier}
+          updatePart={updatePart}
+          deletePart={deletePart}
         />
       </Card>
 

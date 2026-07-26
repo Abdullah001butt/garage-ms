@@ -33,6 +33,43 @@ export async function createAppointment(formData: FormData) {
   revalidatePath("/appointments");
 }
 
+export async function rescheduleAppointment(appointmentId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const date = String(formData.get("date") ?? "").trim();
+  const time = String(formData.get("time") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim() || null;
+
+  if (!date || !time) {
+    throw new Error("Date and time are required.");
+  }
+
+  const scheduled_at = new Date(`${date}T${time}`).toISOString();
+
+  const { error } = await supabase
+    .from("appointments")
+    .update({ scheduled_at, notes })
+    .eq("id", appointmentId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/appointments");
+}
+
+export async function deleteAppointment(appointmentId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("appointments").delete().eq("id", appointmentId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/appointments");
+}
+
 export async function updateAppointmentStatus(
   appointmentId: string,
   status: AppointmentStatus

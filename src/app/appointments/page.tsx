@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import type { AppointmentStatus } from "@/lib/types";
-import { createAppointment, updateAppointmentStatus } from "@/app/appointments/actions";
+import { createAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } from "@/app/appointments/actions";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, labelClass, inputClass } from "@/components/ui";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 type AppointmentRow = {
   id: string;
@@ -69,7 +70,7 @@ export default async function AppointmentsPage() {
                 <Card className="overflow-hidden">
                   <ul className="divide-y divide-slate-100">
                     {apts.map((apt) => (
-                      <li key={apt.id} className="flex items-center justify-between px-4 py-3">
+                      <li key={apt.id} className="relative flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                         <div>
                           <p className="font-medium text-slate-900">
                             {new Date(apt.scheduled_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} —{" "}
@@ -107,11 +108,53 @@ export default async function AppointmentsPage() {
                               <form action={updateAppointmentStatus.bind(null, apt.id, "completed")}>
                                 <button className="text-xs text-emerald-700 hover:underline">Complete</button>
                               </form>
+                              <details className="inline-block">
+                                <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">
+                                  Reschedule
+                                </summary>
+                                <form
+                                  action={rescheduleAppointment.bind(null, apt.id)}
+                                  className="absolute z-10 mt-1 flex flex-col gap-1 rounded-lg border border-slate-200 bg-white p-3 shadow-md"
+                                >
+                                  <input
+                                    type="date"
+                                    name="date"
+                                    required
+                                    defaultValue={new Date(apt.scheduled_at).toISOString().slice(0, 10)}
+                                    className="rounded border border-slate-300 px-2 py-1 text-xs"
+                                  />
+                                  <input
+                                    type="time"
+                                    name="time"
+                                    required
+                                    defaultValue={new Date(apt.scheduled_at).toTimeString().slice(0, 5)}
+                                    className="rounded border border-slate-300 px-2 py-1 text-xs"
+                                  />
+                                  <input
+                                    type="text"
+                                    name="notes"
+                                    defaultValue={apt.notes ?? ""}
+                                    placeholder="Notes"
+                                    className="rounded border border-slate-300 px-2 py-1 text-xs"
+                                  />
+                                  <button
+                                    type="submit"
+                                    className="rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
+                                  >
+                                    Save
+                                  </button>
+                                </form>
+                              </details>
                               <form action={updateAppointmentStatus.bind(null, apt.id, "cancelled")}>
                                 <button className="text-xs text-red-600 hover:underline">Cancel</button>
                               </form>
                             </>
                           )}
+                          <form action={deleteAppointment.bind(null, apt.id)}>
+                            <ConfirmSubmitButton confirmMessage="Delete this appointment? This cannot be undone.">
+                              Delete
+                            </ConfirmSubmitButton>
+                          </form>
                         </div>
                       </li>
                     ))}

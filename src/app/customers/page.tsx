@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Customer } from "@/lib/types";
 import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, inputClass } from "@/components/ui";
+import { deleteCustomer } from "@/app/customers/actions";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 export default async function CustomersPage({
   searchParams,
@@ -58,17 +60,18 @@ export default async function CustomersPage({
       <Card className="overflow-hidden">
         <ul className="divide-y divide-slate-100">
           {(customers as Customer[] | null)?.map((customer) => (
-            <li key={customer.id}>
-              <Link
-                href={`/customers/${customer.id}`}
-                className="flex items-center justify-between px-4 py-3 hover:bg-slate-50"
-              >
-                <div>
-                  <p className="font-medium text-slate-900">{customer.name}</p>
-                  <p className="text-sm text-slate-500">{customer.phone}</p>
-                </div>
-                <span className="text-slate-400">&rarr;</span>
+            <li key={customer.id} className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-slate-50">
+              <Link href={`/customers/${customer.id}`} className="min-w-0 flex-1">
+                <p className="font-medium text-slate-900 truncate">{customer.name}</p>
+                <p className="text-sm text-slate-500">{customer.phone}</p>
               </Link>
+              <form action={deleteCustomer.bind(null, customer.id)}>
+                <ConfirmSubmitButton
+                  confirmMessage={`Delete customer "${customer.name}"? This cannot be undone.`}
+                >
+                  Delete
+                </ConfirmSubmitButton>
+              </form>
             </li>
           ))}
         </ul>

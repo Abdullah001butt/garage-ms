@@ -34,6 +34,48 @@ export async function createJobCard(formData: FormData) {
   redirect(`/jobs/${jobCard.id}`);
 }
 
+export async function updateJobCard(jobId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const description = String(formData.get("description") ?? "").trim();
+  const mechanic_name = String(formData.get("mechanic_name") ?? "").trim() || null;
+  const odometerRaw = String(formData.get("odometer") ?? "").trim();
+  const odometer = odometerRaw ? Number(odometerRaw) : null;
+
+  if (!description) {
+    throw new Error("Description is required.");
+  }
+
+  const { error } = await supabase
+    .from("job_cards")
+    .update({ description, mechanic_name, odometer })
+    .eq("id", jobId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await logAudit("job.update", "job_card", jobId, { description, mechanic_name });
+
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath("/jobs");
+}
+
+export async function deleteJobCard(jobId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("job_cards").delete().eq("id", jobId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await logAudit("job.delete", "job_card", jobId);
+
+  revalidatePath("/jobs");
+  redirect("/jobs");
+}
+
 export async function updateJobStatus(jobId: string, status: JobStatus) {
   const supabase = await createClient();
 
