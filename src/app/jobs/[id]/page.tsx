@@ -46,7 +46,7 @@ export default async function JobDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: job }, { data: existingInvoice }] = await Promise.all([
+  const [{ data: job }, { data: existingInvoice }, { data: settings }] = await Promise.all([
     supabase
       .from("job_cards")
       .select(
@@ -55,6 +55,7 @@ export default async function JobDetailPage({
       .eq("id", id)
       .single<JobDetail>(),
     supabase.from("invoices").select("id").eq("job_card_id", id).maybeSingle(),
+    supabase.from("shop_settings").select("google_review_link").maybeSingle(),
   ]);
 
   if (!job) {
@@ -117,8 +118,15 @@ export default async function JobDetailPage({
       </div>
 
       {job.customers?.phone && (
-        <div className="mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           <WhatsAppButton phone={job.customers.phone} message={message} />
+          {job.status === "completed" && settings?.google_review_link && (
+            <WhatsAppButton
+              phone={job.customers.phone}
+              label="Request Review"
+              message={`Hi ${customerFirstName}, thank you for choosing Al Bahir Garage! If you were happy with our service, we'd really appreciate a quick Google review: ${settings.google_review_link}`}
+            />
+          )}
         </div>
       )}
 

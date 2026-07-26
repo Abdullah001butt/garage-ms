@@ -148,6 +148,13 @@ export async function DocumentDetail({
           </form>
         )}
         {doc.customers?.phone && <WhatsAppButton phone={doc.customers.phone} message={notifyMessage} />}
+        {!isEstimate && doc.status === "paid" && doc.customers?.phone && settings?.google_review_link && (
+          <WhatsAppButton
+            phone={doc.customers.phone}
+            label="Request Review"
+            message={`Hi ${customerFirstName}, thank you for choosing Al Bahir Garage! If you were happy with our service, we'd really appreciate a quick Google review: ${settings.google_review_link}`}
+          />
+        )}
       </div>
 
       {!isEstimate && (

@@ -92,6 +92,7 @@ export type ShopSettings = {
   payment_instructions: string | null;
   invoice_disclaimer: string | null;
   default_service_interval_days: number;
+  google_review_link: string | null;
   created_at: string;
 };
 

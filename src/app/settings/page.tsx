@@ -71,6 +71,22 @@ export default async function SettingsPage() {
             className="col-span-2"
           />
           <div className="col-span-2">
+            <span className="block text-sm font-medium text-slate-700 mb-1">
+              Google Review Link
+            </span>
+            <p className="text-xs text-slate-500 mb-1">
+              In Google Business Profile, go to &quot;Get more reviews&quot; and copy the short link
+              it gives you (e.g. g.page/r/.../review).
+            </p>
+            <input
+              type="text"
+              name="google_review_link"
+              defaultValue={settings.google_review_link ?? ""}
+              placeholder="https://g.page/r/xxxxxxxxxxxx/review"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div className="col-span-2">
             <PrimaryButton type="submit">Save Settings</PrimaryButton>
           </div>
         </form>
