@@ -92,7 +92,6 @@ export async function deleteCustomer(customerId: string) {
   await logAudit("customer.delete", "customer", customerId);
 
   revalidatePath("/customers");
-  redirect("/customers");
 }
 
 export async function updateVehicle(customerId: string, vehicleId: string, formData: FormData) {

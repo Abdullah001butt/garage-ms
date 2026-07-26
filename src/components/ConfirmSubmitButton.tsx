@@ -1,25 +1,47 @@
 "use client";
 
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
+
 export function ConfirmSubmitButton({
-  children,
+  action,
   confirmMessage,
-  className = "text-xs text-red-500 hover:underline",
+  successMessage = "Deleted successfully.",
+  redirectTo,
+  className = "text-xs text-red-500 hover:underline disabled:opacity-50",
+  children,
 }: {
-  children: React.ReactNode;
+  action: () => Promise<void>;
   confirmMessage: string;
+  successMessage?: string;
+  redirectTo?: string;
   className?: string;
+  children: React.ReactNode;
 }) {
+  const [isPending, startTransition] = useTransition();
+  const { showToast } = useToast();
+  const router = useRouter();
+
   return (
     <button
-      type="submit"
+      type="button"
+      disabled={isPending}
       className={className}
-      onClick={(e) => {
-        if (!confirm(confirmMessage)) {
-          e.preventDefault();
-        }
+      onClick={() => {
+        if (!confirm(confirmMessage)) return;
+        startTransition(async () => {
+          try {
+            await action();
+            showToast(successMessage, "success");
+            if (redirectTo) router.push(redirectTo);
+          } catch (err) {
+            showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
+          }
+        });
       }}
     >
-      {children}
+      {isPending ? "Deleting…" : children}
     </button>
   );
 }

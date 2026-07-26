@@ -20,7 +20,7 @@ export function InventoryTable({
   createPurchaseOrder: (partId: string, formData: FormData) => void;
   updatePartSupplier: (partId: string, formData: FormData) => void;
   updatePart: (partId: string, formData: FormData) => void;
-  deletePart: (partId: string) => void;
+  deletePart: (partId: string) => Promise<void>;
 }) {
   const [showScanner, setShowScanner] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
@@ -194,11 +194,13 @@ export function InventoryTable({
                       >
                         Edit
                       </button>
-                      <form action={deletePart.bind(null, part.id)}>
-                        <ConfirmSubmitButton confirmMessage={`Delete part "${part.name}"? This cannot be undone.`}>
-                          Delete
-                        </ConfirmSubmitButton>
-                      </form>
+                      <ConfirmSubmitButton
+                        action={deletePart.bind(null, part.id)}
+                        confirmMessage={`Delete part "${part.name}"? This cannot be undone.`}
+                        successMessage="Part deleted."
+                      >
+                        Delete
+                      </ConfirmSubmitButton>
                     </div>
                   </td>
                 </tr>

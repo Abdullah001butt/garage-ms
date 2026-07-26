@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { NoZoomGuard } from "@/components/NoZoomGuard";
+import { ToastProvider } from "@/components/Toast";
 import { MobileNav } from "@/components/MobileNav";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { getCurrentUserAndProfile } from "@/lib/auth";
@@ -45,40 +46,42 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-slate-50 overflow-x-hidden">
         <NoZoomGuard />
-        {!user ? (
-          children
-        ) : (
-          <>
-            <Sidebar role={role} />
-            <div className="md:pl-64 flex flex-col min-h-full">
-              <header className="border-b border-slate-200 bg-white sticky top-0 z-10 print:hidden">
-                <div className="flex items-center justify-between gap-3 px-3 md:px-8 py-3">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <MobileNav role={role} />
-                    <a href="/" className="md:hidden font-semibold text-slate-900 truncate shrink-0">
-                      Al Bahir
-                    </a>
-                    <div className="min-w-0 flex-1 max-w-35 sm:max-w-xs">
-                      <GlobalSearch />
+        <ToastProvider>
+          {!user ? (
+            children
+          ) : (
+            <>
+              <Sidebar role={role} />
+              <div className="md:pl-64 flex flex-col min-h-full">
+                <header className="border-b border-slate-200 bg-white sticky top-0 z-10 print:hidden">
+                  <div className="flex items-center justify-between gap-3 px-3 md:px-8 py-3">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <MobileNav role={role} />
+                      <a href="/" className="md:hidden font-semibold text-slate-900 truncate shrink-0">
+                        Al Bahir
+                      </a>
+                      <div className="min-w-0 flex-1 max-w-35 sm:max-w-xs">
+                        <GlobalSearch />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                      <span className="text-sm text-slate-500 truncate max-w-[40vw] md:max-w-none">
+                        {profile?.full_name ?? user.email}
+                        {role && <span className="ml-1.5 text-xs text-slate-400 hidden sm:inline">({role})</span>}
+                      </span>
+                      <form action={signOut}>
+                        <button className="text-sm text-slate-500 hover:text-slate-900 shrink-0">
+                          Sign out
+                        </button>
+                      </form>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                    <span className="text-sm text-slate-500 truncate max-w-[40vw] md:max-w-none">
-                      {profile?.full_name ?? user.email}
-                      {role && <span className="ml-1.5 text-xs text-slate-400 hidden sm:inline">({role})</span>}
-                    </span>
-                    <form action={signOut}>
-                      <button className="text-sm text-slate-500 hover:text-slate-900 shrink-0">
-                        Sign out
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </header>
-              <main className="flex-1 min-w-0">{children}</main>
-            </div>
-          </>
-        )}
+                </header>
+                <main className="flex-1 min-w-0">{children}</main>
+              </div>
+            </>
+          )}
+        </ToastProvider>
       </body>
     </html>
   );

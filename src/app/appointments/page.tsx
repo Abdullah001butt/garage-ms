@@ -150,11 +150,13 @@ export default async function AppointmentsPage() {
                               </form>
                             </>
                           )}
-                          <form action={deleteAppointment.bind(null, apt.id)}>
-                            <ConfirmSubmitButton confirmMessage="Delete this appointment? This cannot be undone.">
-                              Delete
-                            </ConfirmSubmitButton>
-                          </form>
+                          <ConfirmSubmitButton
+                            action={deleteAppointment.bind(null, apt.id)}
+                            confirmMessage="Delete this appointment? This cannot be undone."
+                            successMessage="Appointment deleted."
+                          >
+                            Delete
+                          </ConfirmSubmitButton>
                         </div>
                       </li>
                     ))}

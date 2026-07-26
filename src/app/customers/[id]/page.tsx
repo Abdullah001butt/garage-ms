@@ -67,13 +67,16 @@ export default async function CustomerDetailPage({
               <SecondaryButton type="submit">Save Changes</SecondaryButton>
             </div>
           </form>
-          <form action={deleteCustomerWithId} className="mt-3">
+          <div className="mt-3">
             <ConfirmSubmitButton
+              action={deleteCustomerWithId}
               confirmMessage={`Delete customer "${customer.name}" and all their records? This cannot be undone.`}
+              successMessage="Customer deleted."
+              redirectTo="/customers"
             >
               Delete Customer
             </ConfirmSubmitButton>
-          </form>
+          </div>
         </details>
       </Card>
 
@@ -146,11 +149,13 @@ export default async function CustomerDetailPage({
                         </button>
                       </form>
                     </details>
-                    <form action={deleteVehicle.bind(null, id, vehicle.id)}>
-                      <ConfirmSubmitButton confirmMessage={`Delete vehicle "${vehicle.plate_number}"? This cannot be undone.`}>
-                        Delete
-                      </ConfirmSubmitButton>
-                    </form>
+                    <ConfirmSubmitButton
+                      action={deleteVehicle.bind(null, id, vehicle.id)}
+                      confirmMessage={`Delete vehicle "${vehicle.plate_number}"? This cannot be undone.`}
+                      successMessage="Vehicle deleted."
+                    >
+                      Delete
+                    </ConfirmSubmitButton>
                   </div>
                 </div>
                 {warranties.length > 0 && <Badge color="green">Under Warranty</Badge>}

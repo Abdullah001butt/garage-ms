@@ -73,7 +73,6 @@ export async function deleteJobCard(jobId: string) {
   await logAudit("job.delete", "job_card", jobId);
 
   revalidatePath("/jobs");
-  redirect("/jobs");
 }
 
 export async function updateJobStatus(jobId: string, status: JobStatus) {

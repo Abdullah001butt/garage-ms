@@ -130,11 +130,16 @@ export default async function JobDetailPage({
             </div>
             <SecondaryButton type="submit">Save Changes</SecondaryButton>
           </form>
-          <form action={deleteJobCard.bind(null, job.id)} className="mt-3">
-            <ConfirmSubmitButton confirmMessage="Delete this job card? This cannot be undone.">
+          <div className="mt-3">
+            <ConfirmSubmitButton
+              action={deleteJobCard.bind(null, job.id)}
+              confirmMessage="Delete this job card? This cannot be undone."
+              successMessage="Job card deleted."
+              redirectTo="/jobs"
+            >
               Delete Job Card
             </ConfirmSubmitButton>
-          </form>
+          </div>
         </details>
       </Card>
 

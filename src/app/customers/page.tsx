@@ -65,13 +65,13 @@ export default async function CustomersPage({
                 <p className="font-medium text-slate-900 truncate">{customer.name}</p>
                 <p className="text-sm text-slate-500">{customer.phone}</p>
               </Link>
-              <form action={deleteCustomer.bind(null, customer.id)}>
-                <ConfirmSubmitButton
-                  confirmMessage={`Delete customer "${customer.name}"? This cannot be undone.`}
-                >
-                  Delete
-                </ConfirmSubmitButton>
-              </form>
+              <ConfirmSubmitButton
+                action={deleteCustomer.bind(null, customer.id)}
+                confirmMessage={`Delete customer "${customer.name}"? This cannot be undone.`}
+                successMessage="Customer deleted."
+              >
+                Delete
+              </ConfirmSubmitButton>
             </li>
           ))}
         </ul>
