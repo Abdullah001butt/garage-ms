@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Expense } from "@/lib/types";
-import { createExpense, deleteExpense, ensureMonthlyExpensesGenerated } from "@/app/expenses/actions";
+import { createExpense, updateExpense, deleteExpense, ensureMonthlyExpensesGenerated } from "@/app/expenses/actions";
 import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 const CATEGORIES = ["Rent", "Utilities", "Salaries", "Tools & Equipment", "Marketing", "Other"];
 
@@ -64,10 +65,43 @@ export default async function ExpensesPage() {
                 <td className="px-4 py-2.5 text-right font-medium">
                   {Number(e.amount).toFixed(2)}
                 </td>
-                <td className="px-4 py-2.5 text-right print:hidden">
-                  <form action={deleteExpense.bind(null, e.id)}>
-                    <button className="text-xs text-red-500 hover:underline">Remove</button>
-                  </form>
+                <td className="relative px-4 py-2.5 text-right print:hidden">
+                  <div className="relative inline-flex items-center gap-2">
+                    <details>
+                      <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">Edit</summary>
+                      <form
+                        action={updateExpense.bind(null, e.id)}
+                        className="absolute right-0 z-10 mt-2 w-64 space-y-2 rounded-lg border border-slate-200 bg-white p-3 text-left shadow-md"
+                      >
+                        <label className="block">
+                          <span className={labelClass}>Category</span>
+                          <select name="category" defaultValue={e.category} required className={inputClass}>
+                            {CATEGORIES.map((c) => (
+                              <option key={c} value={c}>
+                                {c}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <Field label="Date" name="expense_date" type="date" defaultValue={e.expense_date} required />
+                        <Field label="Amount (AED)" name="amount" type="number" step="0.01" defaultValue={e.amount} required />
+                        <Field label="Description" name="description" defaultValue={e.description ?? ""} />
+                        <button
+                          type="submit"
+                          className="w-full rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                        >
+                          Save
+                        </button>
+                      </form>
+                    </details>
+                    <ConfirmSubmitButton
+                      action={deleteExpense.bind(null, e.id)}
+                      confirmMessage="Delete this expense? This cannot be undone."
+                      successMessage="Expense deleted."
+                    >
+                      Remove
+                    </ConfirmSubmitButton>
+                  </div>
                 </td>
               </tr>
             ))}

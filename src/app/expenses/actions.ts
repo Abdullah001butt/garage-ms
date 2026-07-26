@@ -32,6 +32,33 @@ export async function createExpense(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+export async function updateExpense(expenseId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const category = String(formData.get("category") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const amount = Number(formData.get("amount") ?? 0);
+  const expense_date = String(formData.get("expense_date") ?? "").trim();
+
+  if (!category || !amount || !expense_date) {
+    throw new Error("Category, amount, and date are required.");
+  }
+
+  const { error } = await supabase
+    .from("expenses")
+    .update({ category, description, amount, expense_date })
+    .eq("id", expenseId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await logAudit("expense.update", "expense", expenseId, { category, amount, expense_date });
+
+  revalidatePath("/expenses");
+  revalidatePath("/dashboard");
+}
+
 export async function ensureMonthlyExpensesGenerated() {
   const supabase = await createClient();
 

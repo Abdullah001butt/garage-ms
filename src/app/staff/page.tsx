@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 import { createProfile, updateProfileRole, deleteProfile } from "@/app/staff/actions";
 import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, labelClass, inputClass } from "@/components/ui";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 export default async function StaffPage() {
   const supabase = await createClient();
@@ -59,9 +60,13 @@ export default async function StaffPage() {
                   </form>
                 </td>
                 <td className="px-4 py-2.5 text-right">
-                  <form action={deleteProfile.bind(null, p.id)}>
-                    <button className="text-xs text-red-500 hover:underline">Remove</button>
-                  </form>
+                  <ConfirmSubmitButton
+                    action={deleteProfile.bind(null, p.id)}
+                    confirmMessage={`Remove staff member "${p.full_name}"? This cannot be undone.`}
+                    successMessage="Staff member removed."
+                  >
+                    Remove
+                  </ConfirmSubmitButton>
                 </td>
               </tr>
             ))}

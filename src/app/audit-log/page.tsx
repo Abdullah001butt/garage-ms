@@ -13,6 +13,7 @@ const ACTION_LABEL: Record<string, string> = {
   "payment.record": "Recorded payment",
   "payment.delete": "Removed payment",
   "expense.create": "Recorded expense",
+  "expense.update": "Updated expense",
   "expense.delete": "Removed expense",
   "staff.create": "Added staff member",
   "staff.update": "Updated staff member",
