@@ -9,6 +9,8 @@ type InvoiceRow = {
   vat_rate: number;
   created_at: string;
   paid_at: string | null;
+  customer_id: string | null;
+  customers: { name: string } | null;
   invoice_items: { item_type: "part" | "labor"; quantity: number; unit_price: number }[];
 };
 
@@ -33,7 +35,9 @@ export default async function DashboardPage() {
     await Promise.all([
       supabase
         .from("invoices")
-        .select("id, status, document_type, vat_rate, created_at, paid_at, invoice_items(item_type, quantity, unit_price)")
+        .select(
+          "id, status, document_type, vat_rate, created_at, paid_at, customer_id, customers(name), invoice_items(item_type, quantity, unit_price)"
+        )
         .returns<InvoiceRow[]>(),
       supabase
         .from("job_cards")
@@ -100,6 +104,34 @@ export default async function DashboardPage() {
   const lowStockCount = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold).length;
   const pendingPOs = (pos ?? []).filter((p) => p.status === "pending" || p.status === "ordered").length;
 
+  type CustomerAgg = { name: string; total: number; visits: number };
+  function topCustomers(invs: InvoiceRow[], limit: number): CustomerAgg[] {
+    const map = new Map<string, CustomerAgg>();
+    for (const inv of invs) {
+      if (!inv.customer_id || !inv.customers?.name) continue;
+      const entry = map.get(inv.customer_id) ?? { name: inv.customers.name, total: 0, visits: 0 };
+      entry.total += invoiceTotal(inv);
+      entry.visits += 1;
+      map.set(inv.customer_id, entry);
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total).slice(0, limit);
+  }
+  const topCustomersThisMonth = topCustomers(realInvoices.filter((i) => isThisMonth(i.created_at)), 5);
+  const topCustomersAllTime = topCustomers(realInvoices, 5);
+
+  const thisMonthDate = new Date();
+  const lastYear = thisMonthDate.getFullYear() - 1;
+  const revenueSameMonthLastYear = (payments ?? [])
+    .filter((p) => {
+      const d = new Date(p.paid_at);
+      return d.getFullYear() === lastYear && d.getMonth() === thisMonthDate.getMonth();
+    })
+    .reduce((s, p) => s + Number(p.amount), 0);
+  const yoyChangePct =
+    revenueSameMonthLastYear > 0
+      ? ((revenueThisMonth - revenueSameMonthLastYear) / revenueSameMonthLastYear) * 100
+      : null;
+
   const MONTH_LABELS = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
@@ -136,7 +168,16 @@ export default async function DashboardPage() {
       <PageHeader title="Dashboard" description="Live performance and financial overview." />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Revenue (this month)" value={`AED ${revenueThisMonth.toFixed(0)}`} accent="green" hint="Cash actually received" />
+        <StatCard
+          label="Revenue (this month)"
+          value={`AED ${revenueThisMonth.toFixed(0)}`}
+          accent="green"
+          hint={
+            yoyChangePct === null
+              ? "Cash actually received"
+              : `${yoyChangePct >= 0 ? "▲" : "▼"} ${Math.abs(yoyChangePct).toFixed(0)}% vs same month last year`
+          }
+        />
         <StatCard label="Avg. Repair Order (ARO)" value={`AED ${aro.toFixed(0)}`} accent="indigo" hint={`Across ${realInvoices.length} invoices`} />
         <StatCard label="Expenses (this month)" value={`AED ${expensesThisMonth.toFixed(0)}`} accent="red" />
         <StatCard
@@ -190,6 +231,44 @@ export default async function DashboardPage() {
                 ))}
               </tbody>
             </table>
+          )}
+        </Card>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6 mt-6">
+        <Card className="p-5">
+          <p className="text-sm font-semibold text-slate-700 mb-4">Top Customers (This Month)</p>
+          {topCustomersThisMonth.length === 0 ? (
+            <EmptyState message="No invoices this month yet." />
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {topCustomersThisMonth.map((c) => (
+                <li key={c.name} className="flex items-center justify-between py-2 text-sm">
+                  <span className="font-medium text-slate-900">{c.name}</span>
+                  <span className="text-slate-500">
+                    AED {c.total.toFixed(0)} · {c.visits} visit{c.visits > 1 ? "s" : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="p-5">
+          <p className="text-sm font-semibold text-slate-700 mb-4">Top Customers (All Time)</p>
+          {topCustomersAllTime.length === 0 ? (
+            <EmptyState message="No invoices yet." />
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {topCustomersAllTime.map((c) => (
+                <li key={c.name} className="flex items-center justify-between py-2 text-sm">
+                  <span className="font-medium text-slate-900">{c.name}</span>
+                  <span className="text-slate-500">
+                    AED {c.total.toFixed(0)} · {c.visits} visit{c.visits > 1 ? "s" : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </Card>
       </div>

@@ -86,10 +86,28 @@ export default async function TodayPage() {
 
   const lowStockParts = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold);
   const serviceDue = await getServiceDueVehicles();
+  const staleJobs = (jobs ?? []).filter((job) => hoursAgo(job.created_at) >= 48);
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-8">
       <PageHeader title="Today" description="Everything that needs attention right now, in one place." />
+
+      {staleJobs.length > 0 && (
+        <Card className="mb-6 border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-800 mb-2">
+            ⚠ {staleJobs.length} job{staleJobs.length > 1 ? "s" : ""} sitting in the bay for 2+ days
+          </p>
+          <ul className="space-y-1">
+            {staleJobs.map((job) => (
+              <li key={job.id} className="text-xs text-red-700">
+                <Link href={`/jobs/${job.id}`} className="hover:underline">
+                  {job.vehicles?.plate_number} — {job.customers?.name} ({hoursAgo(job.created_at)}h)
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <div>
