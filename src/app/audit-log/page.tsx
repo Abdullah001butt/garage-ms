@@ -53,25 +53,92 @@ function summarizeDetails(details: Record<string, unknown> | null) {
 export default async function AuditLogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; actor?: string; action?: string; from?: string; to?: string }>;
 }) {
-  const { page } = await searchParams;
+  const { page, actor, action, from, to } = await searchParams;
   const pageNum = Math.max(1, Number(page ?? 1));
   const pageSize = 50;
 
   const supabase = await createClient();
-  const { data: logs, error, count } = await supabase
+
+  const { data: actors } = await supabase
+    .from("audit_log")
+    .select("actor_name")
+    .order("actor_name");
+  const uniqueActors = [...new Set((actors ?? []).map((a) => a.actor_name))];
+
+  let query = supabase
     .from("audit_log")
     .select("*", { count: "exact" })
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (actor) query = query.eq("actor_name", actor);
+  if (action) query = query.eq("action", action);
+  if (from) query = query.gte("created_at", new Date(from).toISOString());
+  if (to) {
+    const toEnd = new Date(to);
+    toEnd.setDate(toEnd.getDate() + 1);
+    query = query.lt("created_at", toEnd.toISOString());
+  }
+
+  const { data: logs, error, count } = await query
     .range((pageNum - 1) * pageSize, pageNum * pageSize - 1)
     .returns<AuditLog[]>();
 
   const totalPages = count ? Math.ceil(count / pageSize) : 1;
+  const hasFilters = Boolean(actor || action || from || to);
+
+  const filterParams = new URLSearchParams();
+  if (actor) filterParams.set("actor", actor);
+  if (action) filterParams.set("action", action);
+  if (from) filterParams.set("from", from);
+  if (to) filterParams.set("to", to);
+  const filterQS = filterParams.toString();
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-8">
       <PageHeader title="Audit Log" description="Who changed what, across the whole system." />
+
+      <form className="flex flex-wrap items-end gap-2 mb-4 text-sm">
+        <label className="block">
+          <span className="mb-1 block text-xs text-slate-500">Staff</span>
+          <select name="actor" defaultValue={actor ?? ""} className="rounded-lg border border-slate-300 px-2 py-1.5">
+            <option value="">All staff</option>
+            {uniqueActors.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-xs text-slate-500">Action</span>
+          <select name="action" defaultValue={action ?? ""} className="rounded-lg border border-slate-300 px-2 py-1.5">
+            <option value="">All actions</option>
+            {Object.entries(ACTION_LABEL).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-xs text-slate-500">From</span>
+          <input type="date" name="from" defaultValue={from ?? ""} className="rounded-lg border border-slate-300 px-2 py-1.5" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-xs text-slate-500">To</span>
+          <input type="date" name="to" defaultValue={to ?? ""} className="rounded-lg border border-slate-300 px-2 py-1.5" />
+        </label>
+        <button type="submit" className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50">
+          Filter
+        </button>
+        {hasFilters && (
+          <a href="/audit-log" className="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-500 hover:bg-slate-50">
+            Clear
+          </a>
+        )}
+      </form>
 
       {error && <p className="text-red-600 text-sm mb-4">Failed to load audit log: {error.message}</p>}
 
@@ -100,13 +167,18 @@ export default async function AuditLogPage({
             ))}
           </tbody>
         </table>
-        {logs?.length === 0 && <EmptyState message="No audit activity yet." />}
+        {logs?.length === 0 && (
+          <EmptyState message={hasFilters ? "No matching audit activity." : "No audit activity yet."} />
+        )}
       </Card>
 
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-4 text-sm">
           {pageNum > 1 && (
-            <a href={`/audit-log?page=${pageNum - 1}`} className="text-indigo-600 hover:underline">
+            <a
+              href={`/audit-log?${filterQS ? `${filterQS}&` : ""}page=${pageNum - 1}`}
+              className="text-indigo-600 hover:underline"
+            >
               &larr; Newer
             </a>
           )}
@@ -114,7 +186,10 @@ export default async function AuditLogPage({
             Page {pageNum} of {totalPages}
           </span>
           {pageNum < totalPages && (
-            <a href={`/audit-log?page=${pageNum + 1}`} className="text-indigo-600 hover:underline">
+            <a
+              href={`/audit-log?${filterQS ? `${filterQS}&` : ""}page=${pageNum + 1}`}
+              className="text-indigo-600 hover:underline"
+            >
               Older &rarr;
             </a>
           )}

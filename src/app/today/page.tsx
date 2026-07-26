@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card, PageHeader, Badge, EmptyState } from "@/components/ui";
+import { Card, PageHeader, Badge, EmptyState, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { getServiceDueVehicles } from "@/lib/service-due";
 
@@ -90,7 +90,23 @@ export default async function TodayPage() {
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-8">
-      <PageHeader title="Today" description="Everything that needs attention right now, in one place." />
+      <PageHeader
+        title="Today"
+        description="Everything that needs attention right now, in one place."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Link href="/jobs/new">
+              <PrimaryButton type="button">+ New Job</PrimaryButton>
+            </Link>
+            <Link href="/estimates/new">
+              <SecondaryButton type="button">+ New Estimate</SecondaryButton>
+            </Link>
+            <Link href="/appointments">
+              <SecondaryButton type="button">+ New Appointment</SecondaryButton>
+            </Link>
+          </div>
+        }
+      />
 
       {staleJobs.length > 0 && (
         <Card className="mb-6 border-red-200 bg-red-50 p-4">

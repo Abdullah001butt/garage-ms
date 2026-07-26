@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import type { JobTemplate, JobTemplateItem } from "@/lib/types";
-import { createJobTemplate, deleteJobTemplate } from "@/app/job-templates/actions";
+import { createJobTemplate, updateJobTemplate, deleteJobTemplate } from "@/app/job-templates/actions";
 import { Card, PageHeader, EmptyState, PrimaryButton, Field, inputClass } from "@/components/ui";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 export default async function JobTemplatesPage() {
   const supabase = await createClient();
@@ -32,7 +33,7 @@ export default async function JobTemplatesPage() {
             const templateItems = itemsByTemplate.get(t.id) ?? [];
             const total = templateItems.reduce((s, i) => s + i.quantity * i.unit_price, 0);
             return (
-              <li key={t.id} className="px-4 py-3">
+              <li key={t.id} className="relative px-4 py-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-medium text-slate-900">{t.name}</p>
@@ -48,9 +49,78 @@ export default async function JobTemplatesPage() {
                       </ul>
                     )}
                   </div>
-                  <form action={deleteJobTemplate.bind(null, t.id)}>
-                    <button className="text-xs text-red-500 hover:underline shrink-0">Remove</button>
-                  </form>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <details>
+                      <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">Edit</summary>
+                      <form
+                        action={updateJobTemplate.bind(null, t.id)}
+                        className="absolute z-10 mt-2 w-80 space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-md"
+                      >
+                        <Field label="Template Name" name="name" defaultValue={t.name} required />
+                        <Field label="Job Description" name="description" defaultValue={t.description} required />
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                            Typical Line Items (replaces existing)
+                          </p>
+                          <div className="space-y-2">
+                            {[0, 1, 2, 3].map((i) => {
+                              const existing = templateItems[i];
+                              return (
+                                <div key={i} className="grid grid-cols-2 gap-2">
+                                  <input
+                                    type="text"
+                                    name={`item_description_${i}`}
+                                    placeholder="Description"
+                                    defaultValue={existing?.description ?? ""}
+                                    className={`${inputClass} col-span-2`}
+                                  />
+                                  <select
+                                    name={`item_type_${i}`}
+                                    className={inputClass}
+                                    defaultValue={existing?.item_type ?? "part"}
+                                  >
+                                    <option value="part">Part</option>
+                                    <option value="labor">Labor</option>
+                                  </select>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                      type="number"
+                                      name={`item_quantity_${i}`}
+                                      placeholder="Qty"
+                                      step="0.01"
+                                      defaultValue={existing?.quantity ?? ""}
+                                      className={inputClass}
+                                    />
+                                    <input
+                                      type="number"
+                                      name={`item_price_${i}`}
+                                      placeholder="Price"
+                                      step="0.01"
+                                      defaultValue={existing?.unit_price ?? ""}
+                                      className={inputClass}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <button
+                          type="submit"
+                          className="w-full rounded-md border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                        >
+                          Save Template
+                        </button>
+                      </form>
+                    </details>
+                    <ConfirmSubmitButton
+                      action={deleteJobTemplate.bind(null, t.id)}
+                      confirmMessage={`Delete template "${t.name}"? This cannot be undone.`}
+                      successMessage="Template deleted."
+                    >
+                      Remove
+                    </ConfirmSubmitButton>
+                  </div>
                 </div>
               </li>
             );
