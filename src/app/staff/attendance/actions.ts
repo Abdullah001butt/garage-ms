@@ -3,14 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { AttendanceStatus } from "@/lib/types";
-
-const CYCLE: Record<string, AttendanceStatus> = {
-  none: "present",
-  present: "absent",
-  absent: "paid_leave",
-  paid_leave: "holiday",
-  holiday: "present",
-};
+import { ATTENDANCE_CYCLE } from "@/lib/attendance-cycle";
 
 export async function cycleAttendance(
   profileId: string,
@@ -18,7 +11,7 @@ export async function cycleAttendance(
   currentStatus: AttendanceStatus | "none"
 ) {
   const supabase = await createClient();
-  const nextStatus = CYCLE[currentStatus];
+  const nextStatus = ATTENDANCE_CYCLE[currentStatus];
 
   const { error } = await supabase
     .from("attendance")
