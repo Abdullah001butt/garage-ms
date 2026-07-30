@@ -42,7 +42,7 @@ export default async function SettingsPage() {
           <Field label="Address" name="address" defaultValue={settings.address ?? ""} className="col-span-2" />
           <Field label="Phone" name="phone" defaultValue={settings.phone ?? ""} />
           <Field label="Facsimile / Alt Phone" name="facsimile" defaultValue={settings.facsimile ?? ""} />
-          <Field label="Email" name="email" type="email" defaultValue={settings.email ?? ""} />
+          <Field label="Email" name="email" defaultValue={settings.email ?? ""} />
           <Field label="Website" name="website" defaultValue={settings.website ?? ""} placeholder="http://www.yourdomain.com" />
           <Field
             label="Customer Portal URL"
