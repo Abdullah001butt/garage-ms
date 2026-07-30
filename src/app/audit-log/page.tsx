@@ -23,6 +23,7 @@ const ACTION_LABEL: Record<string, string> = {
   "vehicle.incident_delete": "Removed vehicle incident",
   "vehicle.document_upload": "Uploaded vehicle document",
   "vehicle.document_delete": "Removed vehicle document",
+  "cash.reconciliation_save": "Saved cash reconciliation",
   "expense.delete": "Removed expense",
   "staff.create": "Added staff member",
   "staff.update": "Updated staff member",

@@ -81,7 +81,7 @@ export function ClassicInvoiceTemplate({
       </label>
 
       <div className="w-full overflow-x-auto print:overflow-visible">
-      <div className="bg-white text-black p-8 font-sans text-[13px] leading-snug print:p-0 rounded-xl border border-slate-200 shadow-sm print:border-none print:shadow-none min-w-160 print:min-w-0">
+      <div id="invoice-printable" className="bg-white text-black p-8 font-sans text-[13px] leading-snug print:p-0 rounded-xl border border-slate-200 shadow-sm print:border-none print:shadow-none min-w-160 print:min-w-0">
         <div className="flex items-start justify-between border-b-4 border-black pb-3 mb-4">
           <h1 className="font-serif text-3xl">
             {documentLabel} <span className="text-red-600">{reference}</span>

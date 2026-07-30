@@ -39,6 +39,14 @@ export type Vehicle = {
   created_at: string;
 };
 
+export type DailyCashReconciliation = {
+  id: string;
+  reconciliation_date: string;
+  counted_cash: number;
+  notes: string | null;
+  created_at: string;
+};
+
 export type CompanyVehicle = {
   id: string;
   name: string;

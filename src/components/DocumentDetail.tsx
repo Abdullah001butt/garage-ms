@@ -14,6 +14,7 @@ import { PrintButton } from "@/components/PrintButton";
 import { InvoiceItemForm } from "@/components/InvoiceItemForm";
 import { ClassicInvoiceTemplate } from "@/components/ClassicInvoiceTemplate";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { SendInvoicePdfButton } from "@/components/SendInvoicePdfButton";
 import { Badge, Card, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import type { DocumentType, InvoiceItem, JobTemplate, Part, Payment, ShopSettings } from "@/lib/types";
 
@@ -151,6 +152,14 @@ export async function DocumentDetail({
           </form>
         )}
         {doc.customers?.phone && <WhatsAppButton phone={doc.customers.phone} message={notifyMessage} />}
+        {doc.customers?.phone && (
+          <SendInvoicePdfButton
+            invoiceId={id}
+            phone={doc.customers.phone}
+            customerFirstName={customerFirstName}
+            documentLabel={isEstimate ? "Estimate" : "Invoice"}
+          />
+        )}
         {!isEstimate && doc.status === "paid" && doc.customers?.phone && settings?.google_review_link && (
           <WhatsAppButton
             phone={doc.customers.phone}

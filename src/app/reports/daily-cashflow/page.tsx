@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card, PageHeader, StatCard, SecondaryButton, EmptyState } from "@/components/ui";
+import type { DailyCashReconciliation } from "@/lib/types";
+import { saveCashReconciliation } from "@/app/reports/daily-cashflow/actions";
+import { Card, PageHeader, StatCard, SecondaryButton, PrimaryButton, Field, EmptyState } from "@/components/ui";
 
 type PaymentRow = {
   id: string;
   amount: number;
+  method: string;
   paid_at: string;
   invoices: {
     job_card_id: string | null;
@@ -39,11 +42,12 @@ export default async function DailyCashflowPage({
   const [
     { data: payments, error: paymentsError },
     { data: expenses, error: expensesError },
+    { data: reconciliation },
   ] = await Promise.all([
     supabase
       .from("payments")
       .select(
-        "id, amount, paid_at, invoices(job_card_id, customers(name), job_cards(description, vehicles(plate_number, make, model)))"
+        "id, amount, method, paid_at, invoices(job_card_id, customers(name), job_cards(description, vehicles(plate_number, make, model)))"
       )
       .gte("paid_at", `${selectedDate}T00:00:00`)
       .lte("paid_at", `${selectedDate}T23:59:59`)
@@ -53,11 +57,20 @@ export default async function DailyCashflowPage({
       .select("id, category, description, amount")
       .eq("expense_date", selectedDate)
       .returns<ExpenseRow[]>(),
+    supabase
+      .from("daily_cash_reconciliations")
+      .select("*")
+      .eq("reconciliation_date", selectedDate)
+      .maybeSingle<DailyCashReconciliation>(),
   ]);
 
   const totalIn = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
   const totalOut = (expenses ?? []).reduce((s, e) => s + Number(e.amount), 0);
   const net = totalIn - totalOut;
+
+  const cashIn = (payments ?? []).filter((p) => p.method === "cash").reduce((s, p) => s + Number(p.amount), 0);
+  const expectedCash = cashIn - totalOut;
+  const difference = reconciliation ? reconciliation.counted_cash - expectedCash : null;
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-8">
@@ -107,6 +120,42 @@ export default async function DailyCashflowPage({
         <StatCard label="Cash Out" value={`AED ${totalOut.toFixed(2)}`} accent="red" />
         <StatCard label="Net" value={`AED ${net.toFixed(2)}`} accent={net >= 0 ? "indigo" : "red"} />
       </div>
+
+      <Card className="p-5 mb-6">
+        <p className="text-sm font-semibold text-slate-700 mb-1">Cash Drawer Reconciliation</p>
+        <p className="text-xs text-slate-500 mb-4">
+          Expected cash = cash payments received (AED {cashIn.toFixed(2)}) minus expenses (AED {totalOut.toFixed(2)}) = AED{" "}
+          {expectedCash.toFixed(2)}. Enter what was actually counted in the drawer at end of day.
+        </p>
+        {reconciliation && difference !== null && (
+          <div
+            className={`mb-4 rounded-lg p-3 text-sm ${
+              Math.abs(difference) < 0.01
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-red-50 text-red-700"
+            }`}
+          >
+            {Math.abs(difference) < 0.01
+              ? "✓ Cash matches. No discrepancy."
+              : `⚠ Mismatch: counted AED ${reconciliation.counted_cash.toFixed(2)} vs expected AED ${expectedCash.toFixed(
+                  2
+                )} (${difference > 0 ? "+" : ""}AED ${difference.toFixed(2)})`}
+          </div>
+        )}
+        <form action={saveCashReconciliation} className="flex flex-wrap items-end gap-4">
+          <input type="hidden" name="reconciliation_date" value={selectedDate} />
+          <Field
+            label="Counted Cash (AED)"
+            name="counted_cash"
+            type="number"
+            step="0.01"
+            defaultValue={reconciliation?.counted_cash ?? ""}
+            required
+          />
+          <Field label="Notes (optional)" name="notes" defaultValue={reconciliation?.notes ?? ""} />
+          <PrimaryButton type="submit">Save Reconciliation</PrimaryButton>
+        </form>
+      </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div>
