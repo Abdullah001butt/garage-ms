@@ -16,8 +16,8 @@ const MODULES = [
 export default function Home() {
   return (
     <div className="mx-auto max-w-5xl p-6 md:p-8">
-      <h1 className="text-2xl font-semibold text-slate-900 mb-1">Al Bahir Garage</h1>
-      <p className="text-slate-500 mb-8">Garage management system</p>
+      <h1 className="text-2xl font-semibold text-slate-900 mb-1">Workshop Management System</h1>
+      <p className="text-slate-500 mb-8">Al Bahir Vehicles Repair LLC</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {MODULES.map((mod) => (
