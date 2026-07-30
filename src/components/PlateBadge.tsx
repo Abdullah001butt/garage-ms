@@ -33,26 +33,26 @@ export function PlateBadge({
 
   return (
     <span
-      className={`inline-flex items-center overflow-hidden rounded-md border-[3px] border-slate-900 bg-white ${
+      className={`inline-flex items-center overflow-hidden rounded-lg border-[3px] border-slate-900 bg-white ${
         isLg ? "h-16 gap-2 px-3" : "h-7 gap-1 px-1.5"
       } ${className}`}
     >
       {code && (
-        <span className={`font-sans font-black leading-none text-slate-900 ${isLg ? "text-4xl" : "text-base"}`}>
+        <span className={`font-sans font-black leading-none text-slate-900 ${isLg ? "text-5xl" : "text-base"}`}>
           {code}
         </span>
       )}
       {isLg && (
-        <span className="flex flex-col items-start justify-center leading-none">
+        <span className="flex flex-col items-start justify-center gap-0.5 leading-none">
           {label.arabic && (
-            <span dir="rtl" className="font-serif text-sm font-bold text-slate-900">
+            <span dir="rtl" className="text-base font-bold text-slate-900">
               {label.arabic}
             </span>
           )}
-          <span className="text-[10px] font-bold uppercase tracking-tight text-slate-900">{label.abbr}</span>
+          <span className="text-[11px] font-bold uppercase tracking-tight text-slate-900">{label.abbr}</span>
         </span>
       )}
-      <span className={`flex-1 text-center font-sans font-black tracking-wide text-slate-900 ${isLg ? "text-4xl" : "text-base"}`}>
+      <span className={`flex-[1.4] text-center font-sans font-black tracking-widest text-slate-900 ${isLg ? "text-5xl" : "text-base"}`}>
         {number}
       </span>
     </span>
