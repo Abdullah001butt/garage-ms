@@ -16,7 +16,7 @@ import { Card, PageHeader, EmptyState, Field, Badge, SecondaryButton, PrimaryBut
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
 import { PlateBadge } from "@/components/PlateBadge";
-import { EMIRATES, PLATE_PATTERN } from "@/lib/plate";
+import { EMIRATES } from "@/lib/plate";
 
 type CustomerInvoiceRow = {
   id: string;
@@ -260,7 +260,6 @@ export default async function CustomerDetailPage({
                           defaultValue={vehicle.plate_number}
                           required
                           className="col-span-2"
-                          pattern={PLATE_PATTERN}
                           title='UAE plate format, e.g. "A 12345" or "12 4567"'
                         />
                         <label className="block col-span-2">
@@ -314,7 +313,6 @@ export default async function CustomerDetailPage({
               name="plate_number"
               placeholder="A 12345"
               required
-              pattern={PLATE_PATTERN}
               title='UAE plate format, e.g. "A 12345" or "12 4567"'
             />
             <label className="block">

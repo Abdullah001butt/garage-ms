@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createCustomerWithVehicle } from "@/app/customers/actions";
 import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
-import { EMIRATES, PLATE_PATTERN } from "@/lib/plate";
+import { EMIRATES } from "@/lib/plate";
 
 export default async function NewCustomerPage() {
   const supabase = await createClient();
@@ -60,7 +60,6 @@ export default async function NewCustomerPage() {
               label="Plate number"
               name="plate_number"
               placeholder="A 12345"
-              pattern={PLATE_PATTERN}
               title='UAE plate format, e.g. "A 12345" or "12 4567"'
             />
             <label className="block">
