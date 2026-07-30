@@ -5,10 +5,12 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, SecondaryButton } from "@/components/ui";
 import { PrintButton } from "@/components/PrintButton";
+import { PlateBadge } from "@/components/PlateBadge";
 
 type VehicleWithCustomer = {
   id: string;
   plate_number: string;
+  emirate: string;
   make: string | null;
   model: string | null;
   customer_id: string;
@@ -26,7 +28,7 @@ export default async function VehicleQrPage({
   const [{ data: vehicle }, { data: settings }] = await Promise.all([
     supabase
       .from("vehicles")
-      .select("id, plate_number, make, model, customer_id, customers(name, phone)")
+      .select("id, plate_number, emirate, make, model, customer_id, customers(name, phone)")
       .eq("id", id)
       .single<VehicleWithCustomer>(),
     supabase.from("shop_settings").select("portal_url").maybeSingle(),
@@ -65,7 +67,9 @@ export default async function VehicleQrPage({
 
       <Card className="p-6 text-center print:shadow-none print:border-none">
         <img src={qrDataUrl} alt={`QR code for ${vehicle.plate_number}`} className="mx-auto mb-4" />
-        <p className="text-lg font-semibold text-slate-900">{vehicle.plate_number}</p>
+        <div className="flex justify-center mb-2">
+          <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} />
+        </div>
         <p className="text-sm text-slate-500">
           {[vehicle.make, vehicle.model].filter(Boolean).join(" ")}
         </p>

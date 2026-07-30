@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton } from "@/components/ui";
 import { JobsBoard } from "@/components/JobsBoard";
+import { PlateBadge } from "@/components/PlateBadge";
 import { updateJobStatus } from "@/app/jobs/actions";
 
 type JobRow = {
@@ -10,7 +11,7 @@ type JobRow = {
   status: "pending" | "in_progress" | "completed";
   mechanic_name: string | null;
   created_at: string;
-  vehicles: { plate_number: string; make: string | null; model: string | null } | null;
+  vehicles: { plate_number: string; emirate: string; make: string | null; model: string | null } | null;
   customers: { name: string } | null;
 };
 
@@ -38,7 +39,7 @@ export default async function JobsPage({
   let query = supabase
     .from("job_cards")
     .select(
-      "id, description, status, mechanic_name, created_at, vehicles(plate_number, make, model), customers(name)"
+      "id, description, status, mechanic_name, created_at, vehicles(plate_number, emirate, make, model), customers(name)"
     )
     .order("created_at", { ascending: false });
 
@@ -123,13 +124,17 @@ export default async function JobsPage({
                   href={`/jobs/${job.id}`}
                   className="flex items-center justify-between px-4 py-3 hover:bg-slate-50"
                 >
-                  <div>
-                    <p className="font-medium text-slate-900">
-                      {job.vehicles?.plate_number}
-                      {job.vehicles?.make || job.vehicles?.model
-                        ? ` — ${[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ")}`
-                        : ""}
-                    </p>
+                  <div className="min-w-0">
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      {job.vehicles && (
+                        <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />
+                      )}
+                      {(job.vehicles?.make || job.vehicles?.model) && (
+                        <span className="font-medium text-slate-900">
+                          {[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ")}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-slate-500">
                       {job.customers?.name} · {job.description}
                     </p>

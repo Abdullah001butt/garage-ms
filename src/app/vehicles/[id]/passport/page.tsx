@@ -11,10 +11,12 @@ import {
 } from "@/app/vehicles/actions";
 import { Card, PageHeader, Badge, EmptyState, Field, SecondaryButton, PrimaryButton, labelClass, inputClass } from "@/components/ui";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import { PlateBadge } from "@/components/PlateBadge";
 
 type VehicleWithCustomer = {
   id: string;
   plate_number: string;
+  emirate: string;
   make: string | null;
   model: string | null;
   year: number | null;
@@ -53,7 +55,7 @@ export default async function VehiclePassportPage({
     await Promise.all([
       supabase
         .from("vehicles")
-        .select("id, plate_number, make, model, year, color, vin, customer_id, created_at, customers(name, phone)")
+        .select("id, plate_number, emirate, make, model, year, color, vin, customer_id, created_at, customers(name, phone)")
         .eq("id", id)
         .single<VehicleWithCustomer>(),
       supabase
@@ -112,8 +114,11 @@ export default async function VehiclePassportPage({
       <Link href={`/customers/${vehicle.customer_id}`} className="text-sm text-indigo-600 hover:underline">
         &larr; Back to customer
       </Link>
+      <div className="mt-3 mb-1">
+        <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} />
+      </div>
       <PageHeader
-        title={`${vehicle.plate_number} — ${[vehicle.make, vehicle.model].filter(Boolean).join(" ")}`}
+        title={[vehicle.make, vehicle.model].filter(Boolean).join(" ") || "Vehicle Passport"}
         description="Permanent vehicle history — survives even if ownership changes."
       />
 

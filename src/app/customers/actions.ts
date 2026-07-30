@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
+import { isValidPlateNumber, normalizePlateNumber } from "@/lib/plate";
 
 export async function createCustomerWithVehicle(formData: FormData) {
   const supabase = await createClient();
@@ -13,7 +14,8 @@ export async function createCustomerWithVehicle(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim() || null;
   const address = String(formData.get("address") ?? "").trim() || null;
 
-  const plate_number = String(formData.get("plate_number") ?? "").trim();
+  const plateRaw = String(formData.get("plate_number") ?? "").trim();
+  const emirate = String(formData.get("emirate") ?? "Ajman").trim();
   const make = String(formData.get("make") ?? "").trim() || null;
   const model = String(formData.get("model") ?? "").trim() || null;
   const yearRaw = String(formData.get("year") ?? "").trim();
@@ -23,6 +25,11 @@ export async function createCustomerWithVehicle(formData: FormData) {
   if (!name || !phone) {
     throw new Error("Name and phone are required.");
   }
+
+  if (plateRaw && !isValidPlateNumber(plateRaw)) {
+    throw new Error("Plate number must be a valid UAE format, e.g. \"A 12345\" or \"12 4567\".");
+  }
+  const plate_number = plateRaw ? normalizePlateNumber(plateRaw) : "";
 
   const { data: customer, error: customerError } = await supabase
     .from("customers")
@@ -38,6 +45,7 @@ export async function createCustomerWithVehicle(formData: FormData) {
     const { error: vehicleError } = await supabase.from("vehicles").insert({
       customer_id: customer.id,
       plate_number,
+      emirate,
       make,
       model,
       year,
@@ -97,7 +105,8 @@ export async function deleteCustomer(customerId: string) {
 export async function updateVehicle(customerId: string, vehicleId: string, formData: FormData) {
   const supabase = await createClient();
 
-  const plate_number = String(formData.get("plate_number") ?? "").trim();
+  const plateRaw = String(formData.get("plate_number") ?? "").trim();
+  const emirate = String(formData.get("emirate") ?? "Ajman").trim();
   const make = String(formData.get("make") ?? "").trim() || null;
   const model = String(formData.get("model") ?? "").trim() || null;
   const yearRaw = String(formData.get("year") ?? "").trim();
@@ -105,13 +114,17 @@ export async function updateVehicle(customerId: string, vehicleId: string, formD
   const color = String(formData.get("color") ?? "").trim() || null;
   const vin = String(formData.get("vin") ?? "").trim() || null;
 
-  if (!plate_number) {
+  if (!plateRaw) {
     throw new Error("Plate number is required.");
   }
+  if (!isValidPlateNumber(plateRaw)) {
+    throw new Error("Plate number must be a valid UAE format, e.g. \"A 12345\" or \"12 4567\".");
+  }
+  const plate_number = normalizePlateNumber(plateRaw);
 
   const { error } = await supabase
     .from("vehicles")
-    .update({ plate_number, make, model, year, color, vin })
+    .update({ plate_number, emirate, make, model, year, color, vin })
     .eq("id", vehicleId);
 
   if (error) {
@@ -182,7 +195,8 @@ export async function deleteBalanceAdjustment(customerId: string, adjustmentId: 
 export async function addVehicle(customerId: string, formData: FormData) {
   const supabase = await createClient();
 
-  const plate_number = String(formData.get("plate_number") ?? "").trim();
+  const plateRaw = String(formData.get("plate_number") ?? "").trim();
+  const emirate = String(formData.get("emirate") ?? "Ajman").trim();
   const make = String(formData.get("make") ?? "").trim() || null;
   const model = String(formData.get("model") ?? "").trim() || null;
   const yearRaw = String(formData.get("year") ?? "").trim();
@@ -190,13 +204,18 @@ export async function addVehicle(customerId: string, formData: FormData) {
   const color = String(formData.get("color") ?? "").trim() || null;
   const vin = String(formData.get("vin") ?? "").trim() || null;
 
-  if (!plate_number) {
+  if (!plateRaw) {
     throw new Error("Plate number is required.");
   }
+  if (!isValidPlateNumber(plateRaw)) {
+    throw new Error("Plate number must be a valid UAE format, e.g. \"A 12345\" or \"12 4567\".");
+  }
+  const plate_number = normalizePlateNumber(plateRaw);
 
   const { error } = await supabase.from("vehicles").insert({
     customer_id: customerId,
     plate_number,
+    emirate,
     make,
     model,
     year,

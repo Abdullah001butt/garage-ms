@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createCustomerWithVehicle } from "@/app/customers/actions";
-import { Card, PageHeader, PrimaryButton, Field } from "@/components/ui";
+import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
+import { EMIRATES, PLATE_PATTERN } from "@/lib/plate";
 
 export default async function NewCustomerPage() {
   const supabase = await createClient();
@@ -55,7 +56,23 @@ export default async function NewCustomerPage() {
             Vehicle (optional — can add later)
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Plate number" name="plate_number" />
+            <Field
+              label="Plate number"
+              name="plate_number"
+              placeholder="A 12345"
+              pattern={PLATE_PATTERN}
+              title='UAE plate format, e.g. "A 12345" or "12 4567"'
+            />
+            <label className="block">
+              <span className={labelClass}>Emirate</span>
+              <select name="emirate" defaultValue="Ajman" className={inputClass}>
+                {EMIRATES.map((e) => (
+                  <option key={e} value={e}>
+                    {e}
+                  </option>
+                ))}
+              </select>
+            </label>
             <Field label="Make" name="make" placeholder="Toyota" list="vehicle-makes" />
             <Field label="Model" name="model" placeholder="Corolla" list="vehicle-models" />
             <Field label="Year" name="year" type="number" />

@@ -25,10 +25,20 @@ export type JobSublet = {
   created_at: string;
 };
 
+export type Emirate =
+  | "Abu Dhabi"
+  | "Dubai"
+  | "Sharjah"
+  | "Ajman"
+  | "Umm Al Quwain"
+  | "Ras Al Khaimah"
+  | "Fujairah";
+
 export type Vehicle = {
   id: string;
   customer_id: string;
   plate_number: string;
+  emirate: Emirate;
   make: string | null;
   model: string | null;
   year: number | null;

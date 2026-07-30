@@ -12,9 +12,11 @@ import {
   addBalanceAdjustment,
   deleteBalanceAdjustment,
 } from "@/app/customers/actions";
-import { Card, PageHeader, EmptyState, Field, Badge, SecondaryButton, PrimaryButton } from "@/components/ui";
+import { Card, PageHeader, EmptyState, Field, Badge, SecondaryButton, PrimaryButton, labelClass, inputClass } from "@/components/ui";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
+import { PlateBadge } from "@/components/PlateBadge";
+import { EMIRATES, PLATE_PATTERN } from "@/lib/plate";
 
 type CustomerInvoiceRow = {
   id: string;
@@ -197,12 +199,14 @@ export default async function CustomerDetailPage({
             return (
               <li key={vehicle.id} className="px-4 py-3 flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-medium text-slate-900">
-                    {vehicle.plate_number}
-                    {vehicle.make || vehicle.model
-                      ? ` — ${[vehicle.make, vehicle.model].filter(Boolean).join(" ")}`
-                      : ""}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} />
+                    {(vehicle.make || vehicle.model) && (
+                      <span className="font-medium text-slate-900">
+                        {[vehicle.make, vehicle.model].filter(Boolean).join(" ")}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-slate-500">
                     {[vehicle.year, vehicle.color].filter(Boolean).join(" · ") || "—"}
                   </p>
@@ -250,7 +254,25 @@ export default async function CustomerDetailPage({
                         action={updateVehicle.bind(null, id, vehicle.id)}
                         className="mt-2 grid grid-cols-2 gap-2 w-64"
                       >
-                        <Field label="Plate" name="plate_number" defaultValue={vehicle.plate_number} required className="col-span-2" />
+                        <Field
+                          label="Plate"
+                          name="plate_number"
+                          defaultValue={vehicle.plate_number}
+                          required
+                          className="col-span-2"
+                          pattern={PLATE_PATTERN}
+                          title='UAE plate format, e.g. "A 12345" or "12 4567"'
+                        />
+                        <label className="block col-span-2">
+                          <span className={labelClass}>Emirate</span>
+                          <select name="emirate" defaultValue={vehicle.emirate} className={inputClass}>
+                            {EMIRATES.map((e) => (
+                              <option key={e} value={e}>
+                                {e}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                         <Field label="Make" name="make" defaultValue={vehicle.make ?? ""} list="vehicle-makes" />
                         <Field label="Model" name="model" defaultValue={vehicle.model ?? ""} list="vehicle-models" />
                         <Field label="Year" name="year" type="number" defaultValue={vehicle.year ?? ""} />
@@ -287,7 +309,24 @@ export default async function CustomerDetailPage({
             + Add a vehicle
           </summary>
           <form action={addVehicleWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <Field label="Plate number" name="plate_number" required />
+            <Field
+              label="Plate number"
+              name="plate_number"
+              placeholder="A 12345"
+              required
+              pattern={PLATE_PATTERN}
+              title='UAE plate format, e.g. "A 12345" or "12 4567"'
+            />
+            <label className="block">
+              <span className={labelClass}>Emirate</span>
+              <select name="emirate" defaultValue="Ajman" className={inputClass}>
+                {EMIRATES.map((e) => (
+                  <option key={e} value={e}>
+                    {e}
+                  </option>
+                ))}
+              </select>
+            </label>
             <Field label="Make" name="make" placeholder="Toyota" list="vehicle-makes" />
             <Field label="Model" name="model" placeholder="Corolla" list="vehicle-models" />
             <Field label="Year" name="year" type="number" />

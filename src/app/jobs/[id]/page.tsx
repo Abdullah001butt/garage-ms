@@ -7,6 +7,7 @@ import type { JobStatus, JobSublet } from "@/lib/types";
 import { Card, PageHeader, Badge, PrimaryButton, SecondaryButton, Field, EmptyState } from "@/components/ui";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import { PlateBadge } from "@/components/PlateBadge";
 
 type JobDetail = {
   id: string;
@@ -20,6 +21,7 @@ type JobDetail = {
   vehicle_id: string;
   vehicles: {
     plate_number: string;
+    emirate: string;
     make: string | null;
     model: string | null;
     year: number | null;
@@ -51,7 +53,7 @@ export default async function JobDetailPage({
     supabase
       .from("job_cards")
       .select(
-        "id, description, mechanic_name, odometer, status, created_at, completed_at, customer_id, vehicle_id, vehicles(plate_number, make, model, year), customers(name, phone)"
+        "id, description, mechanic_name, odometer, status, created_at, completed_at, customer_id, vehicle_id, vehicles(plate_number, emirate, make, model, year), customers(name, phone)"
       )
       .eq("id", id)
       .single<JobDetail>(),
@@ -85,8 +87,13 @@ export default async function JobDetailPage({
         &larr; Back to job cards
       </Link>
 
+      {job.vehicles && (
+        <div className="mt-3">
+          <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />
+        </div>
+      )}
       <PageHeader
-        title={`${job.vehicles?.plate_number} — ${[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ")}`}
+        title={[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "Job Card"}
         description={`${job.customers?.name} · ${job.customers?.phone}`}
         action={<Badge color={STATUS_COLOR[job.status]}>{STATUS_LABEL[job.status]}</Badge>}
       />

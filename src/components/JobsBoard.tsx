@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui";
+import { PlateBadge } from "@/components/PlateBadge";
 import type { JobStatus } from "@/lib/types";
 
 type JobRow = {
@@ -10,7 +11,7 @@ type JobRow = {
   status: JobStatus;
   mechanic_name: string | null;
   created_at: string;
-  vehicles: { plate_number: string; make: string | null; model: string | null } | null;
+  vehicles: { plate_number: string; emirate: string; make: string | null; model: string | null } | null;
   customers: { name: string } | null;
 };
 
@@ -55,12 +56,16 @@ export function JobsBoard({
                 return (
                   <div key={job.id} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
                     <Link href={`/jobs/${job.id}`} className="block">
-                      <p className="text-sm font-medium text-slate-900 truncate">
-                        {job.vehicles?.plate_number}
-                        {job.vehicles?.make || job.vehicles?.model
-                          ? ` — ${[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ")}`
-                          : ""}
-                      </p>
+                      <div className="mb-1">
+                        {job.vehicles && (
+                          <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />
+                        )}
+                      </div>
+                      {(job.vehicles?.make || job.vehicles?.model) && (
+                        <p className="text-sm font-medium text-slate-900 truncate">
+                          {[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ")}
+                        </p>
+                      )}
                       <p className="text-xs text-slate-500 truncate">{job.customers?.name}</p>
                       <p className="text-xs text-slate-400 truncate">{job.description}</p>
                       {job.mechanic_name && (
