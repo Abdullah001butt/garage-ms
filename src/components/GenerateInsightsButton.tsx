@@ -1,29 +1,17 @@
 "use client";
 
-import { useTransition } from "react";
-import { useToast } from "@/components/Toast";
+import { useActionMutation } from "@/hooks/useActionMutation";
 import { SecondaryButton } from "@/components/ui";
 
 export function GenerateInsightsButton({ action }: { action: () => Promise<void> }) {
-  const [isPending, startTransition] = useTransition();
-  const { showToast } = useToast();
+  const mutation = useActionMutation(action, {
+    successMessage: "Weekly insights generated.",
+    errorMessage: "Failed to generate insights.",
+  });
 
   return (
-    <SecondaryButton
-      type="button"
-      disabled={isPending}
-      onClick={() => {
-        startTransition(async () => {
-          try {
-            await action();
-            showToast("Weekly insights generated.", "success");
-          } catch (err) {
-            showToast(err instanceof Error ? err.message : "Failed to generate insights.", "error");
-          }
-        });
-      }}
-    >
-      {isPending ? "Generating…" : "Generate This Week's Insights"}
+    <SecondaryButton type="button" disabled={mutation.isPending} onClick={() => mutation.mutate()}>
+      {mutation.isPending ? "Generating…" : "Generate This Week's Insights"}
     </SecondaryButton>
   );
 }

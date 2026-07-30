@@ -1,8 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/Toast";
+import { useActionMutation } from "@/hooks/useActionMutation";
 
 export function ConfirmSubmitButton({
   action,
@@ -19,29 +18,25 @@ export function ConfirmSubmitButton({
   className?: string;
   children: React.ReactNode;
 }) {
-  const [isPending, startTransition] = useTransition();
-  const { showToast } = useToast();
   const router = useRouter();
+  const mutation = useActionMutation(action, {
+    successMessage,
+    onSuccess: () => {
+      if (redirectTo) router.push(redirectTo);
+    },
+  });
 
   return (
     <button
       type="button"
-      disabled={isPending}
+      disabled={mutation.isPending}
       className={className}
       onClick={() => {
         if (!confirm(confirmMessage)) return;
-        startTransition(async () => {
-          try {
-            await action();
-            showToast(successMessage, "success");
-            if (redirectTo) router.push(redirectTo);
-          } catch (err) {
-            showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
-          }
-        });
+        mutation.mutate();
       }}
     >
-      {isPending ? "Deleting…" : children}
+      {mutation.isPending ? "Deleting…" : children}
     </button>
   );
 }

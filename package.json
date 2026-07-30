@@ -12,6 +12,7 @@
     "@google/genai": "^2.13.0",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8",
+    "@tanstack/react-query": "^5.101.4",
     "exceljs": "^4.4.0",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",

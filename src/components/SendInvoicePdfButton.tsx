@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { useToast } from "@/components/Toast";
+import { useActionMutation } from "@/hooks/useActionMutation";
 
 export function SendInvoicePdfButton({
   invoiceId,
@@ -16,12 +15,8 @@ export function SendInvoicePdfButton({
   customerFirstName: string;
   documentLabel: string;
 }) {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { showToast } = useToast();
-
-  async function handleClick() {
-    setIsGenerating(true);
-    try {
+  const mutation = useActionMutation(
+    async () => {
       const node = document.getElementById("invoice-printable");
       if (!node) {
         throw new Error("Could not find invoice content to export.");
@@ -68,22 +63,18 @@ export function SendInvoicePdfButton({
 
       const message = `Hi ${customerFirstName}, here is your ${documentLabel.toLowerCase()} from Al Bahir Garage: ${urlData.publicUrl}`;
       window.open(buildWhatsAppLink(phone, message), "_blank", "noopener,noreferrer");
-      showToast("Invoice PDF sent.", "success");
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to generate PDF.", "error");
-    } finally {
-      setIsGenerating(false);
-    }
-  }
+    },
+    { successMessage: "Invoice PDF sent.", errorMessage: "Failed to generate PDF." }
+  );
 
   return (
     <button
       type="button"
-      onClick={handleClick}
-      disabled={isGenerating}
+      onClick={() => mutation.mutate()}
+      disabled={mutation.isPending}
       className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-500 disabled:opacity-60"
     >
-      {isGenerating ? "Preparing PDF…" : "📄 Send PDF via WhatsApp"}
+      {mutation.isPending ? "Preparing PDF…" : "📄 Send PDF via WhatsApp"}
     </button>
   );
 }

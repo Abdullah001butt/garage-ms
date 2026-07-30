@@ -4,6 +4,7 @@ import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { NoZoomGuard } from "@/components/NoZoomGuard";
 import { ToastProvider } from "@/components/Toast";
+import { QueryProvider } from "@/components/QueryProvider";
 import { MobileNav } from "@/components/MobileNav";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { HelpBanner } from "@/components/HelpBanner";
@@ -47,6 +48,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-slate-50 overflow-x-hidden">
         <NoZoomGuard />
+        <QueryProvider>
         <ToastProvider>
           {!user ? (
             children
@@ -88,6 +90,7 @@ export default async function RootLayout({
             </>
           )}
         </ToastProvider>
+        </QueryProvider>
       </body>
     </html>
   );

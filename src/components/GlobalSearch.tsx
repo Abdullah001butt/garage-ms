@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import type { SearchResult } from "@/app/api/search/route";
 
 const TYPE_LABEL: Record<SearchResult["type"], string> = {
@@ -25,9 +26,8 @@ function resultHref(r: SearchResult) {
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -52,7 +52,7 @@ export function GlobalSearch() {
     } else {
       document.body.style.overflow = "";
       setQuery("");
-      setResults([]);
+      setDebouncedQuery("");
       setActiveIndex(0);
     }
     return () => {
@@ -61,23 +61,28 @@ export function GlobalSearch() {
   }, [open]);
 
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    setLoading(true);
-    const handle = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        setResults(data.results ?? []);
-        setActiveIndex(0);
-      } finally {
-        setLoading(false);
-      }
-    }, 200);
+    const handle = setTimeout(() => setDebouncedQuery(query), 200);
     return () => clearTimeout(handle);
   }, [query]);
+
+  const trimmed = debouncedQuery.trim();
+
+  const { data, isFetching } = useQuery({
+    queryKey: ["global-search", trimmed],
+    queryFn: async ({ signal }) => {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`, { signal });
+      const json = await res.json();
+      return (json.results ?? []) as SearchResult[];
+    },
+    enabled: trimmed.length >= 2,
+    staleTime: 60_000,
+  });
+
+  const results = data ?? [];
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [data]);
 
   const navigateTo = useCallback(
     (r: SearchResult) => {
@@ -146,11 +151,13 @@ export function GlobalSearch() {
               </div>
 
               <div className="max-h-96 overflow-y-auto">
-                {loading && <p className="px-4 py-6 text-sm text-slate-400 text-center">Searching...</p>}
-                {!loading && query.trim().length >= 2 && results.length === 0 && (
+                {isFetching && results.length === 0 && (
+                  <p className="px-4 py-6 text-sm text-slate-400 text-center">Searching...</p>
+                )}
+                {!isFetching && trimmed.length >= 2 && results.length === 0 && (
                   <p className="px-4 py-6 text-sm text-slate-400 text-center">No matches found.</p>
                 )}
-                {!loading && query.trim().length < 2 && (
+                {trimmed.length < 2 && (
                   <p className="px-4 py-6 text-sm text-slate-400 text-center">
                     Type at least 2 characters — customer name, phone, plate number, or job description.
                   </p>
