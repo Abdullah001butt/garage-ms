@@ -145,6 +145,7 @@ export function Field({
   step,
   defaultValue,
   className = "",
+  list,
 }: {
   label: string;
   name: string;
@@ -154,6 +155,7 @@ export function Field({
   step?: string;
   defaultValue?: string | number;
   className?: string;
+  list?: string;
 }) {
   return (
     <label className={`block ${className}`}>
@@ -168,6 +170,7 @@ export function Field({
         placeholder={placeholder}
         step={step}
         defaultValue={defaultValue}
+        list={list}
         className={inputClass}
       />
     </label>

@@ -47,3 +47,66 @@ export async function updateShopSettings(settingsId: string, formData: FormData)
 
   revalidatePath("/settings");
 }
+
+export async function createCompanyVehicle(formData: FormData) {
+  const supabase = await createClient();
+
+  const name = String(formData.get("name") ?? "").trim();
+  const plate_number = String(formData.get("plate_number") ?? "").trim() || null;
+  const notes = String(formData.get("notes") ?? "").trim() || null;
+
+  if (!name) {
+    throw new Error("Name is required.");
+  }
+
+  const { error } = await supabase.from("company_vehicles").insert({ name, plate_number, notes });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/settings");
+}
+
+export async function deleteCompanyVehicle(vehicleId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("company_vehicles").delete().eq("id", vehicleId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/settings");
+}
+
+export async function createShopHoliday(formData: FormData) {
+  const supabase = await createClient();
+
+  const holiday_date = String(formData.get("holiday_date") ?? "").trim();
+  const label = String(formData.get("label") ?? "").trim();
+
+  if (!holiday_date || !label) {
+    throw new Error("Date and label are required.");
+  }
+
+  const { error } = await supabase.from("shop_holidays").insert({ holiday_date, label });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/settings");
+}
+
+export async function deleteShopHoliday(holidayId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("shop_holidays").delete().eq("id", holidayId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/settings");
+}

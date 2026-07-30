@@ -39,6 +39,38 @@ export type Vehicle = {
   created_at: string;
 };
 
+export type CompanyVehicle = {
+  id: string;
+  name: string;
+  plate_number: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type ShopHoliday = {
+  id: string;
+  holiday_date: string;
+  label: string;
+  created_at: string;
+};
+
+export type VehicleIncident = {
+  id: string;
+  vehicle_id: string;
+  incident_date: string;
+  description: string;
+  created_at: string;
+};
+
+export type VehicleDocument = {
+  id: string;
+  vehicle_id: string;
+  file_name: string;
+  file_path: string;
+  file_type: string | null;
+  uploaded_at: string;
+};
+
 export type JobStatus = "pending" | "in_progress" | "completed";
 
 export type JobCard = {
@@ -121,6 +153,7 @@ export type Expense = {
   description: string | null;
   amount: number;
   expense_date: string;
+  company_vehicle_id: string | null;
   created_at: string;
 };
 

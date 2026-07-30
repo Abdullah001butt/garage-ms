@@ -32,28 +32,33 @@ export default async function CustomerDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: customer }, { data: vehicles }, { data: invoices }, { data: adjustments }] = await Promise.all([
-    supabase.from("customers").select("*").eq("id", id).single<Customer>(),
-    supabase
-      .from("vehicles")
-      .select("*")
-      .eq("customer_id", id)
-      .order("created_at", { ascending: false })
-      .returns<Vehicle[]>(),
-    supabase
-      .from("invoices")
-      .select("id, discount, vat_rate, invoice_items(quantity, unit_price), payments(amount)")
-      .eq("customer_id", id)
-      .eq("document_type", "invoice")
-      .in("status", ["unpaid", "partial"])
-      .returns<CustomerInvoiceRow[]>(),
-    supabase
-      .from("customer_balance_adjustments")
-      .select("*")
-      .eq("customer_id", id)
-      .order("created_at", { ascending: false })
-      .returns<CustomerBalanceAdjustment[]>(),
-  ]);
+  const [{ data: customer }, { data: vehicles }, { data: invoices }, { data: adjustments }, { data: allVehicles }] =
+    await Promise.all([
+      supabase.from("customers").select("*").eq("id", id).single<Customer>(),
+      supabase
+        .from("vehicles")
+        .select("*")
+        .eq("customer_id", id)
+        .order("created_at", { ascending: false })
+        .returns<Vehicle[]>(),
+      supabase
+        .from("invoices")
+        .select("id, discount, vat_rate, invoice_items(quantity, unit_price), payments(amount)")
+        .eq("customer_id", id)
+        .eq("document_type", "invoice")
+        .in("status", ["unpaid", "partial"])
+        .returns<CustomerInvoiceRow[]>(),
+      supabase
+        .from("customer_balance_adjustments")
+        .select("*")
+        .eq("customer_id", id)
+        .order("created_at", { ascending: false })
+        .returns<CustomerBalanceAdjustment[]>(),
+      supabase.from("vehicles").select("make, model"),
+    ]);
+
+  const uniqueMakes = [...new Set((allVehicles ?? []).map((v) => v.make).filter(Boolean))];
+  const uniqueModels = [...new Set((allVehicles ?? []).map((v) => v.model).filter(Boolean))];
 
   if (!customer) {
     notFound();
@@ -85,6 +90,17 @@ export default async function CustomerDetailPage({
         title={customer.name}
         description={[customer.phone, customer.email, customer.address].filter(Boolean).join(" · ")}
       />
+
+      <datalist id="vehicle-makes">
+        {uniqueMakes.map((m) => (
+          <option key={m} value={m as string} />
+        ))}
+      </datalist>
+      <datalist id="vehicle-models">
+        {uniqueModels.map((m) => (
+          <option key={m} value={m as string} />
+        ))}
+      </datalist>
 
       <Card className="relative mb-6 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -203,6 +219,12 @@ export default async function CustomerDetailPage({
                     >
                       View QR Code &rarr;
                     </Link>
+                    <Link
+                      href={`/vehicles/${vehicle.id}/passport`}
+                      className="text-xs text-indigo-600 hover:underline"
+                    >
+                      Vehicle Passport &rarr;
+                    </Link>
                     <form
                       action={updateVehicleServiceInterval.bind(null, id, vehicle.id)}
                       className="flex items-center gap-1"
@@ -229,8 +251,8 @@ export default async function CustomerDetailPage({
                         className="mt-2 grid grid-cols-2 gap-2 w-64"
                       >
                         <Field label="Plate" name="plate_number" defaultValue={vehicle.plate_number} required className="col-span-2" />
-                        <Field label="Make" name="make" defaultValue={vehicle.make ?? ""} />
-                        <Field label="Model" name="model" defaultValue={vehicle.model ?? ""} />
+                        <Field label="Make" name="make" defaultValue={vehicle.make ?? ""} list="vehicle-makes" />
+                        <Field label="Model" name="model" defaultValue={vehicle.model ?? ""} list="vehicle-models" />
                         <Field label="Year" name="year" type="number" defaultValue={vehicle.year ?? ""} />
                         <Field label="Color" name="color" defaultValue={vehicle.color ?? ""} />
                         <Field label="VIN" name="vin" defaultValue={vehicle.vin ?? ""} className="col-span-2" />
@@ -266,8 +288,8 @@ export default async function CustomerDetailPage({
           </summary>
           <form action={addVehicleWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <Field label="Plate number" name="plate_number" required />
-            <Field label="Make" name="make" placeholder="Toyota" />
-            <Field label="Model" name="model" placeholder="Corolla" />
+            <Field label="Make" name="make" placeholder="Toyota" list="vehicle-makes" />
+            <Field label="Model" name="model" placeholder="Corolla" list="vehicle-models" />
             <Field label="Year" name="year" type="number" />
             <Field label="Color" name="color" />
             <Field label="VIN" name="vin" />

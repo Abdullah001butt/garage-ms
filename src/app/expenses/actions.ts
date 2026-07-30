@@ -11,6 +11,7 @@ export async function createExpense(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim() || null;
   const amount = Number(formData.get("amount") ?? 0);
   const expense_date = String(formData.get("expense_date") ?? "").trim();
+  const company_vehicle_id = String(formData.get("company_vehicle_id") ?? "").trim() || null;
 
   if (!category || !amount || !expense_date) {
     throw new Error("Category, amount, and date are required.");
@@ -18,7 +19,7 @@ export async function createExpense(formData: FormData) {
 
   const { data: expense, error } = await supabase
     .from("expenses")
-    .insert({ category, description, amount, expense_date })
+    .insert({ category, description, amount, expense_date, company_vehicle_id })
     .select()
     .single();
 
@@ -39,6 +40,7 @@ export async function updateExpense(expenseId: string, formData: FormData) {
   const description = String(formData.get("description") ?? "").trim() || null;
   const amount = Number(formData.get("amount") ?? 0);
   const expense_date = String(formData.get("expense_date") ?? "").trim();
+  const company_vehicle_id = String(formData.get("company_vehicle_id") ?? "").trim() || null;
 
   if (!category || !amount || !expense_date) {
     throw new Error("Category, amount, and date are required.");
@@ -46,7 +48,7 @@ export async function updateExpense(expenseId: string, formData: FormData) {
 
   const { error } = await supabase
     .from("expenses")
-    .update({ category, description, amount, expense_date })
+    .update({ category, description, amount, expense_date, company_vehicle_id })
     .eq("id", expenseId);
 
   if (error) {

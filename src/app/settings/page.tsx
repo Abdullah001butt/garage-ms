@@ -1,15 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
-import type { ShopSettings } from "@/lib/types";
-import { updateShopSettings } from "@/app/settings/actions";
-import { Card, PageHeader, PrimaryButton, SecondaryButton, Field } from "@/components/ui";
+import type { ShopSettings, CompanyVehicle, ShopHoliday } from "@/lib/types";
+import {
+  updateShopSettings,
+  createCompanyVehicle,
+  deleteCompanyVehicle,
+  createShopHoliday,
+  deleteShopHoliday,
+} from "@/app/settings/actions";
+import { Card, PageHeader, PrimaryButton, SecondaryButton, Field, EmptyState } from "@/components/ui";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const { data: settings } = await supabase
-    .from("shop_settings")
-    .select("*")
-    .limit(1)
-    .maybeSingle<ShopSettings>();
+  const [{ data: settings }, { data: companyVehicles }, { data: holidays }] = await Promise.all([
+    supabase.from("shop_settings").select("*").limit(1).maybeSingle<ShopSettings>(),
+    supabase.from("company_vehicles").select("*").order("created_at").returns<CompanyVehicle[]>(),
+    supabase.from("shop_holidays").select("*").order("holiday_date").returns<ShopHoliday[]>(),
+  ]);
 
   if (!settings) {
     return (
@@ -101,6 +108,71 @@ export default async function SettingsPage() {
         <p className="text-sm font-mono text-indigo-600 bg-indigo-50 rounded-md px-3 py-2 break-all">
           {settings.portal_url ? settings.portal_url.replace(/\/portal\/?$/, "/book") : "/book"}
         </p>
+      </Card>
+
+      <Card className="p-5 mt-6">
+        <p className="text-sm font-semibold text-slate-700 mb-3">Company Vehicles</p>
+        <p className="text-xs text-slate-500 mb-3">
+          Vehicles your garage owns (parts-run vans, recovery trucks) — tag their running costs
+          (fuel, RTA renewal, tolls) separately when recording an expense.
+        </p>
+        <ul className="divide-y divide-slate-100 mb-3">
+          {companyVehicles?.map((v) => (
+            <li key={v.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+              <div className="min-w-0">
+                <p className="font-medium text-slate-900 truncate">{v.name}</p>
+                {v.plate_number && <p className="text-xs text-slate-500">{v.plate_number}</p>}
+              </div>
+              <ConfirmSubmitButton
+                action={deleteCompanyVehicle.bind(null, v.id)}
+                confirmMessage={`Remove "${v.name}"?`}
+                successMessage="Removed."
+              >
+                Remove
+              </ConfirmSubmitButton>
+            </li>
+          ))}
+          {companyVehicles?.length === 0 && <EmptyState message="No company vehicles added yet." />}
+        </ul>
+        <form action={createCompanyVehicle} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <Field label="Name" name="name" placeholder="Parts Van" required />
+          <Field label="Plate Number" name="plate_number" />
+          <Field label="Notes" name="notes" />
+          <div className="sm:col-span-3">
+            <SecondaryButton type="submit">Add Company Vehicle</SecondaryButton>
+          </div>
+        </form>
+      </Card>
+
+      <Card className="p-5 mt-6">
+        <p className="text-sm font-semibold text-slate-700 mb-3">Shop Working Calendar</p>
+        <p className="text-xs text-slate-500 mb-3">
+          Mark Fridays and official holidays as non-working days for scheduling and attendance context.
+        </p>
+        <ul className="divide-y divide-slate-100 mb-3">
+          {holidays?.map((h) => (
+            <li key={h.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+              <span className="text-slate-700">
+                {new Date(h.holiday_date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })} — {h.label}
+              </span>
+              <ConfirmSubmitButton
+                action={deleteShopHoliday.bind(null, h.id)}
+                confirmMessage="Remove this holiday?"
+                successMessage="Removed."
+              >
+                Remove
+              </ConfirmSubmitButton>
+            </li>
+          ))}
+          {holidays?.length === 0 && <EmptyState message="No holidays configured yet." />}
+        </ul>
+        <form action={createShopHoliday} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <Field label="Date" name="holiday_date" type="date" required />
+          <Field label="Label" name="label" placeholder="Official Holiday" required className="sm:col-span-2" />
+          <div className="sm:col-span-3">
+            <SecondaryButton type="submit">Add Holiday</SecondaryButton>
+          </div>
+        </form>
       </Card>
 
       <Card className="p-5 mt-6">

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Expense } from "@/lib/types";
+import type { Expense, CompanyVehicle } from "@/lib/types";
 import { createExpense, updateExpense, deleteExpense, ensureMonthlyExpensesGenerated } from "@/app/expenses/actions";
 import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
@@ -10,11 +10,11 @@ const CATEGORIES = ["Rent", "Utilities", "Salaries", "Tools & Equipment", "Marke
 export default async function ExpensesPage() {
   await ensureMonthlyExpensesGenerated();
   const supabase = await createClient();
-  const { data: expenses, error } = await supabase
-    .from("expenses")
-    .select("*")
-    .order("expense_date", { ascending: false })
-    .returns<Expense[]>();
+  const [{ data: expenses, error }, { data: companyVehicles }] = await Promise.all([
+    supabase.from("expenses").select("*").order("expense_date", { ascending: false }).returns<Expense[]>(),
+    supabase.from("company_vehicles").select("*").order("name").returns<CompanyVehicle[]>(),
+  ]);
+  const vehicleNameById = new Map((companyVehicles ?? []).map((v) => [v.id, v.name]));
 
   const now = new Date();
   const monthTotal = (expenses ?? [])
@@ -61,7 +61,14 @@ export default async function ExpensesPage() {
                   {new Date(e.expense_date).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-2.5 font-medium text-slate-900">{e.category}</td>
-                <td className="px-4 py-2.5 text-slate-500">{e.description ?? "—"}</td>
+                <td className="px-4 py-2.5 text-slate-500">
+                  {e.description ?? "—"}
+                  {e.company_vehicle_id && vehicleNameById.get(e.company_vehicle_id) && (
+                    <span className="ml-1 text-xs text-indigo-500">
+                      🚐 {vehicleNameById.get(e.company_vehicle_id)}
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-2.5 text-right font-medium">
                   {Number(e.amount).toFixed(2)}
                 </td>
@@ -86,6 +93,19 @@ export default async function ExpensesPage() {
                         <Field label="Date" name="expense_date" type="date" defaultValue={e.expense_date} required />
                         <Field label="Amount (AED)" name="amount" type="number" step="0.01" defaultValue={e.amount} required />
                         <Field label="Description" name="description" defaultValue={e.description ?? ""} />
+                        {companyVehicles && companyVehicles.length > 0 && (
+                          <label className="block">
+                            <span className={labelClass}>Company Vehicle (optional)</span>
+                            <select name="company_vehicle_id" defaultValue={e.company_vehicle_id ?? ""} className={inputClass}>
+                              <option value="">None</option>
+                              {companyVehicles.map((v) => (
+                                <option key={v.id} value={v.id}>
+                                  {v.name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        )}
                         <button
                           type="submit"
                           className="w-full rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
@@ -126,6 +146,19 @@ export default async function ExpensesPage() {
           <Field label="Date" name="expense_date" type="date" required />
           <Field label="Amount (AED)" name="amount" type="number" step="0.01" required />
           <Field label="Description" name="description" />
+          {companyVehicles && companyVehicles.length > 0 && (
+            <label className="block col-span-2">
+              <span className={labelClass}>Company Vehicle (optional)</span>
+              <select name="company_vehicle_id" className={inputClass}>
+                <option value="">None</option>
+                {companyVehicles.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <div className="col-span-2">
             <PrimaryButton type="submit">Save Expense</PrimaryButton>
           </div>
