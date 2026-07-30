@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, SecondaryButton } from "@/components/ui";
 import type { DocumentType } from "@/lib/types";
+import { formatInvoiceNumber } from "@/lib/invoice-number";
 
 type Row = {
   id: string;
@@ -9,6 +10,7 @@ type Row = {
   created_at: string;
   vat_rate: number;
   discount: number;
+  invoice_number: number | null;
   customers: { name: string } | null;
   invoice_items: { quantity: number; unit_price: number }[];
 };
@@ -45,7 +47,7 @@ export async function DocumentList({
 
   const { data: allDocs, error } = await supabase
     .from("invoices")
-    .select("id, status, created_at, vat_rate, discount, customers(name), invoice_items(quantity, unit_price)")
+    .select("id, status, created_at, vat_rate, discount, invoice_number, customers(name), invoice_items(quantity, unit_price)")
     .eq("document_type", documentType)
     .order("created_at", { ascending: false })
     .returns<Row[]>();
@@ -123,7 +125,14 @@ export async function DocumentList({
                   className="flex items-center justify-between px-4 py-3 hover:bg-slate-50"
                 >
                   <div>
-                    <p className="font-medium text-slate-900">{doc.customers?.name}</p>
+                    <p className="font-medium text-slate-900">
+                      {doc.customers?.name}
+                      {documentType === "invoice" && doc.invoice_number && (
+                        <span className="ml-2 text-xs font-normal text-slate-400">
+                          {formatInvoiceNumber(doc.invoice_number, doc.created_at)}
+                        </span>
+                      )}
+                    </p>
                     <p className="text-sm text-slate-500">
                       {new Date(doc.created_at).toLocaleDateString()} · Total: AED {total.toFixed(2)}
                     </p>

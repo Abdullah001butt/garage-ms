@@ -36,6 +36,7 @@ export function ClassicInvoiceTemplate({
   vehicle,
   jobDescription,
   onDeleteItem,
+  invoiceNumber,
 }: {
   documentLabel: "INVOICE" | "ESTIMATE";
   createdAt: string;
@@ -48,11 +49,12 @@ export function ClassicInvoiceTemplate({
   vehicle: VehicleInfo;
   jobDescription: string | null;
   onDeleteItem: (itemId: string) => void | Promise<void>;
+  invoiceNumber?: string | null;
 }) {
   const [showVat, setShowVat] = useState(false);
 
   const date = new Date(createdAt);
-  const reference = formatReference(createdAt);
+  const reference = invoiceNumber || formatReference(createdAt);
   const dateStr = date.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
   const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 

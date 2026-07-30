@@ -17,6 +17,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { SendInvoicePdfButton } from "@/components/SendInvoicePdfButton";
 import { Badge, Card, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import type { DocumentType, InvoiceItem, JobTemplate, Part, Payment, ShopSettings } from "@/lib/types";
+import { formatInvoiceNumber } from "@/lib/invoice-number";
 
 type DocDetail = {
   id: string;
@@ -27,6 +28,7 @@ type DocDetail = {
   created_at: string;
   paid_at: string | null;
   job_card_id: string | null;
+  invoice_number: number | null;
   customers: { name: string; phone: string; address: string | null } | null;
   job_cards: {
     description: string;
@@ -62,7 +64,7 @@ export async function DocumentDetail({
       supabase
         .from("invoices")
         .select(
-          "id, status, document_type, vat_rate, discount, created_at, paid_at, job_card_id, customers(name, phone, address), job_cards(description, vehicles(plate_number, make, model, year))"
+          "id, status, document_type, vat_rate, discount, created_at, paid_at, job_card_id, invoice_number, customers(name, phone, address), job_cards(description, vehicles(plate_number, make, model, year))"
         )
         .eq("id", id)
         .single<DocDetail>(),
@@ -134,6 +136,7 @@ export async function DocumentDetail({
           vehicle={doc.job_cards?.vehicles ?? null}
           jobDescription={doc.job_cards?.description ?? null}
           onDeleteItem={deleteItemWithId}
+          invoiceNumber={isEstimate ? null : formatInvoiceNumber(doc.invoice_number, doc.created_at)}
         />
       </div>
 
