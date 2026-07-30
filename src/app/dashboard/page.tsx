@@ -13,7 +13,7 @@ type InvoiceRow = {
   paid_at: string | null;
   customer_id: string | null;
   customers: { name: string } | null;
-  invoice_items: { item_type: "part" | "labor"; quantity: number; unit_price: number }[];
+  invoice_items: { item_type: "part" | "labor" | "service"; quantity: number; unit_price: number }[];
 };
 
 type JobRow = {
@@ -77,6 +77,10 @@ export default async function DashboardPage() {
   );
   const partsTotal = realInvoices.reduce(
     (s, i) => s + i.invoice_items.filter((it) => it.item_type === "part").reduce((a, it) => a + it.quantity * it.unit_price, 0),
+    0
+  );
+  const serviceTotal = realInvoices.reduce(
+    (s, i) => s + i.invoice_items.filter((it) => it.item_type === "service").reduce((a, it) => a + it.quantity * it.unit_price, 0),
     0
   );
 
@@ -226,10 +230,13 @@ export default async function DashboardPage() {
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="p-5">
-          <p className="text-sm font-semibold text-slate-700 mb-4">Revenue Split: Labor vs Parts</p>
+          <p className="text-sm font-semibold text-slate-700 mb-4">Revenue Split: Labor vs Parts vs Services</p>
           <div className="space-y-3">
-            <RevenueBar label="Labor" value={laborTotal} total={laborTotal + partsTotal} color="bg-indigo-500" />
-            <RevenueBar label="Parts" value={partsTotal} total={laborTotal + partsTotal} color="bg-emerald-500" />
+            <RevenueBar label="Labor" value={laborTotal} total={laborTotal + partsTotal + serviceTotal} color="bg-indigo-500" />
+            <RevenueBar label="Parts" value={partsTotal} total={laborTotal + partsTotal + serviceTotal} color="bg-emerald-500" />
+            {serviceTotal > 0 && (
+              <RevenueBar label="Service" value={serviceTotal} total={laborTotal + partsTotal + serviceTotal} color="bg-amber-500" />
+            )}
           </div>
         </Card>
 

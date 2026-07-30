@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Customer, Vehicle } from "@/lib/types";
+import type { Customer, Vehicle, CustomerBalanceAdjustment } from "@/lib/types";
 import {
   addVehicle,
   updateVehicleServiceInterval,
@@ -9,10 +9,20 @@ import {
   deleteCustomer,
   updateVehicle,
   deleteVehicle,
+  addBalanceAdjustment,
+  deleteBalanceAdjustment,
 } from "@/app/customers/actions";
-import { Card, PageHeader, EmptyState, Field, Badge, SecondaryButton } from "@/components/ui";
+import { Card, PageHeader, EmptyState, Field, Badge, SecondaryButton, PrimaryButton } from "@/components/ui";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
+
+type CustomerInvoiceRow = {
+  id: string;
+  discount: number;
+  vat_rate: number;
+  invoice_items: { quantity: number; unit_price: number }[];
+  payments: { amount: number }[];
+};
 
 export default async function CustomerDetailPage({
   params,
@@ -22,7 +32,7 @@ export default async function CustomerDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: customer }, { data: vehicles }] = await Promise.all([
+  const [{ data: customer }, { data: vehicles }, { data: invoices }, { data: adjustments }] = await Promise.all([
     supabase.from("customers").select("*").eq("id", id).single<Customer>(),
     supabase
       .from("vehicles")
@@ -30,6 +40,19 @@ export default async function CustomerDetailPage({
       .eq("customer_id", id)
       .order("created_at", { ascending: false })
       .returns<Vehicle[]>(),
+    supabase
+      .from("invoices")
+      .select("id, discount, vat_rate, invoice_items(quantity, unit_price), payments(amount)")
+      .eq("customer_id", id)
+      .eq("document_type", "invoice")
+      .in("status", ["unpaid", "partial"])
+      .returns<CustomerInvoiceRow[]>(),
+    supabase
+      .from("customer_balance_adjustments")
+      .select("*")
+      .eq("customer_id", id)
+      .order("created_at", { ascending: false })
+      .returns<CustomerBalanceAdjustment[]>(),
   ]);
 
   if (!customer) {
@@ -38,9 +61,19 @@ export default async function CustomerDetailPage({
 
   const warrantyMap = await getActiveWarrantiesForVehicles((vehicles ?? []).map((v) => v.id));
 
+  const invoiceBalance = (invoices ?? []).reduce((sum, inv) => {
+    const subtotal = inv.invoice_items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
+    const total = subtotal + subtotal * (inv.vat_rate / 100) - inv.discount;
+    const paid = inv.payments.reduce((s, p) => s + Number(p.amount), 0);
+    return sum + Math.max(total - paid, 0);
+  }, 0);
+  const adjustmentBalance = (adjustments ?? []).reduce((s, a) => s + Number(a.amount), 0);
+  const accountBalance = invoiceBalance + adjustmentBalance;
+
   const addVehicleWithId = addVehicle.bind(null, id);
   const updateCustomerWithId = updateCustomer.bind(null, id);
   const deleteCustomerWithId = deleteCustomer.bind(null, id);
+  const addBalanceAdjustmentWithId = addBalanceAdjustment.bind(null, id);
 
   return (
     <div className="mx-auto max-w-3xl p-6 md:p-8">
@@ -52,6 +85,66 @@ export default async function CustomerDetailPage({
         title={customer.name}
         description={[customer.phone, customer.email, customer.address].filter(Boolean).join(" · ")}
       />
+
+      <Card className="relative mb-6 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <p className="text-xs text-slate-500">Account Balance</p>
+            <p className={`text-2xl font-bold ${accountBalance > 0 ? "text-red-600" : "text-emerald-600"}`}>
+              AED {accountBalance.toFixed(2)}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Unpaid invoices: AED {invoiceBalance.toFixed(2)}
+              {adjustmentBalance !== 0 &&
+                ` · Manual adjustments: ${adjustmentBalance > 0 ? "+" : ""}AED ${adjustmentBalance.toFixed(2)}`}
+            </p>
+          </div>
+          <details>
+            <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">
+              + Add balance adjustment
+            </summary>
+            <form
+              action={addBalanceAdjustmentWithId}
+              className="absolute right-4 z-10 mt-2 w-72 space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-md"
+            >
+              <Field
+                label="Amount (AED, use negative for credit/payment)"
+                name="amount"
+                type="number"
+                step="0.01"
+                required
+              />
+              <Field label="Note" name="note" placeholder="e.g. Old balance carried forward" required />
+              <PrimaryButton type="submit" className="w-full justify-center">
+                Add Adjustment
+              </PrimaryButton>
+            </form>
+          </details>
+        </div>
+        {adjustments && adjustments.length > 0 && (
+          <ul className="divide-y divide-slate-100 border-t border-slate-100 pt-2">
+            {adjustments.map((a) => (
+              <li key={a.id} className="flex items-center justify-between gap-2 py-1.5 text-xs">
+                <span className="text-slate-500">
+                  {new Date(a.created_at).toLocaleDateString()} · {a.note}
+                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={a.amount > 0 ? "font-medium text-red-600" : "font-medium text-emerald-600"}>
+                    {a.amount > 0 ? "+" : ""}AED {Number(a.amount).toFixed(2)}
+                  </span>
+                  <ConfirmSubmitButton
+                    action={deleteBalanceAdjustment.bind(null, id, a.id)}
+                    confirmMessage="Remove this balance adjustment?"
+                    successMessage="Adjustment removed."
+                  >
+                    Remove
+                  </ConfirmSubmitButton>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       <Card className="mb-6 p-4">
         <details>

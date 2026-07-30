@@ -37,6 +37,13 @@ type PartRow = {
   reorder_threshold: number;
 };
 
+type CompletedJobRow = {
+  id: string;
+  completed_at: string | null;
+  vehicles: { plate_number: string } | null;
+  customers: { name: string } | null;
+};
+
 function hoursAgo(dateStr: string) {
   return Math.round((Date.now() - new Date(dateStr).getTime()) / 3600000);
 }
@@ -48,7 +55,7 @@ export default async function TodayPage() {
   const todayEnd = new Date();
   todayEnd.setHours(23, 59, 59, 999);
 
-  const [{ data: jobs }, { data: appointments }, { data: invoices }, { data: parts }] = await Promise.all([
+  const [{ data: jobs }, { data: appointments }, { data: invoices }, { data: parts }, { data: completedJobs }] = await Promise.all([
     supabase
       .from("job_cards")
       .select("id, description, status, created_at, vehicles(plate_number, make, model), customers(name, phone)")
@@ -72,6 +79,12 @@ export default async function TodayPage() {
       .in("status", ["unpaid", "partial"])
       .returns<InvoiceRow[]>(),
     supabase.from("parts").select("id, name, stock_qty, reorder_threshold").returns<PartRow[]>(),
+    supabase
+      .from("job_cards")
+      .select("id, completed_at, vehicles(plate_number), customers(name)")
+      .eq("status", "completed")
+      .order("completed_at", { ascending: true })
+      .returns<CompletedJobRow[]>(),
   ]);
 
   const overdueInvoices = (invoices ?? [])
@@ -87,6 +100,13 @@ export default async function TodayPage() {
   const lowStockParts = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold);
   const serviceDue = await getServiceDueVehicles();
   const staleJobs = (jobs ?? []).filter((job) => hoursAgo(job.created_at) >= 48);
+
+  const { data: invoicedJobIds } = await supabase
+    .from("invoices")
+    .select("job_card_id")
+    .not("job_card_id", "is", null);
+  const invoicedSet = new Set((invoicedJobIds ?? []).map((i) => i.job_card_id));
+  const unbilledJobs = (completedJobs ?? []).filter((job) => !invoicedSet.has(job.id));
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-8">
@@ -107,6 +127,23 @@ export default async function TodayPage() {
           </div>
         }
       />
+
+      {unbilledJobs.length > 0 && (
+        <Card className="mb-6 border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm font-semibold text-amber-800 mb-2">
+            💰 {unbilledJobs.length} completed job{unbilledJobs.length > 1 ? "s" : ""} not yet invoiced
+          </p>
+          <ul className="space-y-1">
+            {unbilledJobs.map((job) => (
+              <li key={job.id} className="text-xs text-amber-700">
+                <Link href={`/jobs/${job.id}`} className="hover:underline">
+                  {job.vehicles?.plate_number} — {job.customers?.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {staleJobs.length > 0 && (
         <Card className="mb-6 border-red-200 bg-red-50 p-4">

@@ -48,6 +48,12 @@ export default async function JobsPage({
 
   const { data: jobs, error } = await query.returns<JobRow[]>();
 
+  const { data: invoicedJobIds } = await supabase
+    .from("invoices")
+    .select("job_card_id")
+    .not("job_card_id", "is", null);
+  const invoicedSet = new Set((invoicedJobIds ?? []).map((i) => i.job_card_id));
+
   return (
     <div className={isBoard ? "mx-auto max-w-6xl p-6 md:p-8" : "mx-auto max-w-4xl p-6 md:p-8"}>
       <PageHeader
@@ -128,7 +134,12 @@ export default async function JobsPage({
                       {job.customers?.name} · {job.description}
                     </p>
                   </div>
-                  <Badge color={STATUS_COLOR[job.status]}>{STATUS_LABEL[job.status]}</Badge>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {job.status === "completed" && !invoicedSet.has(job.id) && (
+                      <Badge color="amber">Needs Invoice</Badge>
+                    )}
+                    <Badge color={STATUS_COLOR[job.status]}>{STATUS_LABEL[job.status]}</Badge>
+                  </div>
                 </Link>
               </li>
             ))}

@@ -91,6 +91,7 @@ export function InvoiceItemForm({
         >
           <option value="part">Part</option>
           <option value="labor">Labor</option>
+          <option value="service">Service (towing, recovery, etc.)</option>
         </select>
       </label>
       <label className="block">

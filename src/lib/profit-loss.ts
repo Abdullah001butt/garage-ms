@@ -5,7 +5,7 @@ type InvoiceRow = {
   invoice_items: {
     quantity: number;
     unit_price: number;
-    item_type: "part" | "labor";
+    item_type: "part" | "labor" | "service";
     part_id: string | null;
   }[];
 };
@@ -20,8 +20,13 @@ type ExpenseRow = {
   amount: number;
 };
 
+type SubletRow = {
+  cost: number;
+};
+
 export type ProfitLossResult = {
   laborIncome: number;
+  serviceIncome: number;
   partsRevenue: number;
   partsCost: number;
   partsMargin: number;
@@ -31,6 +36,7 @@ export type ProfitLossResult = {
   grossMarginPct: number;
   expensesByCategory: { category: string; amount: number }[];
   totalExpenses: number;
+  subletCosts: number;
   netProfit: number;
   netMarginPct: number;
   invoiceCount: number;
@@ -45,7 +51,7 @@ export async function computeProfitLoss(month: string): Promise<ProfitLossResult
 
   const supabase = await createClient();
 
-  const [{ data: invoices }, { data: parts }, { data: expenses }] = await Promise.all([
+  const [{ data: invoices }, { data: parts }, { data: expenses }, { data: sublets }] = await Promise.all([
     supabase
       .from("invoices")
       .select("discount, invoice_items(quantity, unit_price, item_type, part_id)")
@@ -60,11 +66,18 @@ export async function computeProfitLoss(month: string): Promise<ProfitLossResult
       .gte("expense_date", monthStart)
       .lte("expense_date", monthEnd)
       .returns<ExpenseRow[]>(),
+    supabase
+      .from("job_sublets")
+      .select("cost")
+      .gte("created_at", monthStart)
+      .lte("created_at", `${monthEnd}T23:59:59`)
+      .returns<SubletRow[]>(),
   ]);
 
   const costByPartId = new Map((parts ?? []).map((p) => [p.id, p.unit_cost ?? 0]));
 
   let laborIncome = 0;
+  let serviceIncome = 0;
   let partsRevenue = 0;
   let partsCost = 0;
   let unlinkedPartsRevenue = 0;
@@ -76,6 +89,8 @@ export async function computeProfitLoss(month: string): Promise<ProfitLossResult
       const lineTotal = item.quantity * item.unit_price;
       if (item.item_type === "labor") {
         laborIncome += lineTotal;
+      } else if (item.item_type === "service") {
+        serviceIncome += lineTotal;
       } else {
         partsRevenue += lineTotal;
         if (item.part_id && costByPartId.has(item.part_id)) {
@@ -87,9 +102,10 @@ export async function computeProfitLoss(month: string): Promise<ProfitLossResult
     }
   }
 
+  const subletCosts = (sublets ?? []).reduce((s, sub) => s + Number(sub.cost), 0);
   const partsMargin = partsRevenue - partsCost;
-  const netRevenue = laborIncome + partsRevenue - totalDiscount;
-  const grossProfit = laborIncome + partsMargin - totalDiscount;
+  const netRevenue = laborIncome + serviceIncome + partsRevenue - totalDiscount;
+  const grossProfit = laborIncome + serviceIncome + partsMargin - totalDiscount - subletCosts;
 
   const categoryMap = new Map<string, number>();
   for (const e of expenses ?? []) {
@@ -104,6 +120,7 @@ export async function computeProfitLoss(month: string): Promise<ProfitLossResult
 
   return {
     laborIncome,
+    serviceIncome,
     partsRevenue,
     partsCost,
     partsMargin,
@@ -113,6 +130,7 @@ export async function computeProfitLoss(month: string): Promise<ProfitLossResult
     grossMarginPct: netRevenue > 0 ? (grossProfit / netRevenue) * 100 : 0,
     expensesByCategory,
     totalExpenses,
+    subletCosts,
     netProfit,
     netMarginPct: netRevenue > 0 ? (netProfit / netRevenue) * 100 : 0,
     invoiceCount: invoices?.length ?? 0,

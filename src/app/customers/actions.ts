@@ -137,6 +137,48 @@ export async function deleteVehicle(customerId: string, vehicleId: string) {
   revalidatePath(`/customers/${customerId}`);
 }
 
+export async function addBalanceAdjustment(customerId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const amount = Number(formData.get("amount") ?? 0);
+  const note = String(formData.get("note") ?? "").trim();
+
+  if (!amount || !note) {
+    throw new Error("Amount and note are required.");
+  }
+
+  const { error } = await supabase.from("customer_balance_adjustments").insert({
+    customer_id: customerId,
+    amount,
+    note,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await logAudit("customer.balance_adjustment", "customer", customerId, { amount, note });
+
+  revalidatePath(`/customers/${customerId}`);
+}
+
+export async function deleteBalanceAdjustment(customerId: string, adjustmentId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("customer_balance_adjustments")
+    .delete()
+    .eq("id", adjustmentId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await logAudit("customer.balance_adjustment_delete", "customer", customerId);
+
+  revalidatePath(`/customers/${customerId}`);
+}
+
 export async function addVehicle(customerId: string, formData: FormData) {
   const supabase = await createClient();
 

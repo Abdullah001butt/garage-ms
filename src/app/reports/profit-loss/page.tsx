@@ -66,6 +66,12 @@ export default async function ProfitLossPage({
             <span className="text-slate-500">Labor Income</span>
             <span className="font-medium">AED {pl.laborIncome.toFixed(2)}</span>
           </div>
+          {pl.serviceIncome > 0 && (
+            <div className="flex justify-between">
+              <span className="text-slate-500">Service Income (towing, recovery, etc.)</span>
+              <span className="font-medium">AED {pl.serviceIncome.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-slate-500">Parts Revenue</span>
             <span className="font-medium">AED {pl.partsRevenue.toFixed(2)}</span>
@@ -82,6 +88,12 @@ export default async function ProfitLossPage({
             <span className="text-slate-500">Discounts Given</span>
             <span className="font-medium text-red-600">-AED {pl.totalDiscount.toFixed(2)}</span>
           </div>
+          {pl.subletCosts > 0 && (
+            <div className="flex justify-between">
+              <span className="text-slate-500">Sublet / Outsourced Costs</span>
+              <span className="font-medium text-red-600">-AED {pl.subletCosts.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between border-t border-slate-200 pt-2 text-base">
             <span className="font-semibold text-slate-900">Gross Profit</span>
             <span className="font-bold text-indigo-600">AED {pl.grossProfit.toFixed(2)}</span>

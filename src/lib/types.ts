@@ -8,6 +8,23 @@ export type Customer = {
   created_at: string;
 };
 
+export type CustomerBalanceAdjustment = {
+  id: string;
+  customer_id: string;
+  amount: number;
+  note: string;
+  created_at: string;
+};
+
+export type JobSublet = {
+  id: string;
+  job_card_id: string;
+  vendor_name: string;
+  description: string;
+  cost: number;
+  created_at: string;
+};
+
 export type Vehicle = {
   id: string;
   customer_id: string;
@@ -52,7 +69,7 @@ export type Invoice = {
   paid_at: string | null;
 };
 
-export type InvoiceItemType = "part" | "labor";
+export type InvoiceItemType = "part" | "labor" | "service";
 
 export type InvoiceItem = {
   id: string;

@@ -81,6 +81,7 @@ export default async function JobTemplatesPage() {
                                   >
                                     <option value="part">Part</option>
                                     <option value="labor">Labor</option>
+                                    <option value="service">Service</option>
                                   </select>
                                   <div className="grid grid-cols-2 gap-2">
                                     <input
@@ -153,6 +154,7 @@ export default async function JobTemplatesPage() {
                   <select name={`item_type_${i}`} className={inputClass} defaultValue="part">
                     <option value="part">Part</option>
                     <option value="labor">Labor</option>
+                    <option value="service">Service</option>
                   </select>
                   <div className="grid grid-cols-2 gap-2">
                     <input

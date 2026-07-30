@@ -75,6 +75,47 @@ export async function deleteJobCard(jobId: string) {
   revalidatePath("/jobs");
 }
 
+export async function addJobSublet(jobId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const vendor_name = String(formData.get("vendor_name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const cost = Number(formData.get("cost") ?? 0);
+
+  if (!vendor_name || !description || !cost) {
+    throw new Error("Vendor, description, and cost are required.");
+  }
+
+  const { error } = await supabase.from("job_sublets").insert({
+    job_card_id: jobId,
+    vendor_name,
+    description,
+    cost,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await logAudit("job.sublet_add", "job_card", jobId, { vendor_name, cost });
+
+  revalidatePath(`/jobs/${jobId}`);
+}
+
+export async function deleteJobSublet(jobId: string, subletId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("job_sublets").delete().eq("id", subletId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await logAudit("job.sublet_delete", "job_card", jobId);
+
+  revalidatePath(`/jobs/${jobId}`);
+}
+
 export async function updateJobStatus(jobId: string, status: JobStatus) {
   const supabase = await createClient();
 

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateJobStatus, updateJobCard, deleteJobCard } from "@/app/jobs/actions";
+import { updateJobStatus, updateJobCard, deleteJobCard, addJobSublet, deleteJobSublet } from "@/app/jobs/actions";
 import { createInvoiceFromJobCard } from "@/app/invoices/actions";
-import type { JobStatus } from "@/lib/types";
-import { Card, PageHeader, Badge, PrimaryButton, SecondaryButton, Field } from "@/components/ui";
+import type { JobStatus, JobSublet } from "@/lib/types";
+import { Card, PageHeader, Badge, PrimaryButton, SecondaryButton, Field, EmptyState } from "@/components/ui";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
@@ -47,7 +47,7 @@ export default async function JobDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: job }, { data: existingInvoice }, { data: settings }] = await Promise.all([
+  const [{ data: job }, { data: existingInvoice }, { data: settings }, { data: sublets }] = await Promise.all([
     supabase
       .from("job_cards")
       .select(
@@ -57,12 +57,19 @@ export default async function JobDetailPage({
       .single<JobDetail>(),
     supabase.from("invoices").select("id").eq("job_card_id", id).maybeSingle(),
     supabase.from("shop_settings").select("google_review_link").maybeSingle(),
+    supabase
+      .from("job_sublets")
+      .select("*")
+      .eq("job_card_id", id)
+      .order("created_at", { ascending: false })
+      .returns<JobSublet[]>(),
   ]);
 
   if (!job) {
     notFound();
   }
 
+  const subletTotal = (sublets ?? []).reduce((s, sub) => s + Number(sub.cost), 0);
   const vehicleLabel = [job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "vehicle";
   const customerFirstName = job.customers?.name?.split(" ")[0] ?? "there";
   const message =
@@ -140,6 +147,51 @@ export default async function JobDetailPage({
               Delete Job Card
             </ConfirmSubmitButton>
           </div>
+        </details>
+      </Card>
+
+      <Card className="p-4 mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-semibold text-slate-700">Sublet / Outsourced Work</p>
+          {subletTotal > 0 && (
+            <span className="text-sm font-medium text-slate-900">Total: AED {subletTotal.toFixed(2)}</span>
+          )}
+        </div>
+        <ul className="divide-y divide-slate-100 mb-3">
+          {(sublets ?? []).map((sub) => (
+            <li key={sub.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+              <div className="min-w-0">
+                <p className="font-medium text-slate-900 truncate">{sub.vendor_name}</p>
+                <p className="text-xs text-slate-500 truncate">{sub.description}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="font-medium text-slate-900">AED {Number(sub.cost).toFixed(2)}</span>
+                <ConfirmSubmitButton
+                  action={deleteJobSublet.bind(null, job.id, sub.id)}
+                  confirmMessage="Remove this sublet cost?"
+                  successMessage="Removed."
+                >
+                  Remove
+                </ConfirmSubmitButton>
+              </div>
+            </li>
+          ))}
+          {(sublets ?? []).length === 0 && (
+            <EmptyState message="No outsourced work recorded for this job." />
+          )}
+        </ul>
+        <details>
+          <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">
+            + Add sublet cost
+          </summary>
+          <form action={addJobSublet.bind(null, job.id)} className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
+            <Field label="Vendor" name="vendor_name" placeholder="e.g. Al Ayaam Garage" required />
+            <Field label="Description" name="description" placeholder="e.g. Lathe work on crankshaft" required />
+            <Field label="Cost (AED)" name="cost" type="number" step="0.01" required />
+            <div className="sm:col-span-3">
+              <SecondaryButton type="submit">Add Cost</SecondaryButton>
+            </div>
+          </form>
         </details>
       </Card>
 
