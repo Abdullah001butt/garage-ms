@@ -6,6 +6,7 @@ import { NoZoomGuard } from "@/components/NoZoomGuard";
 import { ToastProvider } from "@/components/Toast";
 import { MobileNav } from "@/components/MobileNav";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { HelpBanner } from "@/components/HelpBanner";
 import { getCurrentUserAndProfile } from "@/lib/auth";
 import { signOut } from "@/app/login/actions";
 
@@ -77,7 +78,12 @@ export default async function RootLayout({
                     </div>
                   </div>
                 </header>
-                <main className="flex-1 min-w-0">{children}</main>
+                <main className="flex-1 min-w-0">
+                  <div className="mx-auto max-w-4xl px-6 pt-6 md:px-8 print:hidden">
+                    <HelpBanner />
+                  </div>
+                  {children}
+                </main>
               </div>
             </>
           )}
