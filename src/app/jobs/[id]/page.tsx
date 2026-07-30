@@ -89,7 +89,7 @@ export default async function JobDetailPage({
 
       {job.vehicles && (
         <div className="mt-3">
-          <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />
+          <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} size="lg" />
         </div>
       )}
       <PageHeader

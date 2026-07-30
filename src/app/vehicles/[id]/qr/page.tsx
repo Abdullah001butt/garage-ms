@@ -68,7 +68,7 @@ export default async function VehicleQrPage({
       <Card className="p-6 text-center print:shadow-none print:border-none">
         <img src={qrDataUrl} alt={`QR code for ${vehicle.plate_number}`} className="mx-auto mb-4" />
         <div className="flex justify-center mb-2">
-          <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} />
+          <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} size="lg" />
         </div>
         <p className="text-sm text-slate-500">
           {[vehicle.make, vehicle.model].filter(Boolean).join(" ")}

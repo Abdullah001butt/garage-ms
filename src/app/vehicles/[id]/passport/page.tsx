@@ -115,7 +115,7 @@ export default async function VehiclePassportPage({
         &larr; Back to customer
       </Link>
       <div className="mt-3 mb-1">
-        <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} />
+        <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} size="lg" />
       </div>
       <PageHeader
         title={[vehicle.make, vehicle.model].filter(Boolean).join(" ") || "Vehicle Passport"}
