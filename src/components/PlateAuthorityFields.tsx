@@ -42,7 +42,7 @@ export function PlateAuthorityFields({
             </option>
           ))}
         </select>
-        <div className="mt-2 flex h-9 items-center rounded-md border border-slate-200 bg-slate-50 px-2">
+        <div className="mt-2 flex h-9 items-center rounded-md border border-slate-200 bg-white px-2">
           <EmirateLogo emirate={selectedEmirate} size="sm" />
         </div>
       </label>
@@ -76,7 +76,7 @@ export function PlateAuthorityFields({
 
       <div className="col-span-full">
         <span className={labelClass}>Live Preview</span>
-        <div className="mt-2 flex items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
+        <div className="mt-2 flex items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-4">
           <PlateBadge plateNumber={`${code} ${digits}`.trim() || "A 00000"} emirate={selectedEmirate} size="lg" />
         </div>
       </div>
