@@ -24,12 +24,15 @@ function Spinner({ className = "" }: { className?: string }) {
 export function Card({
   children,
   className = "",
+  id,
 }: {
   children: ReactNode;
   className?: string;
+  id?: string;
 }) {
   return (
     <div
+      id={id}
       className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}
     >
       {children}

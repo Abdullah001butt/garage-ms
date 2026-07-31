@@ -1,0 +1,17 @@
+export const DEFAULT_INSPECTION_PARTICULARS = [
+  "Engine Operation",
+  "Drivability",
+  "Transmission",
+  "Clutch System (Manual)",
+  "Battery and Starting System",
+  "Electrical/Lighting System",
+  "Cooling System",
+  "Braking System",
+  "Air Condition System",
+  "Oil Leaks",
+  "Interior Upholstery",
+  "Suspension",
+  "Body Condition & Paint",
+  "Tires and Rims",
+  "Accessories – Radio, Music etc.",
+];

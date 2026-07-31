@@ -277,6 +277,58 @@ export type PurchaseOrder = {
   received_at: string | null;
 };
 
+export type InspectionCondition = "good" | "fair" | "poor" | "na";
+
+export type InspectionItem = {
+  particular: string;
+  condition: InspectionCondition;
+  remarks: string;
+};
+
+export type VehicleEvaluation = {
+  id: string;
+  ref_number: string;
+  evaluation_date: string;
+
+  customer_id: string | null;
+  vehicle_id: string | null;
+
+  customer_name: string;
+  customer_location: string | null;
+  customer_phone: string | null;
+  customer_ref: string | null;
+
+  make_model: string;
+  registration_no: string | null;
+  year_of_manufacture: string | null;
+  color: string | null;
+  mileage_odo: string | null;
+  chassis_no: string | null;
+  ownership: string | null;
+  engine_no: string | null;
+  date_of_last_service: string | null;
+  type_of_vehicle: string | null;
+  accident_history: string | null;
+  no_of_doors: string | null;
+  no_of_cylinders: string | null;
+  service_history: string | null;
+  warranty_remaining: string | null;
+  transmission: string | null;
+  empty_weight: string | null;
+  specification_origin: string | null;
+  gross_weight: string | null;
+  remote: string | null;
+
+  inspection_items: InspectionItem[];
+
+  estimated_value_min: number | null;
+  estimated_value_max: number | null;
+  valuator_name: string | null;
+  fee_amount: number | null;
+
+  created_at: string;
+};
+
 export type AppointmentStatus = "scheduled" | "completed" | "cancelled";
 
 export type Appointment = {

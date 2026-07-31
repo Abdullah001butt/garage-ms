@@ -49,3 +49,4 @@ next-env.d.ts
 # Claude Code harness artifacts
 .claude/scheduled_tasks.lock
 ToyotaSienna-BeltWork-Invoice.pdf
+E300-2195-(EvaluationReport).pdf
