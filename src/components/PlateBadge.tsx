@@ -22,7 +22,7 @@ export function PlateBadge({
 
   return (
     <span
-      className={`inline-flex w-fit items-center overflow-hidden whitespace-nowrap rounded-md border-[3px] border-slate-900 bg-[#f2f2f2] ${
+      className={`inline-flex w-fit items-center overflow-hidden whitespace-nowrap rounded-md border-[3px] border-slate-900 bg-white ${
         isLg ? "h-16 gap-3 px-3" : "h-7 gap-1.5 px-1.5"
       } ${className}`}
     >

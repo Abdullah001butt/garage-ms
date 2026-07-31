@@ -27,7 +27,7 @@ export function EmirateLogo({ emirate, size = "sm" }: { emirate: string; size?: 
       alt={`${emirate} plate issuing authority`}
       width={w}
       height={h}
-      className={className}
+      className={`mix-blend-multiply ${className}`}
       unoptimized
     />
   );
