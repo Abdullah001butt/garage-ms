@@ -68,7 +68,7 @@ export default function NewEvaluationPage() {
                     <label key={opt.value} className="flex items-center gap-1 text-xs text-slate-600">
                       <input
                         type="radio"
-                        name="inspection_condition"
+                        name={`inspection_condition_${i}`}
                         value={opt.value}
                         defaultChecked={i === 0 ? opt.value === "good" : opt.value === "na"}
                       />

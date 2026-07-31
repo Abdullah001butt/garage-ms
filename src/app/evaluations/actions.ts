@@ -8,12 +8,11 @@ import type { InspectionCondition, InspectionItem } from "@/lib/types";
 
 function parseInspectionItems(formData: FormData): InspectionItem[] {
   const particulars = formData.getAll("inspection_particular") as string[];
-  const conditions = formData.getAll("inspection_condition") as string[];
   const remarks = formData.getAll("inspection_remarks") as string[];
 
   return particulars.map((particular, i) => ({
     particular,
-    condition: (conditions[i] || "na") as InspectionCondition,
+    condition: (String(formData.get(`inspection_condition_${i}`) ?? "na")) as InspectionCondition,
     remarks: (remarks[i] || "").trim(),
   }));
 }
