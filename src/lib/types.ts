@@ -285,6 +285,12 @@ export type InspectionItem = {
   remarks: string;
 };
 
+export type DiagramMarker = {
+  x: number;
+  y: number;
+  note: string;
+};
+
 export type VehicleEvaluation = {
   id: string;
   ref_number: string;
@@ -320,6 +326,7 @@ export type VehicleEvaluation = {
   remote: string | null;
 
   inspection_items: InspectionItem[];
+  diagram_markers: DiagramMarker[];
 
   estimated_value_min: number | null;
   estimated_value_max: number | null;

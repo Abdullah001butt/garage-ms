@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createVehicleEvaluation } from "@/app/evaluations/actions";
 import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import { DEFAULT_INSPECTION_PARTICULARS } from "@/lib/evaluation";
+import { CarDiagramMarkerInput } from "@/components/CarDiagramMarkerInput";
 
 export default function NewEvaluationPage() {
   return (
@@ -47,6 +48,11 @@ export default function NewEvaluationPage() {
             <Field label="Gross Vehicle Weight" name="gross_weight" placeholder="2750 K" />
             <Field label="Remote" name="remote" placeholder="YES, PUSH START" />
           </div>
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">Damage Diagram</h2>
+          <CarDiagramMarkerInput />
         </Card>
 
         <Card className="p-5">

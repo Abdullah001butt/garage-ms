@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { VehicleEvaluation, ShopSettings } from "@/lib/types";
 import { PageHeader, SecondaryButton, Card } from "@/components/ui";
-import { CarTopViewDiagram } from "@/components/CarTopViewDiagram";
+import { CarDiagramView } from "@/components/CarDiagramView";
 import { DownloadEvaluationPdfButton } from "@/components/DownloadEvaluationPdfButton";
 
 const CONDITION_LABEL: Record<string, string> = { good: "Good", fair: "Fair", poor: "Poor", na: "N/A" };
@@ -108,8 +108,8 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
         </div>
 
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-3">
-          <div className="hidden sm:flex items-center justify-center rounded-md border border-slate-300 p-2">
-            <CarTopViewDiagram />
+          <div className="hidden sm:block rounded-md border border-slate-300 p-2">
+            <CarDiagramView markers={evaluation.diagram_markers ?? []} />
           </div>
 
           <div className="border border-slate-300">

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
-import type { InspectionCondition, InspectionItem } from "@/lib/types";
+import type { DiagramMarker, InspectionCondition, InspectionItem } from "@/lib/types";
 
 function parseInspectionItems(formData: FormData): InspectionItem[] {
   const particulars = formData.getAll("inspection_particular") as string[];
@@ -15,6 +15,19 @@ function parseInspectionItems(formData: FormData): InspectionItem[] {
     condition: (String(formData.get(`inspection_condition_${i}`) ?? "na")) as InspectionCondition,
     remarks: (remarks[i] || "").trim(),
   }));
+}
+
+function parseDiagramMarkers(formData: FormData): DiagramMarker[] {
+  const raw = String(formData.get("diagram_markers") ?? "[]");
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((m) => typeof m?.x === "number" && typeof m?.y === "number")
+      .map((m) => ({ x: m.x, y: m.y, note: String(m.note ?? "").trim() }));
+  } catch {
+    return [];
+  }
 }
 
 function str(formData: FormData, name: string) {
@@ -63,6 +76,7 @@ export async function createVehicleEvaluation(formData: FormData) {
     gross_weight: str(formData, "gross_weight"),
     remote: str(formData, "remote"),
     inspection_items: parseInspectionItems(formData),
+    diagram_markers: parseDiagramMarkers(formData),
     estimated_value_min: min ? Number(min) : null,
     estimated_value_max: max ? Number(max) : null,
     valuator_name: str(formData, "valuator_name"),
