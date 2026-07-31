@@ -37,8 +37,14 @@ function parseCustomerFields(formData: FormData) {
   };
 }
 
+function combinedPlateRaw(formData: FormData) {
+  const code = String(formData.get("plate_code") ?? "").trim();
+  const digits = String(formData.get("plate_digits") ?? "").trim();
+  return `${code} ${digits}`.trim();
+}
+
 function parseVehicleFields(formData: FormData) {
-  const plateRaw = String(formData.get("plate_number") ?? "").trim();
+  const plateRaw = combinedPlateRaw(formData);
   if (!isValidPlateNumber(plateRaw)) {
     throw new Error('Plate number must be a valid UAE format, e.g. "A 12345" or "12 4567".');
   }
@@ -78,7 +84,7 @@ export async function createCustomerWithVehicle(formData: FormData) {
 
   const customerFields = parseCustomerFields(formData);
 
-  const plateRaw = String(formData.get("plate_number") ?? "").trim();
+  const plateRaw = combinedPlateRaw(formData);
 
   const { data: customer, error: customerError } = await supabase
     .from("customers")

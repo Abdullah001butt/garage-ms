@@ -1,6 +1,6 @@
 import { Field, labelClass, inputClass } from "@/components/ui";
-import { EMIRATES } from "@/lib/plate";
 import type { Vehicle } from "@/lib/types";
+import { PlateAuthorityFields } from "@/components/PlateAuthorityFields";
 
 const BODY_TYPES = ["Sedan", "SUV", "Hatchback", "Pickup", "Van", "Coupe", "Bus", "Truck", "Other"];
 
@@ -17,24 +17,11 @@ export function VehicleFields({
 }) {
   return (
     <>
-      <Field
-        label="Plate number"
-        name="plate_number"
-        placeholder="A 12345"
-        defaultValue={vehicle?.plate_number}
+      <PlateAuthorityFields
+        plateNumber={vehicle?.plate_number}
+        emirate={vehicle?.emirate}
         required={required}
-        title='UAE plate format, e.g. "A 12345" or "12 4567"'
       />
-      <label className="block">
-        <span className={labelClass}>Emirate</span>
-        <select name="emirate" defaultValue={vehicle?.emirate ?? "Ajman"} className={inputClass}>
-          {EMIRATES.map((e) => (
-            <option key={e} value={e}>
-              {e}
-            </option>
-          ))}
-        </select>
-      </label>
       <Field
         label="Registration Expiry (Mulkiya)"
         name="registration_expiry_date"
