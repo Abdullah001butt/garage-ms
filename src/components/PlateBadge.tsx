@@ -1,7 +1,7 @@
 import { EmirateLogo } from "@/components/EmirateLogo";
 
 function splitPlate(plateNumber: string) {
-  const match = plateNumber.trim().match(/^([A-Z0-9]{1,3})\s?(\d{1,5})$/i);
+  const match = plateNumber.trim().match(/^([A-Z0-9]{1,3})\s+(\d{1,5})$/i);
   if (!match) return { code: null, number: plateNumber };
   return { code: match[1].toUpperCase(), number: match[2] };
 }
