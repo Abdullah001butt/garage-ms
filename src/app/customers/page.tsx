@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Customer } from "@/lib/types";
-import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, inputClass } from "@/components/ui";
+import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, Badge, inputClass } from "@/components/ui";
 import { deleteCustomer } from "@/app/customers/actions";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
@@ -62,7 +62,12 @@ export default async function CustomersPage({
           {(customers as Customer[] | null)?.map((customer) => (
             <li key={customer.id} className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-slate-50">
               <Link href={`/customers/${customer.id}`} className="min-w-0 flex-1">
-                <p className="font-medium text-slate-900 truncate">{customer.name}</p>
+                <p className="font-medium text-slate-900 truncate">
+                  {customer.name}
+                  <Badge color={customer.customer_type === "company" ? "indigo" : "slate"} className="ml-2">
+                    {customer.customer_type === "company" ? "🏢 Company" : "👤 Individual"}
+                  </Badge>
+                </p>
                 <p className="text-sm text-slate-500">{customer.phone}</p>
               </Link>
               <ConfirmSubmitButton

@@ -12,11 +12,12 @@ import {
   addBalanceAdjustment,
   deleteBalanceAdjustment,
 } from "@/app/customers/actions";
-import { Card, PageHeader, EmptyState, Field, Badge, SecondaryButton, PrimaryButton, labelClass, inputClass } from "@/components/ui";
+import { Card, PageHeader, EmptyState, Field, Badge, SecondaryButton, PrimaryButton } from "@/components/ui";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
 import { PlateBadge } from "@/components/PlateBadge";
-import { EMIRATES } from "@/lib/plate";
+import { CustomerFields } from "@/components/CustomerFields";
+import { VehicleFields } from "@/components/VehicleFields";
 
 type CustomerInvoiceRow = {
   id: string;
@@ -25,6 +26,18 @@ type CustomerInvoiceRow = {
   invoice_items: { quantity: number; unit_price: number }[];
   payments: { amount: number }[];
 };
+
+function registrationBadge(expiryDate: string | null) {
+  if (!expiryDate) return null;
+  const daysLeft = Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86400000);
+  if (daysLeft < 0) {
+    return <Badge color="red">Registration expired</Badge>;
+  }
+  if (daysLeft <= 30) {
+    return <Badge color="amber">Registration due {new Date(expiryDate).toLocaleDateString()}</Badge>;
+  }
+  return null;
+}
 
 export default async function CustomerDetailPage({
   params,
@@ -82,16 +95,36 @@ export default async function CustomerDetailPage({
   const deleteCustomerWithId = deleteCustomer.bind(null, id);
   const addBalanceAdjustmentWithId = addBalanceAdjustment.bind(null, id);
 
+  const detailLine = [
+    customer.customer_type === "company" ? "🏢 Company" : "👤 Individual",
+    customer.phone,
+    customer.landline,
+    customer.email,
+    customer.address,
+    customer.city,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <div className="mx-auto max-w-3xl p-6 md:p-8">
       <Link href="/customers" className="text-sm text-indigo-600 hover:underline">
         &larr; Back to customers
       </Link>
 
-      <PageHeader
-        title={customer.name}
-        description={[customer.phone, customer.email, customer.address].filter(Boolean).join(" · ")}
-      />
+      <PageHeader title={customer.name} description={detailLine} />
+
+      {(customer.trn_number || customer.representative || customer.reference_name) && (
+        <p className="text-xs text-slate-500 mb-6 -mt-4">
+          {[
+            customer.trn_number && `TRN: ${customer.trn_number}`,
+            customer.representative && `Representative: ${customer.representative}`,
+            customer.reference_name && `Reference: ${customer.reference_name}`,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+      )}
 
       <datalist id="vehicle-makes">
         {uniqueMakes.map((m) => (
@@ -170,10 +203,7 @@ export default async function CustomerDetailPage({
             Edit customer details
           </summary>
           <form action={updateCustomerWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <Field label="Name" name="name" defaultValue={customer.name} required />
-            <Field label="Phone" name="phone" defaultValue={customer.phone} required />
-            <Field label="Email" name="email" defaultValue={customer.email ?? ""} />
-            <Field label="Address" name="address" defaultValue={customer.address ?? ""} />
+            <CustomerFields customer={customer} lockType />
             <div className="col-span-2">
               <SecondaryButton type="submit">Save Changes</SecondaryButton>
             </div>
@@ -208,8 +238,12 @@ export default async function CustomerDetailPage({
                     )}
                   </div>
                   <p className="text-sm text-slate-500">
-                    {[vehicle.year, vehicle.color].filter(Boolean).join(" · ") || "—"}
+                    {[vehicle.year, vehicle.color, vehicle.body_type].filter(Boolean).join(" · ") || "—"}
                   </p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {warranties.length > 0 && <Badge color="green">Under Warranty</Badge>}
+                    {registrationBadge(vehicle.registration_expiry_date)}
+                  </div>
                   {warranties.length > 0 && (
                     <p className="text-xs text-emerald-600 mt-1">
                       🛡 {warranties.map((w) => w.description).join(", ")} — until{" "}
@@ -252,31 +286,9 @@ export default async function CustomerDetailPage({
                       </summary>
                       <form
                         action={updateVehicle.bind(null, id, vehicle.id)}
-                        className="mt-2 grid grid-cols-2 gap-2 w-64"
+                        className="mt-2 grid grid-cols-2 gap-2 w-80"
                       >
-                        <Field
-                          label="Plate"
-                          name="plate_number"
-                          defaultValue={vehicle.plate_number}
-                          required
-                          className="col-span-2"
-                          title='UAE plate format, e.g. "A 12345" or "12 4567"'
-                        />
-                        <label className="block col-span-2">
-                          <span className={labelClass}>Emirate</span>
-                          <select name="emirate" defaultValue={vehicle.emirate} className={inputClass}>
-                            {EMIRATES.map((e) => (
-                              <option key={e} value={e}>
-                                {e}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <Field label="Make" name="make" defaultValue={vehicle.make ?? ""} list="vehicle-makes" />
-                        <Field label="Model" name="model" defaultValue={vehicle.model ?? ""} list="vehicle-models" />
-                        <Field label="Year" name="year" type="number" defaultValue={vehicle.year ?? ""} />
-                        <Field label="Color" name="color" defaultValue={vehicle.color ?? ""} />
-                        <Field label="VIN" name="vin" defaultValue={vehicle.vin ?? ""} className="col-span-2" />
+                        <VehicleFields vehicle={vehicle} makeListId="vehicle-makes" modelListId="vehicle-models" required />
                         <button
                           type="submit"
                           className="col-span-2 rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
@@ -294,7 +306,6 @@ export default async function CustomerDetailPage({
                     </ConfirmSubmitButton>
                   </div>
                 </div>
-                {warranties.length > 0 && <Badge color="green">Under Warranty</Badge>}
               </li>
             );
           })}
@@ -308,28 +319,7 @@ export default async function CustomerDetailPage({
             + Add a vehicle
           </summary>
           <form action={addVehicleWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <Field
-              label="Plate number"
-              name="plate_number"
-              placeholder="A 12345"
-              required
-              title='UAE plate format, e.g. "A 12345" or "12 4567"'
-            />
-            <label className="block">
-              <span className={labelClass}>Emirate</span>
-              <select name="emirate" defaultValue="Ajman" className={inputClass}>
-                {EMIRATES.map((e) => (
-                  <option key={e} value={e}>
-                    {e}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Field label="Make" name="make" placeholder="Toyota" list="vehicle-makes" />
-            <Field label="Model" name="model" placeholder="Corolla" list="vehicle-models" />
-            <Field label="Year" name="year" type="number" />
-            <Field label="Color" name="color" />
-            <Field label="VIN" name="vin" />
+            <VehicleFields makeListId="vehicle-makes" modelListId="vehicle-models" required />
             <div className="col-span-2">
               <button
                 type="submit"

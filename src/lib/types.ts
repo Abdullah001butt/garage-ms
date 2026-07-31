@@ -1,9 +1,17 @@
+export type CustomerType = "individual" | "company";
+
 export type Customer = {
   id: string;
   name: string;
+  customer_type: CustomerType;
   phone: string;
   email: string | null;
   address: string | null;
+  city: string | null;
+  landline: string | null;
+  trn_number: string | null;
+  representative: string | null;
+  reference_name: string | null;
   notes: string | null;
   created_at: string;
 };
@@ -39,11 +47,17 @@ export type Vehicle = {
   customer_id: string;
   plate_number: string;
   emirate: Emirate;
+  registration_expiry_date: string | null;
   make: string | null;
   model: string | null;
   year: number | null;
-  color: string | null;
+  origin_trim: string | null;
   vin: string | null;
+  body_type: string | null;
+  color: string | null;
+  cylinders: number | null;
+  current_mileage: number | null;
+  odometer_reading: number | null;
   notes: string | null;
   service_interval_days: number | null;
   created_at: string;

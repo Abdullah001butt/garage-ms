@@ -17,11 +17,17 @@ type VehicleWithCustomer = {
   id: string;
   plate_number: string;
   emirate: string;
+  registration_expiry_date: string | null;
   make: string | null;
   model: string | null;
   year: number | null;
+  origin_trim: string | null;
   color: string | null;
   vin: string | null;
+  body_type: string | null;
+  cylinders: number | null;
+  current_mileage: number | null;
+  odometer_reading: number | null;
   customer_id: string;
   created_at: string;
   customers: { name: string; phone: string } | null;
@@ -55,7 +61,9 @@ export default async function VehiclePassportPage({
     await Promise.all([
       supabase
         .from("vehicles")
-        .select("id, plate_number, emirate, make, model, year, color, vin, customer_id, created_at, customers(name, phone)")
+        .select(
+          "id, plate_number, emirate, registration_expiry_date, make, model, year, origin_trim, color, vin, body_type, cylinders, current_mileage, odometer_reading, customer_id, created_at, customers(name, phone)"
+        )
         .eq("id", id)
         .single<VehicleWithCustomer>(),
       supabase
@@ -139,6 +147,32 @@ export default async function VehiclePassportPage({
           <div>
             <p className="text-xs text-slate-400">On File Since</p>
             <p className="font-medium text-slate-900">{new Date(vehicle.created_at).toLocaleDateString()}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Origin / Trim</p>
+            <p className="font-medium text-slate-900">{vehicle.origin_trim ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Body Type</p>
+            <p className="font-medium text-slate-900">{vehicle.body_type ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Cylinders</p>
+            <p className="font-medium text-slate-900">{vehicle.cylinders ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Registration Expiry</p>
+            <p className="font-medium text-slate-900">
+              {vehicle.registration_expiry_date ? new Date(vehicle.registration_expiry_date).toLocaleDateString() : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Current Mileage</p>
+            <p className="font-medium text-slate-900">{vehicle.current_mileage ? `${vehicle.current_mileage} KM` : "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Odometer Reading</p>
+            <p className="font-medium text-slate-900">{vehicle.odometer_reading ?? "—"}</p>
           </div>
         </div>
         <p className="text-sm text-slate-700 mb-3">
