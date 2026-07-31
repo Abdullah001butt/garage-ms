@@ -32,7 +32,7 @@ export function CarDiagramMarkerInput({ initialMarkers = [] }: { initialMarkers?
       <div
         ref={containerRef}
         onClick={handleClick}
-        className="relative mx-auto w-40 cursor-crosshair select-none rounded-md border border-slate-300 bg-white p-2"
+        className="relative mx-auto w-full max-w-xs cursor-crosshair select-none rounded-md border border-slate-300 bg-white p-2"
       >
         <CarTopViewDiagram />
         {markers.map((m, i) => (
