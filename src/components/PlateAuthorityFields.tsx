@@ -4,6 +4,7 @@ import { useState } from "react";
 import { labelClass, inputClass } from "@/components/ui";
 import { EMIRATES } from "@/lib/plate";
 import { EmirateLogo } from "@/components/EmirateLogo";
+import { PlateBadge } from "@/components/PlateBadge";
 
 function splitPlate(plateNumber?: string) {
   const match = (plateNumber ?? "").trim().match(/^([A-Za-z0-9]{1,3})\s?(\d{1,5})$/);
@@ -20,8 +21,10 @@ export function PlateAuthorityFields({
   emirate?: string;
   required?: boolean;
 }) {
-  const { code, digits } = splitPlate(plateNumber);
+  const initial = splitPlate(plateNumber);
   const [selectedEmirate, setSelectedEmirate] = useState(emirate ?? "Ajman");
+  const [code, setCode] = useState(initial.code);
+  const [digits, setDigits] = useState(initial.digits);
 
   return (
     <>
@@ -51,7 +54,8 @@ export function PlateAuthorityFields({
           name="plate_digits"
           inputMode="numeric"
           placeholder="12345"
-          defaultValue={digits}
+          value={digits}
+          onChange={(e) => setDigits(e.target.value.replace(/\D/g, ""))}
           required={required}
           className={inputClass}
         />
@@ -63,11 +67,19 @@ export function PlateAuthorityFields({
           type="text"
           name="plate_code"
           placeholder="A"
-          defaultValue={code}
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
           required={required}
           className={inputClass}
         />
       </label>
+
+      <div className="col-span-full">
+        <span className={labelClass}>Live Preview</span>
+        <div className="mt-2 flex items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
+          <PlateBadge plateNumber={`${code} ${digits}`.trim() || "A 00000"} emirate={selectedEmirate} size="lg" />
+        </div>
+      </div>
     </>
   );
 }
