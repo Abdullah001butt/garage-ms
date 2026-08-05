@@ -60,6 +60,7 @@ export type Vehicle = {
   odometer_reading: number | null;
   notes: string | null;
   service_interval_days: number | null;
+  share_token: string | null;
   created_at: string;
 };
 

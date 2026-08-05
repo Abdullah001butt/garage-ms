@@ -148,7 +148,7 @@ export async function DocumentDetail({
       </Card>
 
       <div className="flex flex-wrap gap-2 mb-8 print:hidden">
-        <PrintButton />
+        <PrintButton label="Print Invoice" />
         {isEstimate && (
           <form action={convertEstimateToInvoice.bind(null, id)}>
             <PrimaryButton type="submit">Convert to Invoice</PrimaryButton>

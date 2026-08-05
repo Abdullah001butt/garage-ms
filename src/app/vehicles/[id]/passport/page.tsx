@@ -12,6 +12,7 @@ import {
 import { Card, PageHeader, Badge, EmptyState, Field, SecondaryButton, PrimaryButton, labelClass, inputClass } from "@/components/ui";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { PlateBadge } from "@/components/PlateBadge";
+import { ShareCertificateButton } from "@/components/ShareCertificateButton";
 
 type VehicleWithCustomer = {
   id: string;
@@ -30,6 +31,7 @@ type VehicleWithCustomer = {
   odometer_reading: number | null;
   customer_id: string;
   created_at: string;
+  share_token: string | null;
   customers: { name: string; phone: string } | null;
 };
 
@@ -62,7 +64,7 @@ export default async function VehiclePassportPage({
       supabase
         .from("vehicles")
         .select(
-          "id, plate_number, emirate, registration_expiry_date, make, model, year, origin_trim, color, vin, body_type, cylinders, current_mileage, odometer_reading, customer_id, created_at, customers(name, phone)"
+          "id, plate_number, emirate, registration_expiry_date, make, model, year, origin_trim, color, vin, body_type, cylinders, current_mileage, odometer_reading, customer_id, created_at, share_token, customers(name, phone)"
         )
         .eq("id", id)
         .single<VehicleWithCustomer>(),
@@ -128,6 +130,7 @@ export default async function VehiclePassportPage({
       <PageHeader
         title={[vehicle.make, vehicle.model].filter(Boolean).join(" ") || "Vehicle Passport"}
         description="Permanent vehicle history — survives even if ownership changes."
+        action={vehicle.share_token && <ShareCertificateButton shareToken={vehicle.share_token} />}
       />
 
       <Card className="p-5 mb-6">
