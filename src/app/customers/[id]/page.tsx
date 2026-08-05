@@ -112,7 +112,22 @@ export default async function CustomerDetailPage({
         &larr; Back to customers
       </Link>
 
-      <PageHeader title={customer.name} description={detailLine} />
+      <PageHeader
+        title={customer.name}
+        description={detailLine}
+        action={
+          <div className="flex flex-wrap gap-2">
+            {customer.customer_type === "company" && vehicles && vehicles.length > 1 && (
+              <Link href={`/customers/${id}/fleet`}>
+                <SecondaryButton type="button">Fleet Overview</SecondaryButton>
+              </Link>
+            )}
+            <Link href={`/customers/${id}/statement`}>
+              <SecondaryButton type="button">Statement of Account</SecondaryButton>
+            </Link>
+          </div>
+        }
+      />
 
       {(customer.trn_number || customer.representative || customer.reference_name) && (
         <p className="text-xs text-slate-500 mb-6 -mt-4">

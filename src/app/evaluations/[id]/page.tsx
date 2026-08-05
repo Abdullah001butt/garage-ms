@@ -6,6 +6,7 @@ import type { VehicleEvaluation, ShopSettings } from "@/lib/types";
 import { PageHeader, SecondaryButton, Card } from "@/components/ui";
 import { CarDiagramView } from "@/components/CarDiagramView";
 import { DownloadEvaluationPdfButton } from "@/components/DownloadEvaluationPdfButton";
+import { SendEvaluationPdfButton } from "@/components/SendEvaluationPdfButton";
 
 const CONDITION_LABEL: Record<string, string> = { good: "Good", fair: "Fair", poor: "Poor", na: "N/A" };
 
@@ -42,6 +43,12 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
               <SecondaryButton type="button">Back</SecondaryButton>
             </Link>
             <DownloadEvaluationPdfButton refNumber={evaluation.ref_number} />
+            <SendEvaluationPdfButton
+              evaluationId={evaluation.id}
+              refNumber={evaluation.ref_number}
+              phone={evaluation.customer_phone ?? ""}
+              customerFirstName={evaluation.customer_name.split(" ")[0]}
+            />
           </div>
         }
       />
