@@ -20,9 +20,9 @@ export default async function SettingsPage() {
 
   if (!settings) {
     return (
-      <div className="mx-auto max-w-2xl p-6 md:p-8">
+      <div className="page page-narrow">
         <PageHeader title="Settings" />
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-zinc-500">
           Shop settings row not found. Re-run the phase 5 SQL migration.
         </p>
       </div>
@@ -32,7 +32,7 @@ export default async function SettingsPage() {
   const updateWithId = updateShopSettings.bind(null, settings.id);
 
   return (
-    <div className="mx-auto max-w-2xl p-6 md:p-8">
+    <div className="page page-narrow">
       <PageHeader title="Settings" description="Shop details shown on invoices and estimates." />
       <Card className="p-5">
         <form action={updateWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -62,12 +62,12 @@ export default async function SettingsPage() {
             defaultValue={settings.payment_instructions ?? ""}
           />
           <label className="block col-span-2">
-            <span className="block text-sm font-medium text-slate-700 mb-1">Invoice Disclaimer</span>
+            <span className="block text-sm font-medium text-zinc-700 mb-1">Invoice Disclaimer</span>
             <textarea
               name="invoice_disclaimer"
               rows={2}
               defaultValue={settings.invoice_disclaimer ?? ""}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </label>
           <Field
@@ -78,10 +78,10 @@ export default async function SettingsPage() {
             className="col-span-2"
           />
           <div className="col-span-2">
-            <span className="block text-sm font-medium text-slate-700 mb-1">
+            <span className="block text-sm font-medium text-zinc-700 mb-1">
               Google Review Link
             </span>
-            <p className="text-xs text-slate-500 mb-1">
+            <p className="text-xs text-zinc-500 mb-1">
               In Google Business Profile, go to &quot;Get more reviews&quot; and copy the short link
               it gives you (e.g. g.page/r/.../review).
             </p>
@@ -90,7 +90,7 @@ export default async function SettingsPage() {
               name="google_review_link"
               defaultValue={settings.google_review_link ?? ""}
               placeholder="https://g.page/r/xxxxxxxxxxxx/review"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
           <div className="col-span-2">
@@ -100,28 +100,28 @@ export default async function SettingsPage() {
       </Card>
 
       <Card className="p-5 mt-6">
-        <p className="text-sm font-semibold text-slate-700 mb-1">Public Booking Page</p>
-        <p className="text-xs text-slate-500 mb-2">
+        <p className="text-sm font-semibold text-zinc-700 mb-1">Public Booking Page</p>
+        <p className="text-xs text-zinc-500 mb-2">
           Share this link with customers (WhatsApp status, Google Business profile, business card)
           so they can request an appointment anytime, even outside business hours:
         </p>
-        <p className="text-sm font-mono text-indigo-600 bg-indigo-50 rounded-md px-3 py-2 break-all">
+        <p className="text-sm font-mono text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2 break-all">
           {settings.portal_url ? settings.portal_url.replace(/\/portal\/?$/, "/book") : "/book"}
         </p>
       </Card>
 
       <Card className="p-5 mt-6">
-        <p className="text-sm font-semibold text-slate-700 mb-3">Company Vehicles</p>
-        <p className="text-xs text-slate-500 mb-3">
+        <p className="text-sm font-semibold text-zinc-700 mb-3">Company Vehicles</p>
+        <p className="text-xs text-zinc-500 mb-3">
           Vehicles your garage owns (parts-run vans, recovery trucks) — tag their running costs
           (fuel, RTA renewal, tolls) separately when recording an expense.
         </p>
-        <ul className="divide-y divide-slate-100 mb-3">
+        <ul className="divide-y divide-zinc-100 mb-3">
           {companyVehicles?.map((v) => (
             <li key={v.id} className="flex items-center justify-between gap-2 py-2 text-sm">
               <div className="min-w-0">
-                <p className="font-medium text-slate-900 truncate">{v.name}</p>
-                {v.plate_number && <p className="text-xs text-slate-500">{v.plate_number}</p>}
+                <p className="font-medium text-zinc-900 truncate">{v.name}</p>
+                {v.plate_number && <p className="text-xs text-zinc-500">{v.plate_number}</p>}
               </div>
               <ConfirmSubmitButton
                 action={deleteCompanyVehicle.bind(null, v.id)}
@@ -145,14 +145,14 @@ export default async function SettingsPage() {
       </Card>
 
       <Card className="p-5 mt-6">
-        <p className="text-sm font-semibold text-slate-700 mb-3">Shop Working Calendar</p>
-        <p className="text-xs text-slate-500 mb-3">
+        <p className="text-sm font-semibold text-zinc-700 mb-3">Shop Working Calendar</p>
+        <p className="text-xs text-zinc-500 mb-3">
           Mark Fridays and official holidays as non-working days for scheduling and attendance context.
         </p>
-        <ul className="divide-y divide-slate-100 mb-3">
+        <ul className="divide-y divide-zinc-100 mb-3">
           {holidays?.map((h) => (
             <li key={h.id} className="flex items-center justify-between gap-2 py-2 text-sm">
-              <span className="text-slate-700">
+              <span className="text-zinc-700">
                 {new Date(h.holiday_date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })} — {h.label}
               </span>
               <ConfirmSubmitButton
@@ -176,8 +176,8 @@ export default async function SettingsPage() {
       </Card>
 
       <Card className="p-5 mt-6">
-        <p className="text-sm font-semibold text-slate-700 mb-1">Full Data Backup</p>
-        <p className="text-xs text-slate-500 mb-4">
+        <p className="text-sm font-semibold text-zinc-700 mb-1">Full Data Backup</p>
+        <p className="text-xs text-zinc-500 mb-4">
           Download a single zip with customers, invoices, expenses, this month&apos;s attendance,
           and this month&apos;s profit &amp; loss — all as Excel files, independent of Supabase.
         </p>

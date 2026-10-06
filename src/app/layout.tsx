@@ -10,6 +10,12 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { HelpBanner } from "@/components/HelpBanner";
 import { getCurrentUserAndProfile } from "@/lib/auth";
 import { signOut } from "@/app/login/actions";
+import { Icon } from "@/components/icons";
+
+function initials(name: string) {
+  const parts = name.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase() || "?";
+}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,7 +52,7 @@ export default async function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-slate-50 overflow-x-hidden">
+      <body className="min-h-full bg-zinc-50 text-zinc-900 overflow-x-hidden">
         <NoZoomGuard />
         <QueryProvider>
         <ToastProvider>
@@ -55,33 +61,39 @@ export default async function RootLayout({
           ) : (
             <>
               <Sidebar role={role} />
-              <div className="md:pl-64 flex flex-col min-h-full">
-                <header className="border-b border-slate-200 bg-white sticky top-0 z-10 print:hidden">
-                  <div className="flex items-center justify-between gap-3 px-3 md:px-8 py-3">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="md:pl-60 flex flex-col min-h-full">
+                <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/85 backdrop-blur supports-backdrop-filter:bg-white/75 print:hidden">
+                  <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
                       <MobileNav role={role} />
-                      <a href="/" className="md:hidden font-semibold text-slate-900 truncate shrink-0">
-                        Al Bahir
-                      </a>
-                      <div className="min-w-0 flex-1 max-w-35 sm:max-w-xs">
+                      <div className="min-w-0 flex-1 max-w-md">
                         <GlobalSearch />
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                      <span className="text-sm text-slate-500 truncate max-w-[40vw] md:max-w-none">
-                        {profile?.full_name ?? user.email}
-                        {role && <span className="ml-1.5 text-xs text-slate-400 hidden sm:inline">({role})</span>}
-                      </span>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="hidden min-w-0 items-center gap-2.5 sm:flex">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white">
+                          {initials(profile?.full_name ?? user.email ?? "")}
+                        </span>
+                        <div className="min-w-0 leading-tight">
+                          <p className="truncate text-[13px] font-medium text-zinc-900">{profile?.full_name ?? user.email}</p>
+                          {role && <p className="text-[11px] capitalize text-zinc-500">{role}</p>}
+                        </div>
+                      </div>
                       <form action={signOut}>
-                        <button className="text-sm text-slate-500 hover:text-slate-900 shrink-0">
-                          Sign out
+                        <button
+                          className="flex h-9 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                          aria-label="Sign out"
+                        >
+                          <Icon name="logout" className="h-4 w-4" />
+                          <span className="hidden lg:inline">Sign out</span>
                         </button>
                       </form>
                     </div>
                   </div>
                 </header>
                 <main className="flex-1 min-w-0">
-                  <div className="mx-auto max-w-4xl px-6 pt-6 md:px-8 print:hidden">
+                  <div className="page pt-4! pb-0! print:hidden">
                     <HelpBanner />
                   </div>
                   {children}

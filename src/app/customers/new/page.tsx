@@ -13,9 +13,9 @@ export default async function NewCustomerPage() {
   const uniqueModels = [...new Set((vehicles ?? []).map((v) => v.model).filter(Boolean))];
 
   return (
-    <div className="mx-auto max-w-2xl p-6 md:p-8">
-      <Link href="/customers" className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to customers
+    <div className="page page-narrow">
+      <Link href="/customers" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to customers
       </Link>
       <PageHeader title="Add Customer" description="Choose Individual or Company, then add their details and vehicle." />
 
@@ -32,7 +32,7 @@ export default async function NewCustomerPage() {
 
       <form action={createCustomerWithVehicle} className="space-y-6">
         <Card className="p-5">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
+          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">
             Customer Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -41,7 +41,7 @@ export default async function NewCustomerPage() {
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
+          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">
             Vehicle Details (optional — can add more later)
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

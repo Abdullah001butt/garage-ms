@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/icons";
 import { useActionState } from "react";
 import Image from "next/image";
 import { bookAppointment } from "@/app/book/actions";
@@ -15,7 +16,7 @@ export default function BookPage() {
   const [state, formAction, isPending] = useActionState<BookResult, FormData>(submitBooking, null);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4">
+    <div className="min-h-screen bg-zinc-50 flex flex-col items-center py-12 px-4">
       <div className="w-full max-w-lg">
         <div className="flex flex-col items-center mb-8">
           <Image
@@ -26,14 +27,14 @@ export default function BookPage() {
             className="h-16 w-auto object-contain mb-2"
             priority
           />
-          <p className="text-sm text-slate-500">Book a service appointment anytime</p>
+          <p className="text-sm text-zinc-500">Book a service appointment anytime</p>
         </div>
 
         {state?.success ? (
           <Card className="p-6 text-center">
-            <div className="text-3xl mb-2">✅</div>
-            <p className="font-semibold text-slate-900 mb-1">Appointment Requested!</p>
-            <p className="text-sm text-slate-500">
+            <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><Icon name="check" className="h-5 w-5" /></span>
+            <p className="font-semibold text-zinc-900 mb-1">Appointment Requested!</p>
+            <p className="text-sm text-zinc-500">
               We&apos;ve received your booking request. Our team will confirm shortly. Thank you for
               choosing Al Bahir Garage.
             </p>
@@ -48,19 +49,19 @@ export default function BookPage() {
               )}
 
               <label className="block col-span-2">
-                <span className="block text-sm font-medium text-slate-700 mb-1">
+                <span className="block text-sm font-medium text-zinc-700 mb-1">
                   Your Name <span className="text-red-500">*</span>
                 </span>
                 <input
                   type="text"
                   name="name"
                   required
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </label>
 
               <label className="block col-span-2">
-                <span className="block text-sm font-medium text-slate-700 mb-1">
+                <span className="block text-sm font-medium text-zinc-700 mb-1">
                   Phone Number <span className="text-red-500">*</span>
                 </span>
                 <input
@@ -68,74 +69,74 @@ export default function BookPage() {
                   name="phone"
                   required
                   placeholder="e.g. 0501234567"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </label>
 
               <label className="block">
-                <span className="block text-sm font-medium text-slate-700 mb-1">Plate Number</span>
+                <span className="block text-sm font-medium text-zinc-700 mb-1">Plate Number</span>
                 <input
                   type="text"
                   name="plate"
                   placeholder="e.g. DXB-12345"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </label>
               <label className="block">
-                <span className="block text-sm font-medium text-slate-700 mb-1">Make / Model</span>
+                <span className="block text-sm font-medium text-zinc-700 mb-1">Make / Model</span>
                 <input
                   type="text"
                   name="make"
                   placeholder="e.g. Toyota"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 mb-2"
                 />
                 <input
                   type="text"
                   name="model"
                   placeholder="e.g. Corolla"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </label>
 
               <label className="block">
-                <span className="block text-sm font-medium text-slate-700 mb-1">
+                <span className="block text-sm font-medium text-zinc-700 mb-1">
                   Preferred Date <span className="text-red-500">*</span>
                 </span>
                 <input
                   type="date"
                   name="date"
                   required
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </label>
               <label className="block">
-                <span className="block text-sm font-medium text-slate-700 mb-1">
+                <span className="block text-sm font-medium text-zinc-700 mb-1">
                   Preferred Time <span className="text-red-500">*</span>
                 </span>
                 <input
                   type="time"
                   name="time"
                   required
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </label>
 
               <label className="block col-span-2">
-                <span className="block text-sm font-medium text-slate-700 mb-1">
+                <span className="block text-sm font-medium text-zinc-700 mb-1">
                   What do you need done?
                 </span>
                 <textarea
                   name="notes"
                   rows={3}
                   placeholder="e.g. Oil change, brake noise, AC not cooling..."
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </label>
 
               <button
                 type="submit"
                 disabled={isPending}
-                className="col-span-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
+                className="col-span-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700 disabled:opacity-60"
               >
                 {isPending ? "Booking..." : "Request Appointment"}
               </button>

@@ -10,8 +10,8 @@ export function GenerateInsightsButton({ action }: { action: () => Promise<void>
   });
 
   return (
-    <SecondaryButton type="button" disabled={mutation.isPending} onClick={() => mutation.mutate()}>
-      {mutation.isPending ? "Generating…" : "Generate This Week's Insights"}
+    <SecondaryButton type="button" icon="sparkles" className="h-8 px-2.5 text-[13px]" disabled={mutation.isPending} onClick={() => mutation.mutate()}>
+      {mutation.isPending ? "Generating…" : "Generate summary"}
     </SecondaryButton>
   );
 }

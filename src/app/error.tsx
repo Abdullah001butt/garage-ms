@@ -14,14 +14,14 @@ export default function GlobalError({
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zM12 15.75h.007v.008H12v-.008z" />
         </svg>
       </div>
-      <h1 className="mb-1 text-lg font-semibold text-slate-900">Something went wrong</h1>
-      <p className="mb-6 text-sm text-slate-500">
+      <h1 className="mb-1 text-lg font-semibold text-zinc-900">Something went wrong</h1>
+      <p className="mb-6 text-sm text-zinc-500">
         {error.message || "An unexpected error occurred. Please try again."}
       </p>
       <button
         type="button"
         onClick={() => reset()}
-        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500"
+        className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700"
       >
         Try Again
       </button>

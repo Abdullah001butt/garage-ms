@@ -61,11 +61,11 @@ export function InvoiceItemForm({
                 </option>
               ))}
             </select>
-            <SecondaryButton type="button" onClick={() => setShowScanner(true)}>
-              📷 Scan
+            <SecondaryButton type="button" icon="scan" onClick={() => setShowScanner(true)}>
+              Scan
             </SecondaryButton>
           </div>
-          {scanMessage && <span className="mt-1 block text-xs text-slate-500">{scanMessage}</span>}
+          {scanMessage && <span className="mt-1 block text-xs text-zinc-500">{scanMessage}</span>}
         </label>
       )}
       <input type="hidden" name="part_id" value={partId} />

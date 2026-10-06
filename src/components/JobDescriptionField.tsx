@@ -16,7 +16,7 @@ export function JobDescriptionField({ templates }: { templates: JobTemplate[] })
               key={t.id}
               type="button"
               onClick={() => setValue(t.description)}
-              className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+              className="rounded-full border border-zinc-300 bg-white text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50 px-3 py-1 text-xs font-medium"
             >
               {t.name}
             </button>

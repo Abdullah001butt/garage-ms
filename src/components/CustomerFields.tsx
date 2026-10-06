@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/icons";
 import { useState } from "react";
 import { Field, labelClass, inputClass } from "@/components/ui";
 import { EMIRATES } from "@/lib/plate";
@@ -21,24 +22,26 @@ export function CustomerFields({
           <button
             type="button"
             onClick={() => setType("individual")}
-            className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md border px-4 py-3 text-sm font-medium transition ${
               type === "individual"
-                ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                : "border-slate-200 text-slate-500 hover:border-slate-300"
+                ? "border-zinc-900 bg-zinc-50 text-zinc-900 ring-1 ring-zinc-900"
+                : "border-zinc-200 text-zinc-500 hover:border-zinc-300"
             }`}
           >
-            👤 Individual
+            <Icon name="user" className="h-4 w-4" />
+            Individual
           </button>
           <button
             type="button"
             onClick={() => setType("company")}
-            className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md border px-4 py-3 text-sm font-medium transition ${
               type === "company"
-                ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                : "border-slate-200 text-slate-500 hover:border-slate-300"
+                ? "border-zinc-900 bg-zinc-50 text-zinc-900 ring-1 ring-zinc-900"
+                : "border-zinc-200 text-zinc-500 hover:border-zinc-300"
             }`}
           >
-            🏢 Company
+            <Icon name="building" className="h-4 w-4" />
+            Company
           </button>
         </div>
       )}

@@ -72,18 +72,18 @@ export function ClassicInvoiceTemplate({
 
   return (
     <div>
-      <label className="flex items-center gap-2 text-sm text-slate-600 mb-4 print:hidden">
+      <label className="flex items-center gap-2 text-sm text-zinc-600 mb-4 print:hidden">
         <input
           type="checkbox"
           checked={showVat}
           onChange={(e) => setShowVat(e.target.checked)}
-          className="rounded border-slate-300"
+          className="rounded border-zinc-300"
         />
         Show VAT on printed invoice
       </label>
 
       <div className="w-full overflow-x-auto print:overflow-visible">
-      <div id="invoice-printable" className="bg-white text-black p-8 font-sans text-[13px] leading-snug print:p-0 rounded-xl border border-slate-200 shadow-sm print:border-none print:shadow-none min-w-160 print:min-w-0">
+      <div id="invoice-printable" className="bg-white text-black p-8 font-sans text-[13px] leading-snug print:p-0 rounded-xl border border-zinc-200 shadow-sm print:border-none print:shadow-none min-w-160 print:min-w-0">
         <div className="flex items-start justify-between border-b-4 border-black pb-3 mb-4">
           <h1 className="font-serif text-3xl">
             {documentLabel} <span className="text-red-600">{reference}</span>
@@ -141,8 +141,8 @@ export function ClassicInvoiceTemplate({
                   <td className="py-1.5">
                     {item.description}
                     {warrantyUntil && (
-                      <p className={`text-[10px] ${warrantyActive ? "text-emerald-600" : "text-slate-400"}`}>
-                        🛡 {item.warranty_days}-day warranty{" "}
+                      <p className={`text-[10px] ${warrantyActive ? "text-emerald-600" : "text-zinc-400"}`}>
+                        {item.warranty_days}-day warranty{" "}
                         {warrantyActive ? "until" : "expired"} {warrantyUntil.toLocaleDateString()}
                       </p>
                     )}
@@ -189,7 +189,7 @@ export function ClassicInvoiceTemplate({
               <span>Advance/Discount</span>
               <span className="font-bold">{discount > 0 ? `-AED ${discount.toFixed(2)}` : "-"}</span>
             </div>
-            <div className="flex justify-between border-t border-slate-300 pt-1">
+            <div className="flex justify-between border-t border-zinc-300 pt-1">
               <span>Remaining Balance</span>
               <span className="font-bold">AED {remainingBalance.toFixed(2)}</span>
             </div>
@@ -223,16 +223,16 @@ export function ClassicInvoiceTemplate({
         </div>
 
         <hr className="border-t-4 border-black mb-2" />
-        <p className="border-b border-slate-300 pb-2 mb-2">
+        <p className="border-b border-zinc-300 pb-2 mb-2">
           This is computer generated report/invoice hence no sign or stamp require
         </p>
         {settings?.invoice_disclaimer && (
           <p className="text-xs text-red-600 font-bold">{settings.invoice_disclaimer}</p>
         )}
         {settings?.portal_url && (
-          <p className="mt-3 text-center text-xs text-slate-400">
+          <p className="mt-3 text-center text-xs text-zinc-400">
             Check your vehicle&apos;s service status anytime at{" "}
-            <span className="text-slate-600">{settings.portal_url}</span>
+            <span className="text-zinc-600">{settings.portal_url}</span>
           </p>
         )}
       </div>

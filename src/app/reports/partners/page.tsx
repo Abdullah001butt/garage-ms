@@ -36,26 +36,26 @@ export default async function PartnerProfitReportPage({
   const netProfit = totalRevenue - totalExpenses;
 
   return (
-    <div className="mx-auto max-w-3xl p-6 md:p-8">
-      <Link href="/partners" className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to partners
+    <div className="page page-narrow">
+      <Link href="/partners" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to partners
       </Link>
       <PageHeader title="Partner Profit Split" description="Net profit shared by each partner's percentage." />
 
       <Card className="p-4 mb-6">
         <form className="flex flex-wrap items-end gap-4">
           <label className="block">
-            <span className="block text-xs font-medium text-slate-700 mb-1">Month</span>
+            <span className="block text-xs font-medium text-zinc-700 mb-1">Month</span>
             <input
               type="month"
               name="month"
               defaultValue={monthValue}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
             />
           </label>
           <button
             type="submit"
-            className="rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
           >
             View
           </button>
@@ -70,17 +70,17 @@ export default async function PartnerProfitReportPage({
 
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+          <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
             <tr>
               <th className="px-4 py-2.5 font-medium">Partner</th>
               <th className="px-4 py-2.5 font-medium text-right">Share %</th>
               <th className="px-4 py-2.5 font-medium text-right">Amount</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-zinc-100">
             {partners?.map((p) => (
               <tr key={p.id}>
-                <td className="px-4 py-2.5 font-medium text-slate-900">{p.full_name}</td>
+                <td className="px-4 py-2.5 font-medium text-zinc-900">{p.full_name}</td>
                 <td className="px-4 py-2.5 text-right">{p.share_percentage}%</td>
                 <td className="px-4 py-2.5 text-right font-medium">
                   AED {(netProfit * (Number(p.share_percentage) / 100)).toFixed(2)}

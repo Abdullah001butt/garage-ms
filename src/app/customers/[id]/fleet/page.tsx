@@ -63,9 +63,9 @@ export default async function CustomerFleetPage({ params }: { params: Promise<{ 
   const fleetTotal = [...perVehicle.values()].reduce((s, v) => s + v.totalSpent, 0);
 
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
-      <Link href={`/customers/${id}`} className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to {customer.name}
+    <div className="page">
+      <Link href={`/customers/${id}`} className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to {customer.name}
       </Link>
 
       <PageHeader
@@ -74,26 +74,26 @@ export default async function CustomerFleetPage({ params }: { params: Promise<{ 
       />
 
       <Card className="overflow-hidden">
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-zinc-100">
           {vehicles?.map((v) => {
             const stat = perVehicle.get(v.id)!;
             return (
-              <li key={v.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50">
+              <li key={v.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-zinc-50">
                 <Link href={`/vehicles/${v.id}/passport`} className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <PlateBadge plateNumber={v.plate_number} emirate={v.emirate} />
                     {(v.make || v.model) && (
-                      <span className="font-medium text-slate-900">
+                      <span className="font-medium text-zinc-900">
                         {[v.make, v.model, v.year].filter(Boolean).join(" ")}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-zinc-500">
                     {stat.jobCount} job(s)
                     {stat.lastJobDate && ` · Last visit ${new Date(stat.lastJobDate).toLocaleDateString()}`}
                   </p>
                 </Link>
-                <p className="shrink-0 text-sm font-semibold text-slate-900">AED {stat.totalSpent.toFixed(2)}</p>
+                <p className="shrink-0 text-sm font-semibold text-zinc-900">AED {stat.totalSpent.toFixed(2)}</p>
               </li>
             );
           })}

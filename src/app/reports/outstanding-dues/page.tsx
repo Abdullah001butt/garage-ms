@@ -41,7 +41,7 @@ export default async function OutstandingDuesPage() {
   const totalOutstanding = rows.reduce((s, r) => s + r.balanceDue, 0);
 
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="Outstanding Dues"
         description="Every unpaid or partially paid invoice, oldest first, with one-tap reminders."
@@ -50,16 +50,16 @@ export default async function OutstandingDuesPage() {
       {error && <p className="text-red-600 text-sm mb-4">Failed to load: {error.message}</p>}
 
       <Card className="mb-6 p-5">
-        <p className="text-sm text-slate-500">Total outstanding</p>
-        <p className="text-3xl font-bold text-slate-900">AED {totalOutstanding.toFixed(2)}</p>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-sm text-zinc-500">Total outstanding</p>
+        <p className="text-3xl font-bold text-zinc-900">AED {totalOutstanding.toFixed(2)}</p>
+        <p className="text-xs text-zinc-400 mt-1">
           Across {rows.length} invoice{rows.length !== 1 ? "s" : ""}
         </p>
       </Card>
 
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+          <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
             <tr>
               <th className="px-4 py-2.5 font-medium">Customer</th>
               <th className="px-4 py-2.5 font-medium">Invoice Date</th>
@@ -69,18 +69,18 @@ export default async function OutstandingDuesPage() {
               <th className="px-4 py-2.5 font-medium">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-zinc-100">
             {rows.map((r) => {
               const firstName = r.customers?.name?.split(" ")[0] ?? "there";
               const message = `Hi ${firstName}, this is a friendly reminder from Al Bahir Garage that you have an outstanding balance of AED ${r.balanceDue.toFixed(2)}. Please let us know if you'd like to settle it. Thank you!`;
               return (
                 <tr key={r.id}>
                   <td className="px-4 py-2.5">
-                    <Link href={`/invoices/${r.id}`} className="font-medium text-indigo-600 hover:underline">
+                    <Link href={`/invoices/${r.id}`} className="font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600">
                       {r.customers?.name ?? "Unknown"}
                     </Link>
                   </td>
-                  <td className="px-4 py-2.5 text-slate-500">
+                  <td className="px-4 py-2.5 text-zinc-500">
                     {new Date(r.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-2.5 text-right">
@@ -88,13 +88,14 @@ export default async function OutstandingDuesPage() {
                       {r.daysOld}d
                     </Badge>
                   </td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-slate-900">
+                  <td className="px-4 py-2.5 text-right font-semibold text-zinc-900">
                     AED {r.balanceDue.toFixed(2)}
                   </td>
-                  <td className="px-4 py-2.5 capitalize text-slate-500">{r.status}</td>
+                  <td className="px-4 py-2.5 capitalize text-zinc-500">{r.status}</td>
                   <td className="px-4 py-2.5">
                     {r.customers?.phone && (
-                      <WhatsAppButton phone={r.customers.phone} message={message} label="Remind" />
+                      <WhatsAppButton phone={r.customers.phone} message={message} label="Remind"
+                      size="sm" />
                     )}
                   </td>
                 </tr>

@@ -45,28 +45,28 @@ export function InventoryTable({
   return (
     <>
       {showScanner && <BarcodeScanner onScan={handleScan} onClose={() => setShowScanner(false)} />}
-      <div className="mb-3 flex items-center gap-3">
-        <SecondaryButton type="button" onClick={() => setShowScanner(true)}>
-          📷 Scan to Find
+      <div className="flex items-center gap-3 border-b border-zinc-200 p-3">
+        <SecondaryButton type="button" icon="scan" onClick={() => setShowScanner(true)}>
+          Scan barcode
         </SecondaryButton>
-        {scanMessage && <span className="text-xs text-slate-500">{scanMessage}</span>}
+        {scanMessage && <span className="text-xs text-zinc-500">{scanMessage}</span>}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+          <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
             <tr>
-              <th className="px-4 py-2.5 font-medium">Name</th>
+              <th className="px-4 py-2.5 font-medium">Part</th>
               <th className="px-4 py-2.5 font-medium">SKU</th>
               <th className="px-4 py-2.5 font-medium text-right">Stock</th>
               <th className="px-4 py-2.5 font-medium text-right">Cost</th>
               <th className="px-4 py-2.5 font-medium text-right">Price</th>
               <th className="px-4 py-2.5 font-medium">Supplier</th>
-              <th className="px-4 py-2.5 font-medium">Update Stock</th>
+              <th className="px-4 py-2.5 font-medium">Set stock</th>
               <th className="px-4 py-2.5 font-medium">Reorder</th>
-              <th className="px-4 py-2.5 font-medium">Actions</th>
+              <th className="px-4 py-2.5 font-medium"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-zinc-100 align-middle">
             {parts.map((part) => {
               const isLow = part.stock_qty <= part.reorder_threshold;
               return (
@@ -75,15 +75,15 @@ export function InventoryTable({
                   ref={(el) => {
                     rowRefs.current[part.id] = el;
                   }}
-                  className={highlightId === part.id ? "bg-indigo-50 transition-colors" : ""}
+                  className={highlightId === part.id ? "bg-amber-50 transition-colors" : ""}
                 >
-                  <td className="px-4 py-2.5 font-medium text-slate-900">{part.name}</td>
-                  <td className="px-4 py-2.5 text-slate-500">{part.sku ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-4 py-2.5 font-medium text-zinc-900">{part.name}</td>
+                  <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs text-zinc-500">{part.sku ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-right tabular">
                     {isLow ? <Badge color="red">{part.stock_qty} low</Badge> : part.stock_qty}
                   </td>
-                  <td className="px-4 py-2.5 text-right">{part.unit_cost?.toFixed(2) ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-right">{part.unit_price?.toFixed(2) ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-right text-zinc-600 tabular">{part.unit_cost?.toFixed(2) ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-right text-zinc-900 tabular">{part.unit_price?.toFixed(2) ?? "—"}</td>
                   <td className="px-4 py-2.5">
                     {editingSupplierId === part.id ? (
                       <form
@@ -98,23 +98,23 @@ export function InventoryTable({
                           name="supplier_name"
                           defaultValue={part.supplier_name ?? ""}
                           placeholder="Supplier name"
-                          className="w-32 rounded-md border border-slate-300 px-2 py-1 text-xs"
+                          className="w-32 rounded-md border border-zinc-300 px-2 py-1 text-xs"
                         />
                         <input
                           type="text"
                           name="supplier_phone"
                           defaultValue={part.supplier_phone ?? ""}
                           placeholder="Phone"
-                          className="w-32 rounded-md border border-slate-300 px-2 py-1 text-xs"
+                          className="w-32 rounded-md border border-zinc-300 px-2 py-1 text-xs"
                         />
                         <div className="flex gap-1">
-                          <button type="submit" className="rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100">
+                          <button type="submit" className="rounded-md border border-zinc-300 bg-white text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50 px-2 py-1 text-xs font-medium">
                             Save
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditingSupplierId(null)}
-                            className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                            className="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50"
                           >
                             Cancel
                           </button>
@@ -124,7 +124,7 @@ export function InventoryTable({
                       <div className="flex flex-col gap-1">
                         {part.supplier_name ? (
                           <>
-                            <span className="text-slate-700">{part.supplier_name}</span>
+                            <span className="text-zinc-700">{part.supplier_name}</span>
                             {part.supplier_phone && (
                               <a
                                 href={buildWhatsAppLink(
@@ -133,19 +133,19 @@ export function InventoryTable({
                                 )}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-emerald-600 hover:underline"
+                                className="text-xs font-medium text-emerald-700 hover:text-emerald-900"
                               >
                                 WhatsApp
                               </a>
                             )}
                           </>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-zinc-400">—</span>
                         )}
                         <button
                           type="button"
                           onClick={() => setEditingSupplierId(part.id)}
-                          className="text-left text-xs text-indigo-600 hover:underline"
+                          className="text-left text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
                         >
                           Edit
                         </button>
@@ -158,11 +158,11 @@ export function InventoryTable({
                         type="number"
                         name="stock_qty"
                         defaultValue={part.stock_qty}
-                        className="w-20 rounded-md border border-slate-300 px-2 py-1 text-sm"
+                        className="h-8 w-20 rounded-md border border-zinc-300 px-2 text-sm tabular focus:border-brand-500 focus:outline-none focus:ring-3 focus:ring-brand-500/15"
                       />
                       <button
                         type="submit"
-                        className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                        className="h-8 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-800 hover:bg-zinc-50"
                       >
                         Save
                       </button>
@@ -175,22 +175,22 @@ export function InventoryTable({
                         name="quantity"
                         placeholder="Qty"
                         defaultValue={isLow ? Math.max(part.reorder_threshold * 2, 10) : ""}
-                        className="w-16 rounded-md border border-slate-300 px-2 py-1 text-sm"
+                        className="h-8 w-16 rounded-md border border-zinc-300 px-2 text-sm tabular focus:border-brand-500 focus:outline-none focus:ring-3 focus:ring-brand-500/15"
                       />
                       <button
                         type="submit"
-                        className="rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
+                        className="rounded-md border border-zinc-300 bg-white text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50 h-8 px-2.5 text-xs font-medium"
                       >
                         Order
                       </button>
                     </form>
                   </td>
                   <td className="px-4 py-2.5">
-                    <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-end gap-3">
                       <button
                         type="button"
                         onClick={() => setEditingPartId(editingPartId === part.id ? null : part.id)}
-                        className="text-left text-xs text-indigo-600 hover:underline"
+                        className="text-left text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
                       >
                         Edit
                       </button>
@@ -205,7 +205,7 @@ export function InventoryTable({
                   </td>
                 </tr>
                 {editingPartId === part.id && (
-                  <tr className="bg-slate-50">
+                  <tr className="bg-zinc-50">
                     <td colSpan={8} className="px-4 py-3">
                       <form
                         action={(fd) => {
@@ -220,13 +220,13 @@ export function InventoryTable({
                         <Field label="Unit Cost" name="unit_cost" type="number" step="0.01" defaultValue={part.unit_cost ?? ""} />
                         <Field label="Unit Price" name="unit_price" type="number" step="0.01" defaultValue={part.unit_price ?? ""} />
                         <div className="flex items-end gap-2">
-                          <button type="submit" className="rounded-md border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100">
+                          <button type="submit" className="rounded-md border border-zinc-300 bg-white text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50 px-3 py-1.5 text-xs font-medium">
                             Save Part
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditingPartId(null)}
-                            className="rounded-md border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-50"
+                            className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs hover:bg-zinc-50"
                           >
                             Cancel
                           </button>

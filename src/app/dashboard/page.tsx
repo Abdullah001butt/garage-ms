@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card, PageHeader, StatCard, Badge, EmptyState } from "@/components/ui";
+import { Card, PageHeader, Panel, PanelEmpty, SecondaryButton, theadClass, thClass } from "@/components/ui";
+import { Icon, type IconName } from "@/components/icons";
 import { MonthlyTrendChart, type MonthlyTrendPoint } from "@/components/MonthlyTrendChart";
 import { GenerateInsightsButton } from "@/components/GenerateInsightsButton";
 import { generateAndSaveWeeklyInsights } from "@/app/dashboard/insights-actions";
@@ -175,149 +176,251 @@ export default async function DashboardPage() {
     };
   });
 
+  const mixTotal = laborTotal + partsTotal + serviceTotal;
+  const monthLabel = new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const totalJobs = jobCounts.pending + jobCounts.in_progress + jobCounts.completed;
+
   return (
-    <div className="mx-auto max-w-6xl p-6 md:p-8">
-      <PageHeader title="Dashboard" description="Live performance and financial overview." />
+    <div className="page">
+      <PageHeader
+        title="Dashboard"
+        description={`Business performance · ${monthLabel}`}
+        action={
+          <a href="/reports/monthly-summary/export">
+            <SecondaryButton type="button" icon="download">
+              Export month
+            </SecondaryButton>
+          </a>
+        }
+      />
 
-      <Card className="p-5 mb-6">
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
-          <p className="text-sm font-semibold text-slate-700">🤖 Weekly AI Insights</p>
-          <GenerateInsightsButton action={generateAndSaveWeeklyInsights} />
-        </div>
-        {latestInsight ? (
-          <>
-            <p className="text-sm text-slate-700 leading-relaxed">{latestInsight.content}</p>
-            <p className="text-xs text-slate-400 mt-2">
-              Generated {new Date(latestInsight.created_at).toLocaleString()}
-            </p>
-          </>
-        ) : (
-          <EmptyState message="No insights generated yet. Click the button to get an AI summary of this week's business." />
-        )}
+      <Card className="grid grid-cols-2 lg:grid-cols-4">
+        <Metric label="Revenue this month" value={aed(revenueThisMonth)} hint="Cash actually received" delta={yoyChangePct} />
+        <Metric label="Expenses this month" value={aed(expensesThisMonth)} hint="Recorded expenses" className="border-l border-zinc-200" />
+        <Metric
+          label="Net this month"
+          value={aed(netThisMonth)}
+          hint="Revenue minus expenses"
+          tone={netThisMonth >= 0 ? "positive" : "negative"}
+          className="border-t border-zinc-200 lg:border-t-0 lg:border-l"
+        />
+        <Metric
+          label="Average repair order"
+          value={aed(aro)}
+          hint={`Across ${realInvoices.length} invoices`}
+          className="border-t border-l border-zinc-200 lg:border-t-0"
+        />
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          label="Revenue (this month)"
-          value={`AED ${revenueThisMonth.toFixed(0)}`}
-          accent="green"
-          hint={
-            yoyChangePct === null
-              ? "Cash actually received"
-              : `${yoyChangePct >= 0 ? "▲" : "▼"} ${Math.abs(yoyChangePct).toFixed(0)}% vs same month last year`
-          }
-        />
-        <StatCard label="Avg. Repair Order (ARO)" value={`AED ${aro.toFixed(0)}`} accent="indigo" hint={`Across ${realInvoices.length} invoices`} />
-        <StatCard label="Expenses (this month)" value={`AED ${expensesThisMonth.toFixed(0)}`} accent="red" />
-        <StatCard
-          label="Net (this month)"
-          value={`AED ${netThisMonth.toFixed(0)}`}
-          accent={netThisMonth >= 0 ? "green" : "red"}
-        />
+      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <MiniStat icon="wrench" label="Active jobs" value={String(activeJobs)} hint={`${jobCounts.pending} pending · ${jobCounts.in_progress} in progress`} />
+        <MiniStat icon="trending" label="Shop utilisation" value={`${utilization}%`} hint="Active jobs being worked on" />
+        <MiniStat icon="package" label="Low stock parts" value={String(lowStockCount)} hint="At or below reorder level" warn={lowStockCount > 0} />
+        <MiniStat icon="receipt" label="Open purchase orders" value={String(pendingPOs)} hint="Pending or ordered" />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Active Jobs" value={String(activeJobs)} hint={`${jobCounts.pending} pending · ${jobCounts.in_progress} in progress`} />
-        <StatCard label="Shop Utilization" value={`${utilization}%`} hint="Share of active jobs in progress" />
-        <StatCard label="Low Stock Parts" value={String(lowStockCount)} accent={lowStockCount > 0 ? "amber" : "slate"} />
-        <StatCard label="Open Purchase Orders" value={String(pendingPOs)} />
-      </div>
-
-      <Card className="p-5 mb-8">
-        <p className="text-sm font-semibold text-slate-700 mb-4">Last 6 Months: Revenue vs Expenses</p>
-        <MonthlyTrendChart data={monthlyTrend} />
-      </Card>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card className="p-5">
-          <p className="text-sm font-semibold text-slate-700 mb-4">Revenue Split: Labor vs Parts vs Services</p>
-          <div className="space-y-3">
-            <RevenueBar label="Labor" value={laborTotal} total={laborTotal + partsTotal + serviceTotal} color="bg-indigo-500" />
-            <RevenueBar label="Parts" value={partsTotal} total={laborTotal + partsTotal + serviceTotal} color="bg-emerald-500" />
-            {serviceTotal > 0 && (
-              <RevenueBar label="Service" value={serviceTotal} total={laborTotal + partsTotal + serviceTotal} color="bg-amber-500" />
-            )}
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <Panel title="Revenue vs expenses" action={<span className="text-xs text-zinc-500">Last 6 months</span>} className="lg:col-span-2">
+          <div className="p-4">
+            <MonthlyTrendChart data={monthlyTrend} />
           </div>
-        </Card>
+        </Panel>
 
-        <Card className="p-5">
-          <p className="text-sm font-semibold text-slate-700 mb-4">Technician Efficiency</p>
+        <Panel title="Revenue mix" action={<span className="text-xs text-zinc-500">All invoices</span>}>
+          <div className="space-y-4 p-4">
+            <p className="text-2xl font-semibold tracking-tight text-zinc-900 tabular">{aed(mixTotal)}</p>
+            <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100">
+              {mixTotal > 0 && (
+                <>
+                  <div className="bg-zinc-900" style={{ width: `${(laborTotal / mixTotal) * 100}%` }} />
+                  <div className="bg-brand-500" style={{ width: `${(partsTotal / mixTotal) * 100}%` }} />
+                  <div className="bg-zinc-400" style={{ width: `${(serviceTotal / mixTotal) * 100}%` }} />
+                </>
+              )}
+            </div>
+            <div className="space-y-2.5">
+              <RevenueBar label="Labour" value={laborTotal} total={mixTotal} color="bg-zinc-900" />
+              <RevenueBar label="Parts" value={partsTotal} total={mixTotal} color="bg-brand-500" />
+              <RevenueBar label="Services" value={serviceTotal} total={mixTotal} color="bg-zinc-400" />
+            </div>
+            <div className="border-t border-zinc-100 pt-3">
+              <p className="mb-2 text-xs font-medium text-zinc-500">Job pipeline · {totalJobs} total</p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <PipelineCount label="Pending" value={jobCounts.pending} dot="bg-zinc-400" />
+                <PipelineCount label="In progress" value={jobCounts.in_progress} dot="bg-amber-500" />
+                <PipelineCount label="Completed" value={jobCounts.completed} dot="bg-emerald-500" />
+              </div>
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <Panel title="Technician performance">
           {mechanicRows.length === 0 ? (
-            <EmptyState message="No completed jobs with a mechanic assigned yet." />
+            <PanelEmpty message="No completed jobs with a mechanic assigned yet." />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-slate-500">
-                    <th className="pb-2 font-medium">Mechanic</th>
-                    <th className="pb-2 font-medium text-right">Completed</th>
-                    <th className="pb-2 font-medium text-right">Avg. Turnaround</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {mechanicRows.map((m) => (
-                    <tr key={m.name}>
-                      <td className="py-2 font-medium text-slate-900">{m.name}</td>
-                      <td className="py-2 text-right">{m.completed}</td>
-                      <td className="py-2 text-right">{m.avgHours.toFixed(1)}h</td>
+            <table className="w-full text-sm">
+              <thead className={theadClass}>
+                <tr>
+                  <th className={thClass}>Mechanic</th>
+                  <th className={`${thClass} text-right`}>Jobs</th>
+                  <th className={`${thClass} text-right`}>Avg. time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...mechanicRows]
+                  .sort((x, y) => y.completed - x.completed)
+                  .map((m) => (
+                    <tr key={m.name} className="border-b border-zinc-100 last:border-0">
+                      <td className="px-4 py-2.5 font-medium text-zinc-900">{m.name}</td>
+                      <td className="px-4 py-2.5 text-right text-zinc-700 tabular">{m.completed}</td>
+                      <td className="px-4 py-2.5 text-right text-zinc-700 tabular">{m.avgHours.toFixed(1)}h</td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+              </tbody>
+            </table>
+          )}
+        </Panel>
+
+        <TopCustomersPanel title="Top customers · this month" rows={topCustomersThisMonth} empty="No invoices this month yet." />
+        <TopCustomersPanel title="Top customers · all time" rows={topCustomersAllTime} empty="No invoices yet." />
+      </div>
+
+      <Panel title="Weekly summary" className="mt-6" action={<GenerateInsightsButton action={generateAndSaveWeeklyInsights} />}>
+        {latestInsight ? (
+          <div className="flex gap-3 p-4">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-500">
+              <Icon name="sparkles" className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm leading-relaxed text-zinc-700">{latestInsight.content}</p>
+              <p className="mt-2 text-xs text-zinc-400">Generated {new Date(latestInsight.created_at).toLocaleString("en-GB")}</p>
             </div>
-          )}
-        </Card>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <Card className="p-5">
-          <p className="text-sm font-semibold text-slate-700 mb-4">Top Customers (This Month)</p>
-          {topCustomersThisMonth.length === 0 ? (
-            <EmptyState message="No invoices this month yet." />
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {topCustomersThisMonth.map((c) => (
-                <li key={c.name} className="flex items-center justify-between py-2 text-sm">
-                  <span className="font-medium text-slate-900">{c.name}</span>
-                  <span className="text-slate-500">
-                    AED {c.total.toFixed(0)} · {c.visits} visit{c.visits > 1 ? "s" : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <Card className="p-5">
-          <p className="text-sm font-semibold text-slate-700 mb-4">Top Customers (All Time)</p>
-          {topCustomersAllTime.length === 0 ? (
-            <EmptyState message="No invoices yet." />
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {topCustomersAllTime.map((c) => (
-                <li key={c.name} className="flex items-center justify-between py-2 text-sm">
-                  <span className="font-medium text-slate-900">{c.name}</span>
-                  <span className="text-slate-500">
-                    AED {c.total.toFixed(0)} · {c.visits} visit{c.visits > 1 ? "s" : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-
-      <div className="mt-6">
-        <Card className="p-5">
-          <p className="text-sm font-semibold text-slate-700 mb-4">Job Status Breakdown</p>
-          <div className="flex gap-3">
-            <Badge color="gray">{jobCounts.pending} Pending</Badge>
-            <Badge color="amber">{jobCounts.in_progress} In Progress</Badge>
-            <Badge color="green">{jobCounts.completed} Completed</Badge>
           </div>
-        </Card>
-      </div>
+        ) : (
+          <PanelEmpty message="No summary yet. Generate one for an AI-written overview of this week's business." />
+        )}
+      </Panel>
     </div>
+  );
+}
+
+function aed(amount: number) {
+  return `AED ${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+}
+
+function Metric({
+  label,
+  value,
+  hint,
+  delta,
+  tone,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  delta?: number | null;
+  tone?: "positive" | "negative";
+  className?: string;
+}) {
+  return (
+    <div className={`p-4 sm:p-5 ${className}`}>
+      <p className="text-[13px] font-medium text-zinc-500">{label}</p>
+      <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
+        <p
+          className={`text-2xl font-semibold tracking-tight tabular ${
+            tone === "negative" ? "text-red-700" : tone === "positive" ? "text-emerald-700" : "text-zinc-900"
+          }`}
+        >
+          {value}
+        </p>
+        {delta !== undefined && delta !== null && (
+          <span
+            className={`rounded px-1 py-px text-xs font-medium tabular ${
+              delta >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+            }`}
+          >
+            {delta >= 0 ? "+" : "−"}
+            {Math.abs(delta).toFixed(0)}% YoY
+          </span>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-zinc-500">{hint}</p>
+    </div>
+  );
+}
+
+function MiniStat({
+  icon,
+  label,
+  value,
+  hint,
+  warn = false,
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+  hint: string;
+  warn?: boolean;
+}) {
+  return (
+    <Card className="flex items-center gap-3 p-3.5">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-zinc-50 text-zinc-500">
+        <Icon name={icon} className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-medium text-zinc-500">{label}</p>
+        <p className={`text-lg font-semibold leading-tight tabular ${warn ? "text-amber-700" : "text-zinc-900"}`}>{value}</p>
+        <p className="truncate text-[11px] text-zinc-400">{hint}</p>
+      </div>
+    </Card>
+  );
+}
+
+function PipelineCount({ label, value, dot }: { label: string; value: number; dot: string }) {
+  return (
+    <div className="rounded-md bg-zinc-50 px-2 py-2">
+      <p className="text-base font-semibold text-zinc-900 tabular">{value}</p>
+      <p className="flex items-center justify-center gap-1 text-[11px] text-zinc-500">
+        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function TopCustomersPanel({
+  title,
+  rows,
+  empty,
+}: {
+  title: string;
+  rows: { name: string; total: number; visits: number }[];
+  empty: string;
+}) {
+  return (
+    <Panel title={title}>
+      {rows.length === 0 ? (
+        <PanelEmpty message={empty} />
+      ) : (
+        <ol className="divide-y divide-zinc-100">
+          {rows.map((c, i) => (
+            <li key={c.name} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+              <span className="w-4 text-xs font-medium text-zinc-400 tabular">{i + 1}</span>
+              <span className="min-w-0 flex-1 truncate font-medium text-zinc-900">{c.name}</span>
+              <span className="shrink-0 text-right">
+                <span className="block font-medium text-zinc-900 tabular">{aed(c.total)}</span>
+                <span className="block text-[11px] text-zinc-500">
+                  {c.visits} visit{c.visits > 1 ? "s" : ""}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Panel>
   );
 }
 
@@ -335,12 +438,14 @@ function RevenueBar({
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
     <div>
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-slate-600">{label}</span>
-        <span className="font-medium text-slate-900">AED {value.toFixed(0)} ({pct}%)</span>
-      </div>
-      <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-        <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
+      <div className="flex items-center justify-between text-sm">
+        <span className="flex items-center gap-2 text-zinc-600">
+          <span className={`h-2 w-2 rounded-sm ${color}`} />
+          {label}
+        </span>
+        <span className="text-zinc-900 tabular">
+          {aed(value)} <span className="text-zinc-400">· {pct}%</span>
+        </span>
       </div>
     </div>
   );

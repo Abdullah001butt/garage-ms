@@ -40,9 +40,9 @@ export default async function AttendancePage({
   }
 
   return (
-    <div className="mx-auto max-w-6xl p-6 md:p-8">
-      <Link href="/staff" className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to staff
+    <div className="page">
+      <Link href="/staff" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to staff
       </Link>
       <PageHeader
         title="Attendance & Salary"
@@ -57,26 +57,26 @@ export default async function AttendancePage({
       <Card className="p-4 mb-6">
         <form className="flex flex-wrap items-end gap-3 sm:gap-4">
           <label className="block">
-            <span className="block text-xs font-medium text-slate-700 mb-1">Month</span>
+            <span className="block text-xs font-medium text-zinc-700 mb-1">Month</span>
             <input
               type="month"
               name="month"
               defaultValue={monthValue}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
             />
           </label>
           <button
             type="submit"
-            className="rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
           >
             View
           </button>
         </form>
-        <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100">
+        <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-zinc-500 mt-3 pt-3 border-t border-zinc-100">
           <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-emerald-100" />Present</span>
           <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-red-100" />Absent</span>
           <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-blue-100" />Paid Leave</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-slate-200" />Holiday</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-zinc-200" />Holiday</span>
         </div>
       </Card>
 

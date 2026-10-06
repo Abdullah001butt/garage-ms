@@ -1,3 +1,4 @@
+import { Icon } from "@/components/icons";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -120,9 +121,9 @@ export default async function VehiclePassportPage({
   const uploadDocumentWithId = uploadVehicleDocument.bind(null, id);
 
   return (
-    <div className="mx-auto max-w-3xl p-6 md:p-8">
-      <Link href={`/customers/${vehicle.customer_id}`} className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to customer
+    <div className="page page-narrow">
+      <Link href={`/customers/${vehicle.customer_id}`} className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to customer
       </Link>
       <div className="mt-3 mb-1">
         <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} size="lg" />
@@ -136,53 +137,53 @@ export default async function VehiclePassportPage({
       <Card className="p-5 mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-4">
           <div>
-            <p className="text-xs text-slate-400">Year</p>
-            <p className="font-medium text-slate-900">{vehicle.year ?? "—"}</p>
+            <p className="text-xs text-zinc-400">Year</p>
+            <p className="font-medium text-zinc-900">{vehicle.year ?? "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Color</p>
-            <p className="font-medium text-slate-900">{vehicle.color ?? "—"}</p>
+            <p className="text-xs text-zinc-400">Color</p>
+            <p className="font-medium text-zinc-900">{vehicle.color ?? "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">VIN</p>
-            <p className="font-medium text-slate-900">{vehicle.vin ?? "—"}</p>
+            <p className="text-xs text-zinc-400">VIN</p>
+            <p className="font-medium text-zinc-900">{vehicle.vin ?? "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">On File Since</p>
-            <p className="font-medium text-slate-900">{new Date(vehicle.created_at).toLocaleDateString()}</p>
+            <p className="text-xs text-zinc-400">On File Since</p>
+            <p className="font-medium text-zinc-900">{new Date(vehicle.created_at).toLocaleDateString()}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Origin / Trim</p>
-            <p className="font-medium text-slate-900">{vehicle.origin_trim ?? "—"}</p>
+            <p className="text-xs text-zinc-400">Origin / Trim</p>
+            <p className="font-medium text-zinc-900">{vehicle.origin_trim ?? "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Body Type</p>
-            <p className="font-medium text-slate-900">{vehicle.body_type ?? "—"}</p>
+            <p className="text-xs text-zinc-400">Body Type</p>
+            <p className="font-medium text-zinc-900">{vehicle.body_type ?? "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Cylinders</p>
-            <p className="font-medium text-slate-900">{vehicle.cylinders ?? "—"}</p>
+            <p className="text-xs text-zinc-400">Cylinders</p>
+            <p className="font-medium text-zinc-900">{vehicle.cylinders ?? "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Registration Expiry</p>
-            <p className="font-medium text-slate-900">
+            <p className="text-xs text-zinc-400">Registration Expiry</p>
+            <p className="font-medium text-zinc-900">
               {vehicle.registration_expiry_date ? new Date(vehicle.registration_expiry_date).toLocaleDateString() : "—"}
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Current Mileage</p>
-            <p className="font-medium text-slate-900">{vehicle.current_mileage ? `${vehicle.current_mileage} KM` : "—"}</p>
+            <p className="text-xs text-zinc-400">Current Mileage</p>
+            <p className="font-medium text-zinc-900">{vehicle.current_mileage ? `${vehicle.current_mileage} KM` : "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Odometer Reading</p>
-            <p className="font-medium text-slate-900">{vehicle.odometer_reading ?? "—"}</p>
+            <p className="text-xs text-zinc-400">Odometer Reading</p>
+            <p className="font-medium text-zinc-900">{vehicle.odometer_reading ?? "—"}</p>
           </div>
         </div>
-        <p className="text-sm text-slate-700 mb-3">
+        <p className="text-sm text-zinc-700 mb-3">
           Current Owner: <span className="font-medium">{vehicle.customers?.name}</span> ({vehicle.customers?.phone})
         </p>
         <details>
-          <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">
+          <summary className="cursor-pointer text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600">
             Transfer ownership to a different customer
           </summary>
           <form action={transferWithId} className="mt-2 flex flex-wrap items-end gap-2">
@@ -202,19 +203,19 @@ export default async function VehiclePassportPage({
         </details>
       </Card>
 
-      <h2 className="text-sm font-semibold text-slate-700 mb-2">Service History</h2>
+      <h2 className="text-sm font-semibold text-zinc-700 mb-2">Service History</h2>
       <Card className="mb-6 overflow-hidden">
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-zinc-100">
           {jobHistory?.map((job) => (
             <li key={job.id} className="px-4 py-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <Link href={`/jobs/${job.id}`} className="font-medium text-slate-900 hover:underline">
+                  <Link href={`/jobs/${job.id}`} className="font-medium text-zinc-900 hover:underline">
                     {job.description}
                   </Link>
-                  {job.mechanic_name && <p className="text-xs text-slate-500">Mechanic: {job.mechanic_name}</p>}
+                  {job.mechanic_name && <p className="text-xs text-zinc-500">Mechanic: {job.mechanic_name}</p>}
                   {job.invoices?.[0]?.invoice_items?.length ? (
-                    <ul className="mt-1 text-xs text-slate-400 list-disc list-inside">
+                    <ul className="mt-1 text-xs text-zinc-400 list-disc list-inside">
                       {job.invoices[0].invoice_items.map((item, i) => (
                         <li key={i}>
                           {item.quantity} × {item.description} — AED {(item.quantity * item.unit_price).toFixed(2)}
@@ -225,7 +226,7 @@ export default async function VehiclePassportPage({
                 </div>
                 <Badge color={job.status === "completed" ? "green" : "amber"}>{job.status}</Badge>
               </div>
-              <p className="text-xs text-slate-400 mt-1">{new Date(job.created_at).toLocaleDateString()}</p>
+              <p className="text-xs text-zinc-400 mt-1">{new Date(job.created_at).toLocaleDateString()}</p>
             </li>
           ))}
         </ul>
@@ -234,12 +235,12 @@ export default async function VehiclePassportPage({
 
       {warrantyItems.length > 0 && (
         <>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">Warranty History</h2>
+          <h2 className="text-sm font-semibold text-zinc-700 mb-2">Warranty History</h2>
           <Card className="mb-6 overflow-hidden">
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-zinc-100">
               {warrantyItems.map((w, i) => (
                 <li key={i} className="px-4 py-2.5 flex items-center justify-between gap-2 text-sm">
-                  <span className="text-slate-700">{w.description}</span>
+                  <span className="text-zinc-700">{w.description}</span>
                   <Badge color={w.until.getTime() > now ? "green" : "gray"}>
                     {w.until.getTime() > now ? "Active until" : "Expired"} {w.until.toLocaleDateString()}
                   </Badge>
@@ -252,13 +253,13 @@ export default async function VehiclePassportPage({
 
       {partsReplaced.length > 0 && (
         <>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">Parts Replaced (All Time)</h2>
+          <h2 className="text-sm font-semibold text-zinc-700 mb-2">Parts Replaced (All Time)</h2>
           <Card className="mb-6 p-4">
-            <ul className="text-sm text-slate-600 space-y-1">
+            <ul className="text-sm text-zinc-600 space-y-1">
               {partsReplaced.map((p, i) => (
                 <li key={i} className="flex justify-between">
                   <span>{p.description}</span>
-                  <span className="text-slate-400">×{p.quantity}</span>
+                  <span className="text-zinc-400">×{p.quantity}</span>
                 </li>
               ))}
             </ul>
@@ -266,14 +267,14 @@ export default async function VehiclePassportPage({
         </>
       )}
 
-      <h2 className="text-sm font-semibold text-slate-700 mb-2">Accident / Incident Records</h2>
+      <h2 className="text-sm font-semibold text-zinc-700 mb-2">Accident / Incident Records</h2>
       <Card className="mb-6 p-4">
-        <ul className="divide-y divide-slate-100 mb-3">
+        <ul className="divide-y divide-zinc-100 mb-3">
           {incidents?.map((inc) => (
             <li key={inc.id} className="flex items-center justify-between gap-2 py-2 text-sm">
               <div>
-                <p className="text-slate-700">{inc.description}</p>
-                <p className="text-xs text-slate-400">{new Date(inc.incident_date).toLocaleDateString()}</p>
+                <p className="text-zinc-700">{inc.description}</p>
+                <p className="text-xs text-zinc-400">{new Date(inc.incident_date).toLocaleDateString()}</p>
               </div>
               <ConfirmSubmitButton
                 action={deleteVehicleIncident.bind(null, id, inc.id)}
@@ -287,7 +288,7 @@ export default async function VehiclePassportPage({
           {incidents?.length === 0 && <EmptyState message="No incidents recorded." />}
         </ul>
         <details>
-          <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">+ Add incident</summary>
+          <summary className="cursor-pointer text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600">+ Add incident</summary>
           <form action={addIncidentWithId} className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
             <Field label="Date" name="incident_date" type="date" required />
             <Field label="Description" name="description" placeholder="e.g. Front bumper collision" required className="sm:col-span-2" />
@@ -298,14 +299,14 @@ export default async function VehiclePassportPage({
         </details>
       </Card>
 
-      <h2 className="text-sm font-semibold text-slate-700 mb-2">Photos & Documents</h2>
+      <h2 className="text-sm font-semibold text-zinc-700 mb-2">Photos & Documents</h2>
       <Card className="p-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
           {documents?.map((doc) => {
             const { data: urlData } = supabase.storage.from("vehicle-files").getPublicUrl(doc.file_path);
             const isImage = doc.file_type?.startsWith("image/");
             return (
-              <div key={doc.id} className="rounded-lg border border-slate-200 p-2">
+              <div key={doc.id} className="rounded-lg border border-zinc-200 p-2">
                 {isImage ? (
                   <a href={urlData.publicUrl} target="_blank" rel="noopener noreferrer">
                     <img src={urlData.publicUrl} alt={doc.file_name} className="h-24 w-full rounded object-cover" />
@@ -315,12 +316,13 @@ export default async function VehiclePassportPage({
                     href={urlData.publicUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-24 items-center justify-center rounded bg-slate-50 text-xs text-indigo-600 hover:underline"
+                    className="flex h-24 flex-col items-center justify-center gap-1 rounded bg-zinc-50 text-xs font-medium text-zinc-600 hover:text-zinc-900"
                   >
-                    📄 View File
+                    <Icon name="file" className="h-5 w-5 text-zinc-400" />
+                    View file
                   </a>
                 )}
-                <p className="mt-1 truncate text-xs text-slate-500">{doc.file_name}</p>
+                <p className="mt-1 truncate text-xs text-zinc-500">{doc.file_name}</p>
                 <ConfirmSubmitButton
                   action={deleteVehicleDocument.bind(null, id, doc.id, doc.file_path)}
                   confirmMessage="Delete this file?"

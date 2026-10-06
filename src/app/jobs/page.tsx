@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card, PageHeader, Badge, EmptyState, PrimaryButton } from "@/components/ui";
+import { Card, PageHeader, Badge, EmptyState, PrimaryButton, SegmentedLinks, theadClass, thClass } from "@/components/ui";
 import { JobsBoard } from "@/components/JobsBoard";
 import { PlateBadge } from "@/components/PlateBadge";
 import { updateJobStatus } from "@/app/jobs/actions";
@@ -17,12 +17,12 @@ type JobRow = {
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pending",
-  in_progress: "In Progress",
+  in_progress: "In progress",
   completed: "Completed",
 };
 
-const STATUS_COLOR: Record<string, "gray" | "amber" | "green"> = {
-  pending: "gray",
+const STATUS_COLOR: Record<string, "slate" | "amber" | "green"> = {
+  pending: "slate",
   in_progress: "amber",
   completed: "green",
 };
@@ -55,11 +55,16 @@ export default async function JobsPage({
     .not("job_card_id", "is", null);
   const invoicedSet = new Set((invoicedJobIds ?? []).map((i) => i.job_card_id));
 
+  const allJobs = jobs ?? [];
+  const uninvoicedIds = allJobs.filter((j) => j.status === "completed" && !invoicedSet.has(j.id)).map((j) => j.id);
+  const statusHref = (s: string) =>
+    s ? `/jobs?status=${s}${view ? `&view=${view}` : ""}` : `/jobs${view ? `?view=${view}` : ""}`;
+
   return (
-    <div className={isBoard ? "mx-auto max-w-6xl p-6 md:p-8" : "mx-auto max-w-4xl p-6 md:p-8"}>
+    <div className="page">
       <PageHeader
         title="Job Cards"
-        description="Vehicles currently in for service."
+        description="Every vehicle in for service, from check-in to invoice."
         action={
           <Link href="/jobs/new">
             <PrimaryButton type="button">+ New Job Card</PrimaryButton>
@@ -67,89 +72,82 @@ export default async function JobsPage({
         }
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-6 text-sm">
-        <div className="flex flex-wrap gap-2">
-          {["", "pending", "in_progress", "completed"].map((s) => (
-            <Link
-              key={s || "all"}
-              href={s ? `/jobs?status=${s}${view ? `&view=${view}` : ""}` : `/jobs${view ? `?view=${view}` : ""}`}
-              className={`rounded-full px-3 py-1 border ${
-                (status ?? "") === s
-                  ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                  : "border-slate-200 text-slate-600"
-              }`}
-            >
-              {s ? STATUS_LABEL[s] : "All"}
-            </Link>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href={`/jobs${status ? `?status=${status}` : ""}`}
-            className={`rounded-full px-3 py-1 border ${
-              isBoard ? "border-indigo-600 bg-indigo-50 text-indigo-700" : "border-slate-200 text-slate-600"
-            }`}
-          >
-            Board
-          </Link>
-          <Link
-            href={`/jobs?view=list${status ? `&status=${status}` : ""}`}
-            className={`rounded-full px-3 py-1 border ${
-              !isBoard ? "border-indigo-600 bg-indigo-50 text-indigo-700" : "border-slate-200 text-slate-600"
-            }`}
-          >
-            List
-          </Link>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <SegmentedLinks
+          items={["", "pending", "in_progress", "completed"].map((s) => ({
+            label: s ? STATUS_LABEL[s] : "All",
+            href: statusHref(s),
+            active: (status ?? "") === s,
+          }))}
+        />
+        <SegmentedLinks
+          items={[
+            { label: "Board", href: `/jobs${status ? `?status=${status}` : ""}`, active: isBoard },
+            { label: "List", href: `/jobs?view=list${status ? `&status=${status}` : ""}`, active: !isBoard },
+          ]}
+        />
       </div>
 
-      {error && (
-        <p className="text-red-600 text-sm mb-4">Failed to load job cards: {error.message}</p>
-      )}
+      {error && <p className="mb-4 text-sm text-red-600">Failed to load job cards: {error.message}</p>}
 
       {isBoard ? (
-        (jobs?.length ?? 0) === 0 ? (
+        allJobs.length === 0 ? (
           <Card>
-            <EmptyState message="No job cards yet." />
+            <EmptyState icon="wrench" message="No job cards yet." />
           </Card>
         ) : (
-          <JobsBoard jobs={jobs ?? []} updateJobStatus={updateJobStatus} />
+          <JobsBoard jobs={allJobs} uninvoicedIds={uninvoicedIds} updateJobStatus={updateJobStatus} />
         )
       ) : (
         <Card className="overflow-hidden">
-          <ul className="divide-y divide-slate-100">
-            {jobs?.map((job) => (
-              <li key={job.id}>
-                <Link
-                  href={`/jobs/${job.id}`}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-slate-50"
-                >
-                  <div className="min-w-0">
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
-                      {job.vehicles && (
-                        <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />
-                      )}
-                      {(job.vehicles?.make || job.vehicles?.model) && (
-                        <span className="font-medium text-slate-900">
-                          {[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ")}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className={theadClass}>
+                <tr>
+                  <th className={thClass}>Vehicle</th>
+                  <th className={`${thClass} hidden md:table-cell`}>Customer</th>
+                  <th className={`${thClass} hidden lg:table-cell`}>Work</th>
+                  <th className={`${thClass} hidden md:table-cell`}>Mechanic</th>
+                  <th className={thClass}>Status</th>
+                  <th className={`${thClass} hidden sm:table-cell text-right`}>Opened</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allJobs.map((job) => (
+                  <tr key={job.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                    <td className="px-4 py-3">
+                      <Link href={`/jobs/${job.id}`} className="flex items-center gap-3">
+                        {job.vehicles && <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />}
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium text-zinc-900">
+                            {[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "Vehicle"}
+                          </span>
+                          <span className="block truncate text-xs text-zinc-500 md:hidden">{job.customers?.name}</span>
                         </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-500">
-                      {job.customers?.name} · {job.description}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {job.status === "completed" && !invoicedSet.has(job.id) && (
-                      <Badge color="amber">Needs Invoice</Badge>
-                    )}
-                    <Badge color={STATUS_COLOR[job.status]}>{STATUS_LABEL[job.status]}</Badge>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {!error && jobs?.length === 0 && <EmptyState message="No job cards yet." />}
+                      </Link>
+                    </td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-zinc-700 md:table-cell">{job.customers?.name}</td>
+                    <td className="hidden max-w-xs px-4 py-3 lg:table-cell">
+                      <span className="block truncate text-zinc-600">{job.description}</span>
+                    </td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-zinc-600 md:table-cell">{job.mechanic_name ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5 whitespace-nowrap">
+                        <Badge color={STATUS_COLOR[job.status]} dot>
+                          {STATUS_LABEL[job.status]}
+                        </Badge>
+                        {job.status === "completed" && !invoicedSet.has(job.id) && <Badge color="amber">Needs invoice</Badge>}
+                      </div>
+                    </td>
+                    <td className="hidden px-4 py-3 text-right text-zinc-500 tabular sm:table-cell">
+                      {new Date(job.created_at).toLocaleDateString("en-GB")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!error && allJobs.length === 0 && <EmptyState icon="wrench" message="No job cards yet." />}
         </Card>
       )}
     </div>

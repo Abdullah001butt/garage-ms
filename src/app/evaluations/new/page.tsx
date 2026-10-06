@@ -1,20 +1,20 @@
 import Link from "next/link";
 import { createVehicleEvaluation } from "@/app/evaluations/actions";
-import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
+import { Card, PageHeader, PrimaryButton, Field, inputClass } from "@/components/ui";
 import { DEFAULT_INSPECTION_PARTICULARS } from "@/lib/evaluation";
 import { CarDiagramMarkerInput } from "@/components/CarDiagramMarkerInput";
 
 export default function NewEvaluationPage() {
   return (
-    <div className="mx-auto max-w-3xl p-6 md:p-8">
-      <Link href="/evaluations" className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to evaluations
+    <div className="page page-narrow">
+      <Link href="/evaluations" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to evaluations
       </Link>
       <PageHeader title="New Vehicle Evaluation Report" description="Fill this once — the printable report and reference number are generated automatically." />
 
       <form action={createVehicleEvaluation} className="space-y-6">
         <Card className="p-5">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">Customer Detail</h2>
+          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Customer Detail</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Customer / Company Name" name="customer_name" required placeholder="e.g. Indonesian Consulate General" />
             <Field label="Location" name="customer_location" placeholder="e.g. Dubai, United Arab Emirates" />
@@ -25,7 +25,7 @@ export default function NewEvaluationPage() {
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">Description</h2>
+          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Description</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Make and Model" name="make_model" required placeholder="MERCEDES-BENZ E300" />
             <Field label="Registration No." name="registration_no" placeholder="CC-2195(CONSULATE DXB)" />
@@ -51,19 +51,19 @@ export default function NewEvaluationPage() {
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">Damage Diagram</h2>
+          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Damage Diagram</h2>
           <CarDiagramMarkerInput />
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
+          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">
             The Inspection Reveals the Following
           </h2>
           <div className="space-y-3">
             {DEFAULT_INSPECTION_PARTICULARS.map((particular, i) => (
-              <div key={particular} className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-2 sm:items-center border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+              <div key={particular} className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-2 sm:items-center border-b border-zinc-100 pb-3 last:border-0 last:pb-0">
                 <input type="hidden" name="inspection_particular" value={particular} />
-                <p className="text-sm font-medium text-slate-700">{particular}</p>
+                <p className="text-sm font-medium text-zinc-700">{particular}</p>
                 <div className="flex gap-3">
                   {[
                     { value: "good", label: "Good" },
@@ -71,7 +71,7 @@ export default function NewEvaluationPage() {
                     { value: "poor", label: "Poor" },
                     { value: "na", label: "N/A" },
                   ].map((opt) => (
-                    <label key={opt.value} className="flex items-center gap-1 text-xs text-slate-600">
+                    <label key={opt.value} className="flex items-center gap-1 text-xs text-zinc-600">
                       <input
                         type="radio"
                         name={`inspection_condition_${i}`}
@@ -94,7 +94,7 @@ export default function NewEvaluationPage() {
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">Valuation</h2>
+          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Valuation</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Estimated Value — Min (AED)" name="estimated_value_min" type="number" placeholder="15000" />
             <Field label="Estimated Value — Max (AED)" name="estimated_value_max" type="number" placeholder="18000" />

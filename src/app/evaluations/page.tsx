@@ -11,7 +11,7 @@ export default async function EvaluationsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="Vehicle Evaluation Reports"
         description="Generate and store vehicle valuation reports for customers."
@@ -25,19 +25,19 @@ export default async function EvaluationsPage() {
       {error && <p className="text-red-600 text-sm mb-4">Failed to load evaluations: {error.message}</p>}
 
       <Card className="overflow-hidden">
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-zinc-100">
           {(evaluations as VehicleEvaluation[] | null)?.map((ev) => (
             <li key={ev.id}>
-              <Link href={`/evaluations/${ev.id}`} className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-slate-50">
+              <Link href={`/evaluations/${ev.id}`} className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-zinc-50">
                 <div className="min-w-0">
-                  <p className="font-medium text-slate-900 truncate">
-                    {ev.make_model} <span className="text-slate-400 font-normal">— {ev.registration_no}</span>
+                  <p className="font-medium text-zinc-900 truncate">
+                    {ev.make_model} <span className="text-zinc-400 font-normal">— {ev.registration_no}</span>
                   </p>
-                  <p className="text-sm text-slate-500 truncate">
+                  <p className="text-sm text-zinc-500 truncate">
                     {ev.customer_name} · {ev.ref_number}
                   </p>
                 </div>
-                <p className="text-xs text-slate-400 shrink-0">
+                <p className="text-xs text-zinc-400 shrink-0">
                   {new Date(ev.evaluation_date).toLocaleDateString()}
                 </p>
               </Link>

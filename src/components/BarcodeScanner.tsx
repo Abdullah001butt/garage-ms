@@ -47,11 +47,11 @@ export function BarcodeScanner({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-sm rounded-xl bg-white p-4">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-800">Scan Barcode / QR Code</p>
+          <p className="text-sm font-semibold text-zinc-800">Scan Barcode / QR Code</p>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600"
+            className="text-zinc-400 hover:text-zinc-600"
             aria-label="Close scanner"
           >
             ✕

@@ -6,11 +6,11 @@ import { ATTENDANCE_CYCLE } from "@/lib/attendance-cycle";
 import { useToast } from "@/components/Toast";
 
 const STATUS_STYLE: Record<string, string> = {
-  none: "bg-slate-50 text-slate-300",
+  none: "bg-zinc-50 text-zinc-300",
   present: "bg-emerald-100 text-emerald-700",
   absent: "bg-red-100 text-red-700",
   paid_leave: "bg-blue-100 text-blue-700",
-  holiday: "bg-slate-200 text-slate-500",
+  holiday: "bg-zinc-200 text-zinc-500",
 };
 
 const STATUS_ABBR: Record<string, string> = {
@@ -71,16 +71,16 @@ export function AttendanceGrid({
     <table className="text-sm border-collapse">
       <thead>
         <tr>
-          <th className="sticky left-0 bg-slate-50 px-3 py-2 text-left font-medium text-slate-500 border-b border-slate-200">
+          <th className="sticky left-0 bg-zinc-50 px-3 py-2 text-left font-medium text-zinc-500 border-b border-zinc-200">
             Staff
           </th>
           {days.map((d) => (
-            <th key={d} className="px-1 py-2 text-center font-medium text-slate-400 border-b border-slate-200 w-8">
+            <th key={d} className="px-1 py-2 text-center font-medium text-zinc-400 border-b border-zinc-200 w-8">
               {d}
             </th>
           ))}
-          <th className="px-3 py-2 text-right font-medium text-slate-500 border-b border-slate-200">Present</th>
-          <th className="px-3 py-2 text-right font-medium text-slate-500 border-b border-slate-200">Salary (AED)</th>
+          <th className="px-3 py-2 text-right font-medium text-zinc-500 border-b border-zinc-200">Present</th>
+          <th className="px-3 py-2 text-right font-medium text-zinc-500 border-b border-zinc-200">Salary (AED)</th>
         </tr>
       </thead>
       <tbody>
@@ -98,14 +98,14 @@ export function AttendanceGrid({
 
           return (
             <tr key={p.id}>
-              <td className="sticky left-0 bg-white px-3 py-1.5 font-medium text-slate-900 border-b border-slate-100 whitespace-nowrap">
+              <td className="sticky left-0 bg-white px-3 py-1.5 font-medium text-zinc-900 border-b border-zinc-100 whitespace-nowrap">
                 {p.full_name}
               </td>
               {days.map((d) => {
                 const dateStr = `${monthValue}-${String(d).padStart(2, "0")}`;
                 const status = attendance[`${p.id}_${dateStr}`] ?? "none";
                 return (
-                  <td key={d} className="border-b border-slate-100 p-0.5">
+                  <td key={d} className="border-b border-zinc-100 p-0.5">
                     <button
                       type="button"
                       onClick={() => handleClick(p.id, dateStr)}
@@ -116,8 +116,8 @@ export function AttendanceGrid({
                   </td>
                 );
               })}
-              <td className="px-3 py-1.5 text-right border-b border-slate-100">{presentCount + paidLeaveCount}</td>
-              <td className="px-3 py-1.5 text-right font-medium border-b border-slate-100">
+              <td className="px-3 py-1.5 text-right border-b border-zinc-100">{presentCount + paidLeaveCount}</td>
+              <td className="px-3 py-1.5 text-right font-medium border-b border-zinc-100">
                 {p.monthly_salary ? salary.toFixed(2) : "—"}
               </td>
             </tr>

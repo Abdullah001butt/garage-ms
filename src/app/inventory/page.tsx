@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Part } from "@/lib/types";
 import { createPart, adjustStock, updatePartSupplier, updatePart, deletePart } from "@/app/inventory/actions";
 import { createPurchaseOrder } from "@/app/purchase-orders/actions";
-import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
+import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass, Alert } from "@/components/ui";
+import { SlideOver } from "@/components/SlideOver";
 import { InventoryTable } from "@/components/InventoryTable";
 
 export default async function InventoryPage() {
@@ -16,42 +17,14 @@ export default async function InventoryPage() {
   const lowStock = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold);
 
   return (
-    <div className="mx-auto max-w-5xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="Parts Stock"
         description="Live inventory levels across all parts on the shelf."
-      />
-
-      {error && (
-        <p className="text-red-600 text-sm mb-4">Failed to load inventory: {error.message}</p>
-      )}
-
-      {lowStock.length > 0 && (
-        <Card className="mb-6 border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800 mb-1">
-            ⚠ {lowStock.length} part{lowStock.length > 1 ? "s" : ""} at or below reorder threshold
-          </p>
-          <p className="text-xs text-amber-700">
-            Create a purchase order below to restock before service delays happen.
-          </p>
-        </Card>
-      )}
-
-      <Card className="mb-6 p-4">
-        <InventoryTable
-          parts={parts ?? []}
-          adjustStock={adjustStock}
-          createPurchaseOrder={createPurchaseOrder}
-          updatePartSupplier={updatePartSupplier}
-          updatePart={updatePart}
-          deletePart={deletePart}
-        />
-      </Card>
-
-      <Card className="p-5">
-        <p className="text-sm font-semibold text-slate-700 mb-4">Add a part</p>
+        action={
+          <SlideOver title="Add a part" description="New stock item with pricing and reorder level." triggerLabel="Add Part">
         <form action={createPart} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label className="block col-span-2">
+          <label className="block col-span-full">
             <span className={labelClass}>Name</span>
             <input type="text" name="name" required className={inputClass} />
           </label>
@@ -62,11 +35,38 @@ export default async function InventoryPage() {
           <Field label="Unit Price" name="unit_price" type="number" step="0.01" />
           <Field label="Supplier Name (optional)" name="supplier_name" />
           <Field label="Supplier Phone (optional)" name="supplier_phone" />
-          <div className="col-span-2">
+          <div className="col-span-full">
             <PrimaryButton type="submit">Add Part</PrimaryButton>
           </div>
         </form>
+          </SlideOver>
+        }
+      />
+
+      {error && (
+        <p className="text-red-600 text-sm mb-4">Failed to load inventory: {error.message}</p>
+      )}
+
+      {lowStock.length > 0 && (
+        <Alert
+          className="mb-6"
+          title={`${lowStock.length} part${lowStock.length > 1 ? "s" : ""} at or below reorder level`}
+        >
+          Use Order on the row to raise a purchase order before it delays a job.
+        </Alert>
+      )}
+
+      <Card className="mb-6 overflow-hidden">
+        <InventoryTable
+          parts={parts ?? []}
+          adjustStock={adjustStock}
+          createPurchaseOrder={createPurchaseOrder}
+          updatePartSupplier={updatePartSupplier}
+          updatePart={updatePart}
+          deletePart={deletePart}
+        />
       </Card>
+
     </div>
   );
 }

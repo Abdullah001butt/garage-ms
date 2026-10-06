@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fafafa;
+  --foreground: #18181b;
 }
 
 @theme inline {
@@ -12,13 +12,88 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Brand palette derived from the Al Bahir logo red (#F03848). */
+@theme {
+  --color-brand-50: #fef2f3;
+  --color-brand-100: #fde3e5;
+  --color-brand-200: #fbcbd0;
+  --color-brand-300: #f7a1a9;
+  --color-brand-400: #f26b78;
+  --color-brand-500: #f03848;
+  --color-brand-600: #d41f31;
+  --color-brand-700: #b21827;
+  --color-brand-800: #931724;
+  --color-brand-900: #7a1824;
+  --color-brand-950: #430810;
+}
+
 html,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   /* Allow normal scrolling but block pinch-zoom and double-tap-zoom gestures. */
   touch-action: pan-x pan-y;
+}
+
+::selection {
+  background: var(--color-brand-100);
+  color: var(--color-brand-900);
+}
+
+/* Standard page container: one left edge and width across the whole app.
+   `page` is for tables/dashboards; `page-narrow` keeps forms readable while
+   sharing the same left edge as every other page. */
+@utility page {
+  width: 100%;
+  max-width: 88rem;
+  margin-inline: auto;
+  padding: 1.25rem 1rem 3rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 2rem;
+  }
+}
+
+@utility page-narrow {
+  & > * {
+    max-width: 56rem;
+  }
+}
+
+/* Expandable sections: replace the browser's triangle with a subtle chevron. */
+summary {
+  list-style: none;
+  cursor: pointer;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+summary::before {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.55rem;
+  margin-bottom: 0.1rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  opacity: 0.45;
+  transition: transform 0.15s ease;
+}
+details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+/* Tabular figures for any money/quantity column. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Prevent iOS Safari from auto-zooming when a form field is focused

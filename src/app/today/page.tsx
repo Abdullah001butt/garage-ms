@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card, PageHeader, Badge, EmptyState, PrimaryButton, SecondaryButton } from "@/components/ui";
+import { Card, PageHeader, Badge, Panel, PanelEmpty, PrimaryButton, SecondaryButton } from "@/components/ui";
+import { Icon, type IconName } from "@/components/icons";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { PlateBadge } from "@/components/PlateBadge";
 import { getServiceDueVehicles } from "@/lib/service-due";
 
 type JobRow = {
@@ -9,7 +11,7 @@ type JobRow = {
   description: string;
   status: "pending" | "in_progress";
   created_at: string;
-  vehicles: { plate_number: string; make: string | null; model: string | null } | null;
+  vehicles: { plate_number: string; emirate: string; make: string | null; model: string | null } | null;
   customers: { name: string; phone: string } | null;
 };
 
@@ -18,7 +20,7 @@ type AppointmentRow = {
   scheduled_at: string;
   notes: string | null;
   customers: { name: string } | null;
-  vehicles: { plate_number: string } | null;
+  vehicles: { plate_number: string; emirate: string } | null;
 };
 
 type InvoiceRow = {
@@ -48,6 +50,56 @@ function hoursAgo(dateStr: string) {
   return Math.round((Date.now() - new Date(dateStr).getTime()) / 3600000);
 }
 
+function formatAge(hours: number) {
+  if (hours < 1) return "Just now";
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d ${hours % 24}h`;
+}
+
+function formatAed(amount: number) {
+  return `AED ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function KpiTile({
+  label,
+  value,
+  hint,
+  icon,
+  href,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: IconName;
+  href: string;
+  tone?: "default" | "warn";
+}) {
+  return (
+    <Link href={href} className="group">
+      <Card className="flex h-full items-start justify-between gap-3 p-4 transition-colors group-hover:border-zinc-300">
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium text-zinc-500">{label}</p>
+          <p className={`mt-1.5 text-2xl font-semibold tracking-tight tabular ${tone === "warn" ? "text-red-700" : "text-zinc-900"}`}>
+            {value}
+          </p>
+          <p className="mt-1 truncate text-xs text-zinc-500">{hint}</p>
+        </div>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-zinc-50 text-zinc-500">
+          <Icon name={icon} className="h-4 w-4" />
+        </span>
+      </Card>
+    </Link>
+  );
+}
+
+const viewAll = (href: string, label = "View all") => (
+  <Link href={href} className="inline-flex items-center gap-0.5 font-medium text-zinc-500 hover:text-zinc-900">
+    {label}
+    <Icon name="chevron-right" className="h-3.5 w-3.5" />
+  </Link>
+);
+
 export default async function TodayPage() {
   const supabase = await createClient();
   const todayStart = new Date();
@@ -58,13 +110,13 @@ export default async function TodayPage() {
   const [{ data: jobs }, { data: appointments }, { data: invoices }, { data: parts }, { data: completedJobs }] = await Promise.all([
     supabase
       .from("job_cards")
-      .select("id, description, status, created_at, vehicles(plate_number, make, model), customers(name, phone)")
+      .select("id, description, status, created_at, vehicles(plate_number, emirate, make, model), customers(name, phone)")
       .in("status", ["pending", "in_progress"])
       .order("created_at", { ascending: true })
       .returns<JobRow[]>(),
     supabase
       .from("appointments")
-      .select("id, scheduled_at, notes, customers(name), vehicles(plate_number)")
+      .select("id, scheduled_at, notes, customers(name), vehicles(plate_number, emirate)")
       .eq("status", "scheduled")
       .gte("scheduled_at", todayStart.toISOString())
       .lte("scheduled_at", todayEnd.toISOString())
@@ -96,10 +148,13 @@ export default async function TodayPage() {
     })
     .filter((inv) => inv.balance > 0)
     .sort((a, b) => b.balance - a.balance);
+  const outstandingTotal = overdueInvoices.reduce((s, inv) => s + inv.balance, 0);
 
   const lowStockParts = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold);
   const serviceDue = await getServiceDueVehicles();
-  const staleJobs = (jobs ?? []).filter((job) => hoursAgo(job.created_at) >= 48);
+  const activeJobs = jobs ?? [];
+  const inProgressCount = activeJobs.filter((j) => j.status === "in_progress").length;
+  const staleJobs = activeJobs.filter((job) => hoursAgo(job.created_at) >= 48);
 
   const { data: invoicedJobIds } = await supabase
     .from("invoices")
@@ -108,125 +163,184 @@ export default async function TodayPage() {
   const invoicedSet = new Set((invoicedJobIds ?? []).map((i) => i.job_card_id));
   const unbilledJobs = (completedJobs ?? []).filter((job) => !invoicedSet.has(job.id));
 
+  const attention = [
+    ...unbilledJobs.map((job) => ({
+      key: `unbilled-${job.id}`,
+      href: `/jobs/${job.id}`,
+      tone: "amber" as const,
+      icon: "receipt" as IconName,
+      title: `${job.vehicles?.plate_number ?? "Vehicle"} · ${job.customers?.name ?? "Customer"}`,
+      detail: "Job completed but not invoiced yet",
+      cta: "Create invoice",
+    })),
+    ...staleJobs.map((job) => ({
+      key: `stale-${job.id}`,
+      href: `/jobs/${job.id}`,
+      tone: "red" as const,
+      icon: "clock" as IconName,
+      title: `${job.vehicles?.plate_number ?? "Vehicle"} · ${job.customers?.name ?? "Customer"}`,
+      detail: `In the bay for ${formatAge(hoursAgo(job.created_at))}`,
+      cta: "Open job",
+    })),
+  ];
+
+  const dateLabel = new Date().toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="Today"
-        description="Everything that needs attention right now, in one place."
+        description={dateLabel}
         action={
-          <div className="flex flex-wrap gap-2">
+          <>
+            <Link href="/appointments?new=1">
+              <SecondaryButton type="button" icon="calendar">
+                Appointment
+              </SecondaryButton>
+            </Link>
+            <Link href="/estimates/new">
+              <SecondaryButton type="button" icon="file">
+                Estimate
+              </SecondaryButton>
+            </Link>
             <Link href="/jobs/new">
               <PrimaryButton type="button">+ New Job</PrimaryButton>
             </Link>
-            <Link href="/estimates/new">
-              <SecondaryButton type="button">+ New Estimate</SecondaryButton>
-            </Link>
-            <Link href="/appointments">
-              <SecondaryButton type="button">+ New Appointment</SecondaryButton>
-            </Link>
-          </div>
+          </>
         }
       />
 
-      {unbilledJobs.length > 0 && (
-        <Card className="mb-6 border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800 mb-2">
-            💰 {unbilledJobs.length} completed job{unbilledJobs.length > 1 ? "s" : ""} not yet invoiced
-          </p>
-          <ul className="space-y-1">
-            {unbilledJobs.map((job) => (
-              <li key={job.id} className="text-xs text-amber-700">
-                <Link href={`/jobs/${job.id}`} className="hover:underline">
-                  {job.vehicles?.plate_number} — {job.customers?.name}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiTile
+          label="Active jobs"
+          value={String(activeJobs.length)}
+          hint={`${inProgressCount} in progress · ${activeJobs.length - inProgressCount} pending`}
+          icon="wrench"
+          href="/jobs"
+        />
+        <KpiTile
+          label="Appointments today"
+          value={String(appointments?.length ?? 0)}
+          hint={appointments?.[0] ? `Next at ${new Date(appointments[0].scheduled_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Nothing booked"}
+          icon="calendar"
+          href="/appointments"
+        />
+        <KpiTile
+          label="Outstanding"
+          value={formatAed(outstandingTotal)}
+          hint={`${overdueInvoices.length} unpaid invoice${overdueInvoices.length === 1 ? "" : "s"}`}
+          icon="wallet"
+          href="/reports/outstanding-dues"
+          tone={outstandingTotal > 0 ? "warn" : "default"}
+        />
+        <KpiTile
+          label="Low stock"
+          value={String(lowStockParts.length)}
+          hint={lowStockParts.length ? "Parts at reorder level" : "All parts stocked"}
+          icon="package"
+          href="/inventory"
+          tone={lowStockParts.length ? "warn" : "default"}
+        />
+      </div>
+
+      {attention.length > 0 && (
+        <Panel title="Needs attention" count={attention.length} className="mt-6">
+          <ul className="divide-y divide-zinc-100">
+            {attention.map((item) => (
+              <li key={item.key}>
+                <Link href={item.href} className="group flex items-center gap-3 px-4 py-3 hover:bg-zinc-50/60">
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
+                      item.tone === "red" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"
+                    }`}
+                  >
+                    <Icon name={item.icon} className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-zinc-900">{item.title}</p>
+                    <p className="truncate text-xs text-zinc-500">{item.detail}</p>
+                  </div>
+                  <span className="hidden shrink-0 items-center gap-0.5 text-[13px] font-medium text-zinc-500 group-hover:text-zinc-900 sm:inline-flex">
+                    {item.cta}
+                    <Icon name="chevron-right" className="h-3.5 w-3.5" />
+                  </span>
                 </Link>
               </li>
             ))}
           </ul>
-        </Card>
+        </Panel>
       )}
 
-      {staleJobs.length > 0 && (
-        <Card className="mb-6 border-red-200 bg-red-50 p-4">
-          <p className="text-sm font-semibold text-red-800 mb-2">
-            ⚠ {staleJobs.length} job{staleJobs.length > 1 ? "s" : ""} sitting in the bay for 2+ days
-          </p>
-          <ul className="space-y-1">
-            {staleJobs.map((job) => (
-              <li key={job.id} className="text-xs text-red-700">
-                <Link href={`/jobs/${job.id}`} className="hover:underline">
-                  {job.vehicles?.plate_number} — {job.customers?.name} ({hoursAgo(job.created_at)}h)
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
-
-      <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">
-            Active Jobs {jobs && jobs.length > 0 && `(${jobs.length})`}
-          </h2>
-          <Card className="overflow-hidden">
-            <ul className="divide-y divide-slate-100">
-              {jobs?.map((job) => (
-                <li key={job.id} className="px-4 py-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Link href={`/jobs/${job.id}`} className="min-w-0">
-                      <p className="font-medium text-slate-900 truncate">
-                        {job.vehicles?.plate_number} — {job.customers?.name}
+      <div className="mt-6 grid gap-6 lg:grid-cols-5">
+        <Panel title="Active jobs" count={activeJobs.length} action={viewAll("/jobs")} className="lg:col-span-3">
+          {activeJobs.length === 0 ? (
+            <PanelEmpty message="No vehicles in the workshop right now." />
+          ) : (
+            <ul className="divide-y divide-zinc-100">
+              {activeJobs.map((job) => (
+                <li key={job.id}>
+                  <Link href={`/jobs/${job.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50/60">
+                    {job.vehicles && <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-zinc-900">
+                        {[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "Vehicle"}
+                        <span className="font-normal text-zinc-500"> · {job.customers?.name}</span>
                       </p>
-                      <p className="text-xs text-slate-500 truncate">{job.description}</p>
-                    </Link>
-                    <Badge color={job.status === "in_progress" ? "amber" : "gray"}>
-                      {hoursAgo(job.created_at)}h
-                    </Badge>
+                      <p className="truncate text-xs text-zinc-500">{job.description}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <Badge color={job.status === "in_progress" ? "amber" : "slate"} dot>
+                        {job.status === "in_progress" ? "In progress" : "Pending"}
+                      </Badge>
+                      <span className="text-[11px] text-zinc-400 tabular">{formatAge(hoursAgo(job.created_at))}</span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Today's appointments" count={appointments?.length ?? 0} action={viewAll("/appointments")} className="lg:col-span-2">
+          {!appointments?.length ? (
+            <PanelEmpty message="No appointments booked for today." />
+          ) : (
+            <ul className="divide-y divide-zinc-100">
+              {appointments.map((apt) => (
+                <li key={apt.id} className="flex items-center gap-3 px-4 py-3">
+                  <span className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm font-semibold text-zinc-900 tabular">
+                    {new Date(apt.scheduled_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-zinc-900">{apt.customers?.name}</p>
+                    <p className="truncate text-xs text-zinc-500">
+                      {apt.vehicles?.plate_number ?? "No vehicle"}
+                      {apt.notes ? ` · ${apt.notes}` : ""}
+                    </p>
                   </div>
                 </li>
               ))}
             </ul>
-            {jobs?.length === 0 && <EmptyState message="No active jobs right now." />}
-          </Card>
-        </div>
-
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">
-            Today&apos;s Appointments {appointments && appointments.length > 0 && `(${appointments.length})`}
-          </h2>
-          <Card className="overflow-hidden">
-            <ul className="divide-y divide-slate-100">
-              {appointments?.map((apt) => (
-                <li key={apt.id} className="px-4 py-3">
-                  <p className="font-medium text-slate-900">
-                    {new Date(apt.scheduled_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} —{" "}
-                    {apt.customers?.name}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {apt.vehicles?.plate_number ?? "No vehicle"}
-                    {apt.notes ? ` · ${apt.notes}` : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
-            {appointments?.length === 0 && <EmptyState message="No appointments today." />}
-          </Card>
-        </div>
+          )}
+        </Panel>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">
-            Outstanding Balances {overdueInvoices.length > 0 && `(${overdueInvoices.length})`}
-          </h2>
-          <Card className="overflow-hidden">
-            <ul className="divide-y divide-slate-100">
-              {overdueInvoices.map((inv) => (
-                <li key={inv.id} className="px-4 py-3 flex items-center justify-between gap-2">
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <Panel title="Outstanding balances" count={overdueInvoices.length} action={viewAll("/reports/outstanding-dues")}>
+          {overdueInvoices.length === 0 ? (
+            <PanelEmpty message="Every invoice is settled." />
+          ) : (
+            <ul className="divide-y divide-zinc-100">
+              {overdueInvoices.slice(0, 6).map((inv) => (
+                <li key={inv.id} className="flex items-center justify-between gap-2 px-4 py-2.5">
                   <Link href={`/invoices/${inv.id}`} className="min-w-0">
-                    <p className="font-medium text-slate-900 truncate">
-                      {inv.job_cards?.vehicles?.plate_number ?? inv.customers?.name}
-                    </p>
-                    <p className="text-xs text-red-600 font-medium">AED {inv.balance.toFixed(2)} due</p>
+                    <p className="truncate text-sm font-medium text-zinc-900 hover:underline">{inv.customers?.name ?? "Customer"}</p>
+                    <p className="text-xs font-medium text-red-700 tabular">{formatAed(inv.balance)}</p>
                   </Link>
                   {inv.customers?.phone && (
                     <WhatsAppButton
@@ -235,62 +349,51 @@ export default async function TodayPage() {
                         2
                       )} is still due for your service at Al Bahir Garage. — Al Bahir Garage`}
                       label="Remind"
+                      size="sm"
                     />
                   )}
                 </li>
               ))}
             </ul>
-            {overdueInvoices.length === 0 && <EmptyState message="No outstanding balances." />}
-          </Card>
-        </div>
+          )}
+        </Panel>
 
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">
-            Low Stock {lowStockParts.length > 0 && `(${lowStockParts.length})`}
-          </h2>
-          <Card className="overflow-hidden">
-            <ul className="divide-y divide-slate-100">
+        <Panel title="Low stock" count={lowStockParts.length} action={viewAll("/inventory")}>
+          {lowStockParts.length === 0 ? (
+            <PanelEmpty message="All parts are sufficiently stocked." />
+          ) : (
+            <ul className="divide-y divide-zinc-100">
               {lowStockParts.map((p) => (
-                <li key={p.id} className="px-4 py-3 flex items-center justify-between">
-                  <p className="font-medium text-slate-900">{p.name}</p>
+                <li key={p.id} className="flex items-center justify-between gap-2 px-4 py-2.5">
+                  <p className="truncate text-sm text-zinc-900">{p.name}</p>
                   <Badge color="red">{p.stock_qty} left</Badge>
                 </li>
               ))}
             </ul>
-            {lowStockParts.length === 0 && <EmptyState message="All parts sufficiently stocked." />}
-          </Card>
-        </div>
-      </div>
+          )}
+        </Panel>
 
-      <div className="mt-6">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-semibold text-slate-700">
-            Service Due {serviceDue.length > 0 && `(${serviceDue.length})`}
-          </h2>
-          <Link href="/service-reminders" className="text-xs text-indigo-600 hover:underline">
-            View all &rarr;
-          </Link>
-        </div>
-        <Card className="overflow-hidden">
-          <ul className="divide-y divide-slate-100">
-            {serviceDue.slice(0, 5).map((v) => (
-              <li key={v.vehicleId} className="px-4 py-3 flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="font-medium text-slate-900 truncate">
-                    {v.plateNumber} — {v.customerName}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Last serviced {v.lastServiceAt.toLocaleDateString()}
-                  </p>
-                </div>
-                <Badge color={v.status === "overdue" ? "red" : "amber"}>
-                  {v.status === "overdue" ? "Overdue" : `Due ${v.dueAt.toLocaleDateString()}`}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-          {serviceDue.length === 0 && <EmptyState message="Nothing due for service soon." />}
-        </Card>
+        <Panel title="Service due" count={serviceDue.length} action={viewAll("/service-reminders")}>
+          {serviceDue.length === 0 ? (
+            <PanelEmpty message="No vehicles due for service soon." />
+          ) : (
+            <ul className="divide-y divide-zinc-100">
+              {serviceDue.slice(0, 6).map((v) => (
+                <li key={v.vehicleId} className="flex items-center justify-between gap-2 px-4 py-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-zinc-900">
+                      {v.plateNumber} <span className="font-normal text-zinc-500">· {v.customerName}</span>
+                    </p>
+                    <p className="text-xs text-zinc-500">Last service {v.lastServiceAt.toLocaleDateString("en-GB")}</p>
+                  </div>
+                  <Badge color={v.status === "overdue" ? "red" : "amber"}>
+                    {v.status === "overdue" ? "Overdue" : `Due ${v.dueAt.toLocaleDateString("en-GB")}`}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
       </div>
     </div>
   );

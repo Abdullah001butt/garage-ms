@@ -107,13 +107,13 @@ export default async function AuditLogPage({
   const filterQS = filterParams.toString();
 
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
+    <div className="page">
       <PageHeader title="Audit Log" description="Who changed what, across the whole system." />
 
       <form className="flex flex-wrap items-end gap-2 mb-4 text-sm">
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-500">Staff</span>
-          <select name="actor" defaultValue={actor ?? ""} className="rounded-lg border border-slate-300 px-2 py-1.5">
+          <span className="mb-1 block text-xs text-zinc-500">Staff</span>
+          <select name="actor" defaultValue={actor ?? ""} className="rounded-lg border border-zinc-300 px-2 py-1.5">
             <option value="">All staff</option>
             {uniqueActors.map((a) => (
               <option key={a} value={a}>
@@ -123,8 +123,8 @@ export default async function AuditLogPage({
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-500">Action</span>
-          <select name="action" defaultValue={action ?? ""} className="rounded-lg border border-slate-300 px-2 py-1.5">
+          <span className="mb-1 block text-xs text-zinc-500">Action</span>
+          <select name="action" defaultValue={action ?? ""} className="rounded-lg border border-zinc-300 px-2 py-1.5">
             <option value="">All actions</option>
             {Object.entries(ACTION_LABEL).map(([key, label]) => (
               <option key={key} value={key}>
@@ -134,18 +134,18 @@ export default async function AuditLogPage({
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-500">From</span>
-          <input type="date" name="from" defaultValue={from ?? ""} className="rounded-lg border border-slate-300 px-2 py-1.5" />
+          <span className="mb-1 block text-xs text-zinc-500">From</span>
+          <input type="date" name="from" defaultValue={from ?? ""} className="rounded-lg border border-zinc-300 px-2 py-1.5" />
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-500">To</span>
-          <input type="date" name="to" defaultValue={to ?? ""} className="rounded-lg border border-slate-300 px-2 py-1.5" />
+          <span className="mb-1 block text-xs text-zinc-500">To</span>
+          <input type="date" name="to" defaultValue={to ?? ""} className="rounded-lg border border-zinc-300 px-2 py-1.5" />
         </label>
-        <button type="submit" className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50">
+        <button type="submit" className="rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-50">
           Filter
         </button>
         {hasFilters && (
-          <a href="/audit-log" className="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-500 hover:bg-slate-50">
+          <a href="/audit-log" className="rounded-lg border border-zinc-300 px-3 py-1.5 text-zinc-500 hover:bg-zinc-50">
             Clear
           </a>
         )}
@@ -155,7 +155,7 @@ export default async function AuditLogPage({
 
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+          <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
             <tr>
               <th className="px-4 py-2.5 font-medium">Time</th>
               <th className="px-4 py-2.5 font-medium">Staff</th>
@@ -163,17 +163,17 @@ export default async function AuditLogPage({
               <th className="px-4 py-2.5 font-medium">Details</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-zinc-100">
             {logs?.map((log) => (
               <tr key={log.id}>
-                <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap">
+                <td className="px-4 py-2.5 text-zinc-500 whitespace-nowrap">
                   {new Date(log.created_at).toLocaleString()}
                 </td>
-                <td className="px-4 py-2.5 font-medium text-slate-900 whitespace-nowrap">{log.actor_name}</td>
+                <td className="px-4 py-2.5 font-medium text-zinc-900 whitespace-nowrap">{log.actor_name}</td>
                 <td className="px-4 py-2.5">
                   <Badge color={colorForAction(log.action)}>{ACTION_LABEL[log.action] ?? log.action}</Badge>
                 </td>
-                <td className="px-4 py-2.5 text-slate-500 text-xs">{summarizeDetails(log.details) ?? "—"}</td>
+                <td className="px-4 py-2.5 text-zinc-500 text-xs">{summarizeDetails(log.details) ?? "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -188,18 +188,18 @@ export default async function AuditLogPage({
           {pageNum > 1 && (
             <a
               href={`/audit-log?${filterQS ? `${filterQS}&` : ""}page=${pageNum - 1}`}
-              className="text-indigo-600 hover:underline"
+              className="font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
             >
               &larr; Newer
             </a>
           )}
-          <span className="text-slate-400">
+          <span className="text-zinc-400">
             Page {pageNum} of {totalPages}
           </span>
           {pageNum < totalPages && (
             <a
               href={`/audit-log?${filterQS ? `${filterQS}&` : ""}page=${pageNum + 1}`}
-              className="text-indigo-600 hover:underline"
+              className="font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
             >
               Older &rarr;
             </a>

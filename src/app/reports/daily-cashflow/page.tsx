@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { DailyCashReconciliation } from "@/lib/types";
 import { saveCashReconciliation } from "@/app/reports/daily-cashflow/actions";
-import { Card, PageHeader, StatCard, SecondaryButton, PrimaryButton, Field, EmptyState } from "@/components/ui";
+import { Card, PageHeader, StatCard, SecondaryButton, PrimaryButton, Field, EmptyState, Alert } from "@/components/ui";
 
 type PaymentRow = {
   id: string;
@@ -73,7 +73,7 @@ export default async function DailyCashflowPage({
   const difference = reconciliation ? reconciliation.counted_cash - expectedCash : null;
 
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="Daily Cash Flow"
         description="Cash in (payments received) and out (expenses) for a single day."
@@ -92,17 +92,17 @@ export default async function DailyCashflowPage({
       <Card className="p-4 mb-6">
         <form className="flex flex-wrap items-end gap-4">
           <label className="block">
-            <span className="block text-xs font-medium text-slate-700 mb-1">Date</span>
+            <span className="block text-xs font-medium text-zinc-700 mb-1">Date</span>
             <input
               type="date"
               name="date"
               defaultValue={selectedDate}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
             />
           </label>
           <button
             type="submit"
-            className="rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
           >
             View
           </button>
@@ -122,25 +122,22 @@ export default async function DailyCashflowPage({
       </div>
 
       <Card className="p-5 mb-6">
-        <p className="text-sm font-semibold text-slate-700 mb-1">Cash Drawer Reconciliation</p>
-        <p className="text-xs text-slate-500 mb-4">
+        <p className="text-sm font-semibold text-zinc-700 mb-1">Cash Drawer Reconciliation</p>
+        <p className="text-xs text-zinc-500 mb-4">
           Expected cash = cash payments received (AED {cashIn.toFixed(2)}) minus expenses (AED {totalOut.toFixed(2)}) = AED{" "}
           {expectedCash.toFixed(2)}. Enter what was actually counted in the drawer at end of day.
         </p>
         {reconciliation && difference !== null && (
-          <div
-            className={`mb-4 rounded-lg p-3 text-sm ${
-              Math.abs(difference) < 0.01
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-red-50 text-red-700"
-            }`}
+          <Alert
+            className="mb-4"
+            tone={Math.abs(difference) < 0.01 ? "success" : "danger"}
+            title={Math.abs(difference) < 0.01 ? "Cash matches — no discrepancy" : "Cash mismatch"}
           >
-            {Math.abs(difference) < 0.01
-              ? "✓ Cash matches. No discrepancy."
-              : `⚠ Mismatch: counted AED ${reconciliation.counted_cash.toFixed(2)} vs expected AED ${expectedCash.toFixed(
-                  2
-                )} (${difference > 0 ? "+" : ""}AED ${difference.toFixed(2)})`}
-          </div>
+            {Math.abs(difference) >= 0.01 &&
+              `Counted AED ${reconciliation.counted_cash.toFixed(2)} vs expected AED ${expectedCash.toFixed(2)} (${
+                difference > 0 ? "+" : ""
+              }AED ${difference.toFixed(2)})`}
+          </Alert>
         )}
         <form action={saveCashReconciliation} className="flex flex-wrap items-end gap-4">
           <input type="hidden" name="reconciliation_date" value={selectedDate} />
@@ -159,23 +156,23 @@ export default async function DailyCashflowPage({
 
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">In</h2>
+          <h2 className="text-sm font-semibold text-zinc-700 mb-2">In</h2>
           <Card className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-slate-500">
+              <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
                 <tr>
                   <th className="px-3 py-2 font-medium">Vehicle / Customer</th>
                   <th className="px-3 py-2 font-medium">Job</th>
                   <th className="px-3 py-2 font-medium text-right">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-zinc-100">
                 {payments?.map((p) => (
                   <tr key={p.id}>
                     <td className="px-3 py-2">
                       {p.invoices?.job_cards?.vehicles?.plate_number ?? p.invoices?.customers?.name ?? "—"}
                     </td>
-                    <td className="px-3 py-2 text-slate-500">{p.invoices?.job_cards?.description ?? "—"}</td>
+                    <td className="px-3 py-2 text-zinc-500">{p.invoices?.job_cards?.description ?? "—"}</td>
                     <td className="px-3 py-2 text-right font-medium">{Number(p.amount).toFixed(2)}</td>
                   </tr>
                 ))}
@@ -186,21 +183,21 @@ export default async function DailyCashflowPage({
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">Out</h2>
+          <h2 className="text-sm font-semibold text-zinc-700 mb-2">Out</h2>
           <Card className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-slate-500">
+              <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
                 <tr>
                   <th className="px-3 py-2 font-medium">Category</th>
                   <th className="px-3 py-2 font-medium">Description</th>
                   <th className="px-3 py-2 font-medium text-right">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-zinc-100">
                 {expenses?.map((e) => (
                   <tr key={e.id}>
                     <td className="px-3 py-2">{e.category}</td>
-                    <td className="px-3 py-2 text-slate-500">{e.description ?? "—"}</td>
+                    <td className="px-3 py-2 text-zinc-500">{e.description ?? "—"}</td>
                     <td className="px-3 py-2 text-right font-medium">{Number(e.amount).toFixed(2)}</td>
                   </tr>
                 ))}

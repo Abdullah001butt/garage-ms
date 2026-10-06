@@ -42,59 +42,59 @@ export default async function VehicleCertificatePage({
   return (
     <div className="mx-auto max-w-2xl p-6 md:p-8">
       <Card className="p-6 md:p-8 print:shadow-none print:border-none">
-        <div className="flex items-start justify-between gap-4 border-b-4 border-slate-900 pb-4">
+        <div className="flex items-start justify-between gap-4 border-b-4 border-zinc-900 pb-4">
           <div>
-            <h1 className="text-xl font-bold uppercase text-slate-400">Vehicle Service History Certificate</h1>
+            <h1 className="text-xl font-bold uppercase text-zinc-400">Vehicle Service History Certificate</h1>
             <div className="mt-3">
               <Image src="/logoalbahir.png" alt="Al Bahir Garage" width={140} height={40} className="h-10 w-auto object-contain" />
             </div>
-            <p className="mt-2 text-sm font-bold text-slate-900">AL BAHIR VEHICLES REPAIR LLC</p>
+            <p className="mt-2 text-sm font-bold text-zinc-900">AL BAHIR VEHICLES REPAIR LLC</p>
           </div>
           <Badge color="green">✓ Verified Record</Badge>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <div>
-            <p className="text-xs text-slate-400">Vehicle</p>
-            <p className="font-medium text-slate-900">
+            <p className="text-xs text-zinc-400">Vehicle</p>
+            <p className="font-medium text-zinc-900">
               {[certificate.year, certificate.make, certificate.model].filter(Boolean).join(" ") || "—"}
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Plate Number</p>
-            <p className="font-medium text-slate-900">
+            <p className="text-xs text-zinc-400">Plate Number</p>
+            <p className="font-medium text-zinc-900">
               {certificate.plate_number} ({certificate.emirate})
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Color</p>
-            <p className="font-medium text-slate-900">{certificate.color ?? "—"}</p>
+            <p className="text-xs text-zinc-400">Color</p>
+            <p className="font-medium text-zinc-900">{certificate.color ?? "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Body Type</p>
-            <p className="font-medium text-slate-900">{certificate.body_type ?? "—"}</p>
+            <p className="text-xs text-zinc-400">Body Type</p>
+            <p className="font-medium text-zinc-900">{certificate.body_type ?? "—"}</p>
           </div>
           <div className="col-span-2">
-            <p className="text-xs text-slate-400">Registered Owner on File</p>
-            <p className="font-medium text-slate-900">{certificate.owner_name}</p>
+            <p className="text-xs text-zinc-400">Registered Owner on File</p>
+            <p className="font-medium text-zinc-900">{certificate.owner_name}</p>
           </div>
         </div>
 
-        <h2 className="mt-6 mb-2 text-sm font-semibold text-slate-700">
+        <h2 className="mt-6 mb-2 text-sm font-semibold text-zinc-700">
           Verified Service History ({certificate.jobs.length} completed job{certificate.jobs.length === 1 ? "" : "s"})
         </h2>
-        <div className="border border-slate-300">
+        <div className="border border-zinc-300">
           {certificate.jobs.length === 0 ? (
-            <p className="px-3 py-6 text-center text-sm text-slate-400">No completed service records yet.</p>
+            <p className="px-3 py-6 text-center text-sm text-zinc-400">No completed service records yet.</p>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-zinc-100">
               {certificate.jobs.map((job, i) => (
                 <li key={i} className="flex items-start justify-between gap-3 px-3 py-2.5 text-sm">
                   <div>
-                    <p className="font-medium text-slate-900">{job.description}</p>
-                    {job.odometer && <p className="text-xs text-slate-500">Odometer: {job.odometer} KM</p>}
+                    <p className="font-medium text-zinc-900">{job.description}</p>
+                    {job.odometer && <p className="text-xs text-zinc-500">Odometer: {job.odometer} KM</p>}
                   </div>
-                  <p className="shrink-0 text-xs text-slate-500">
+                  <p className="shrink-0 text-xs text-zinc-500">
                     {new Date(job.completed_at ?? job.created_at).toLocaleDateString()}
                   </p>
                 </li>
@@ -103,7 +103,7 @@ export default async function VehicleCertificatePage({
           )}
         </div>
 
-        <p className="mt-4 text-[10px] text-slate-500">
+        <p className="mt-4 text-[10px] text-zinc-500">
           This certificate reflects service records held by Al Bahir Vehicles Repair LLC only and does not include
           work performed elsewhere. Generated from a secure, unguessable link tied to this specific vehicle.
         </p>

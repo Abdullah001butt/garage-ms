@@ -56,12 +56,12 @@ export default async function VehicleQrPage({
   });
 
   return (
-    <div className="mx-auto max-w-md p-6 md:p-8">
+    <div className="page page-narrow">
       <Link
         href={`/customers/${vehicle.customer_id}`}
-        className="text-sm text-indigo-600 hover:underline print:hidden"
+        className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900 print:hidden"
       >
-        &larr; Back to customer
+        ← Back to customer
       </Link>
       <PageHeader title="Vehicle QR Code" description="Scan to check service status instantly." />
 
@@ -70,10 +70,10 @@ export default async function VehicleQrPage({
         <div className="flex justify-center mb-2">
           <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} size="lg" />
         </div>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-zinc-500">
           {[vehicle.make, vehicle.model].filter(Boolean).join(" ")}
         </p>
-        <p className="text-sm text-slate-500 mt-1">{vehicle.customers.name}</p>
+        <p className="text-sm text-zinc-500 mt-1">{vehicle.customers.name}</p>
       </Card>
 
       <div className="mt-4 flex gap-2 print:hidden">
@@ -83,7 +83,7 @@ export default async function VehicleQrPage({
         </a>
       </div>
 
-      <p className="mt-4 text-xs text-slate-400 print:hidden break-all">{portalUrl}</p>
+      <p className="mt-4 text-xs text-zinc-400 print:hidden break-all">{portalUrl}</p>
     </div>
   );
 }

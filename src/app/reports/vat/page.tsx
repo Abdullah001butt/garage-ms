@@ -49,7 +49,7 @@ export default async function VatReportPage({
   const totalAmount = rows.reduce((s, r) => s + r.total, 0);
 
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="VAT Report"
         description="Tax collected per period, ready for filing."
@@ -63,26 +63,26 @@ export default async function VatReportPage({
       <Card className="p-4 mb-6">
         <form className="flex flex-wrap items-end gap-4">
           <label className="block">
-            <span className="block text-xs font-medium text-slate-700 mb-1">Start date</span>
+            <span className="block text-xs font-medium text-zinc-700 mb-1">Start date</span>
             <input
               type="date"
               name="start"
               defaultValue={startDate}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
             />
           </label>
           <label className="block">
-            <span className="block text-xs font-medium text-slate-700 mb-1">End date</span>
+            <span className="block text-xs font-medium text-zinc-700 mb-1">End date</span>
             <input
               type="date"
               name="end"
               defaultValue={endDate}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
             />
           </label>
           <button
             type="submit"
-            className="rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
           >
             Filter
           </button>
@@ -99,7 +99,7 @@ export default async function VatReportPage({
 
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+          <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
             <tr>
               <th className="px-4 py-2.5 font-medium">Date</th>
               <th className="px-4 py-2.5 font-medium">Customer</th>
@@ -108,13 +108,13 @@ export default async function VatReportPage({
               <th className="px-4 py-2.5 font-medium text-right">Total</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-zinc-100">
             {rows.map((r) => (
               <tr key={r.id}>
-                <td className="px-4 py-2.5 text-slate-500">
+                <td className="px-4 py-2.5 text-zinc-500">
                   {new Date(r.created_at).toLocaleDateString()}
                 </td>
-                <td className="px-4 py-2.5 font-medium text-slate-900">{r.customers?.name}</td>
+                <td className="px-4 py-2.5 font-medium text-zinc-900">{r.customers?.name}</td>
                 <td className="px-4 py-2.5 text-right">{r.subtotal.toFixed(2)}</td>
                 <td className="px-4 py-2.5 text-right">{r.vat.toFixed(2)}</td>
                 <td className="px-4 py-2.5 text-right font-medium">{r.total.toFixed(2)}</td>
@@ -122,7 +122,7 @@ export default async function VatReportPage({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-zinc-400">
                   No invoices in this period.
                 </td>
               </tr>

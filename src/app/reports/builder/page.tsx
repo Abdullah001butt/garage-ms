@@ -38,7 +38,7 @@ export default async function ReportBuilderPage({
   if (mechanic) exportParams.set("mechanic", mechanic);
 
   return (
-    <div className="mx-auto max-w-5xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="Report Builder"
         description="Build a custom report from your invoice data with any combination of filters."
@@ -97,14 +97,14 @@ export default async function ReportBuilderPage({
       </Card>
 
       <Card className="mb-4 p-4">
-        <p className="text-xs text-slate-500">Total (filtered)</p>
-        <p className="text-2xl font-bold text-slate-900">AED {total.toFixed(2)}</p>
-        <p className="text-xs text-slate-400 mt-0.5">{rows.length} line item(s)</p>
+        <p className="text-xs text-zinc-500">Total (filtered)</p>
+        <p className="text-2xl font-bold text-zinc-900">AED {total.toFixed(2)}</p>
+        <p className="text-xs text-zinc-400 mt-0.5">{rows.length} line item(s)</p>
       </Card>
 
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+          <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
             <tr>
               <th className="px-3 py-2.5 font-medium">Date</th>
               <th className="px-3 py-2.5 font-medium">Customer</th>
@@ -116,17 +116,17 @@ export default async function ReportBuilderPage({
               <th className="px-3 py-2.5 font-medium text-right">Total</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-zinc-100">
             {rows.map((r, i) => (
               <tr key={i}>
-                <td className="px-3 py-2 text-slate-500">{new Date(r.invoice_date).toLocaleDateString()}</td>
-                <td className="px-3 py-2 text-slate-900">{r.customer_name}</td>
-                <td className="px-3 py-2 text-slate-500">{r.vehicle}</td>
-                <td className="px-3 py-2 text-slate-500">{r.mechanic_name ?? "—"}</td>
-                <td className="px-3 py-2 text-slate-700">{r.description}</td>
-                <td className="px-3 py-2 capitalize text-slate-500">{r.item_type}</td>
-                <td className="px-3 py-2 text-right text-slate-500">{r.quantity}</td>
-                <td className="px-3 py-2 text-right font-medium text-slate-900">AED {r.line_total.toFixed(2)}</td>
+                <td className="px-3 py-2 text-zinc-500">{new Date(r.invoice_date).toLocaleDateString()}</td>
+                <td className="px-3 py-2 text-zinc-900">{r.customer_name}</td>
+                <td className="px-3 py-2 text-zinc-500">{r.vehicle}</td>
+                <td className="px-3 py-2 text-zinc-500">{r.mechanic_name ?? "—"}</td>
+                <td className="px-3 py-2 text-zinc-700">{r.description}</td>
+                <td className="px-3 py-2 capitalize text-zinc-500">{r.item_type}</td>
+                <td className="px-3 py-2 text-right text-zinc-500">{r.quantity}</td>
+                <td className="px-3 py-2 text-right font-medium text-zinc-900">AED {r.line_total.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

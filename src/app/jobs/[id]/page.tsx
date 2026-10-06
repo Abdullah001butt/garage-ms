@@ -82,9 +82,9 @@ export default async function JobDetailPage({
       : `Hi ${customerFirstName}, we've received your ${vehicleLabel} (${job.vehicles?.plate_number}) at Al Bahir Garage for: ${job.description}.`;
 
   return (
-    <div className="mx-auto max-w-2xl p-6 md:p-8">
-      <Link href="/jobs" className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to job cards
+    <div className="page page-narrow">
+      <Link href="/jobs" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to job cards
       </Link>
 
       {job.vehicles && (
@@ -98,44 +98,49 @@ export default async function JobDetailPage({
         action={<Badge color={STATUS_COLOR[job.status]}>{STATUS_LABEL[job.status]}</Badge>}
       />
 
-      <Card className="p-5 mb-6 space-y-2">
-        <p>
-          <span className="font-medium">Description:</span> {job.description}
-        </p>
-        {job.mechanic_name && (
-          <p>
-            <span className="font-medium">Mechanic:</span> {job.mechanic_name}
-          </p>
-        )}
-        {job.odometer && (
-          <p>
-            <span className="font-medium">Odometer:</span> {job.odometer}
-          </p>
-        )}
-        <p className="text-sm text-slate-500">
-          Created {new Date(job.created_at).toLocaleString()}
-        </p>
-        {job.completed_at && (
-          <p className="text-sm text-slate-500">
-            Completed {new Date(job.completed_at).toLocaleString()}
-          </p>
-        )}
+      <Card className="mb-6 overflow-hidden">
+        <div className="border-b border-zinc-200 px-5 py-4">
+          <p className="text-xs font-medium text-zinc-500">Work requested</p>
+          <p className="mt-1 text-sm text-zinc-900">{job.description}</p>
+        </div>
+        <dl className="grid grid-cols-2 divide-zinc-200 sm:grid-cols-4 sm:divide-x">
+          <div className="px-5 py-3">
+            <dt className="text-xs font-medium text-zinc-500">Mechanic</dt>
+            <dd className="mt-0.5 text-sm font-medium text-zinc-900">{job.mechanic_name ?? "Unassigned"}</dd>
+          </div>
+          <div className="px-5 py-3">
+            <dt className="text-xs font-medium text-zinc-500">Odometer</dt>
+            <dd className="mt-0.5 text-sm font-medium text-zinc-900 tabular">
+              {job.odometer ? `${Number(job.odometer).toLocaleString("en-US")} km` : "—"}
+            </dd>
+          </div>
+          <div className="px-5 py-3">
+            <dt className="text-xs font-medium text-zinc-500">Opened</dt>
+            <dd className="mt-0.5 text-sm text-zinc-900">{new Date(job.created_at).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}</dd>
+          </div>
+          <div className="px-5 py-3">
+            <dt className="text-xs font-medium text-zinc-500">Completed</dt>
+            <dd className="mt-0.5 text-sm text-zinc-900">
+              {job.completed_at ? new Date(job.completed_at).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : "—"}
+            </dd>
+          </div>
+        </dl>
       </Card>
 
       <Card className="p-4 mb-6">
         <details>
-          <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+          <summary className="cursor-pointer text-sm font-semibold text-zinc-700">
             Edit job card
           </summary>
           <form action={updateJobCard.bind(null, job.id)} className="space-y-4 mt-4">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-700">Description</span>
+              <span className="mb-1 block text-sm font-medium text-zinc-700">Description</span>
               <textarea
                 name="description"
                 required
                 rows={3}
                 defaultValue={job.description}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
               />
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -159,20 +164,20 @@ export default async function JobDetailPage({
 
       <Card className="p-4 mb-6">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-semibold text-slate-700">Sublet / Outsourced Work</p>
+          <p className="text-sm font-semibold text-zinc-700">Sublet / Outsourced Work</p>
           {subletTotal > 0 && (
-            <span className="text-sm font-medium text-slate-900">Total: AED {subletTotal.toFixed(2)}</span>
+            <span className="text-sm font-medium text-zinc-900">Total: AED {subletTotal.toFixed(2)}</span>
           )}
         </div>
-        <ul className="divide-y divide-slate-100 mb-3">
+        <ul className="divide-y divide-zinc-100 mb-3">
           {(sublets ?? []).map((sub) => (
             <li key={sub.id} className="flex items-center justify-between gap-2 py-2 text-sm">
               <div className="min-w-0">
-                <p className="font-medium text-slate-900 truncate">{sub.vendor_name}</p>
-                <p className="text-xs text-slate-500 truncate">{sub.description}</p>
+                <p className="font-medium text-zinc-900 truncate">{sub.vendor_name}</p>
+                <p className="text-xs text-zinc-500 truncate">{sub.description}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <span className="font-medium text-slate-900">AED {Number(sub.cost).toFixed(2)}</span>
+                <span className="font-medium text-zinc-900">AED {Number(sub.cost).toFixed(2)}</span>
                 <ConfirmSubmitButton
                   action={deleteJobSublet.bind(null, job.id, sub.id)}
                   confirmMessage="Remove this sublet cost?"
@@ -188,7 +193,7 @@ export default async function JobDetailPage({
           )}
         </ul>
         <details>
-          <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">
+          <summary className="cursor-pointer text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600">
             + Add sublet cost
           </summary>
           <form action={addJobSublet.bind(null, job.id)} className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">

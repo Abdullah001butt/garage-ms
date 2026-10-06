@@ -28,11 +28,11 @@ export function CarDiagramMarkerInput({ initialMarkers = [] }: { initialMarkers?
   return (
     <div>
       <input type="hidden" name="diagram_markers" value={JSON.stringify(markers)} />
-      <p className="mb-2 text-xs text-slate-500">Click on the diagram to mark a scratch, dent, or damage spot.</p>
+      <p className="mb-2 text-xs text-zinc-500">Click on the diagram to mark a scratch, dent, or damage spot.</p>
       <div
         ref={containerRef}
         onClick={handleClick}
-        className="relative mx-auto w-full max-w-xs cursor-crosshair select-none rounded-md border border-slate-300 bg-white p-2"
+        className="relative mx-auto w-full max-w-xs cursor-crosshair select-none rounded-md border border-zinc-300 bg-white p-2"
       >
         <CarTopViewDiagram />
         {markers.map((m, i) => (

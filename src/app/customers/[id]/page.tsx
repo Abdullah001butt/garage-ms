@@ -1,3 +1,4 @@
+import { Icon } from "@/components/icons";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -96,7 +97,7 @@ export default async function CustomerDetailPage({
   const addBalanceAdjustmentWithId = addBalanceAdjustment.bind(null, id);
 
   const detailLine = [
-    customer.customer_type === "company" ? "🏢 Company" : "👤 Individual",
+    customer.customer_type === "company" ? "Company" : "Individual",
     customer.phone,
     customer.landline,
     customer.email,
@@ -107,9 +108,9 @@ export default async function CustomerDetailPage({
     .join(" · ");
 
   return (
-    <div className="mx-auto max-w-3xl p-6 md:p-8">
-      <Link href="/customers" className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to customers
+    <div className="page page-narrow">
+      <Link href="/customers" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to customers
       </Link>
 
       <PageHeader
@@ -130,7 +131,7 @@ export default async function CustomerDetailPage({
       />
 
       {(customer.trn_number || customer.representative || customer.reference_name) && (
-        <p className="text-xs text-slate-500 mb-6 -mt-4">
+        <p className="text-xs text-zinc-500 mb-6 -mt-4">
           {[
             customer.trn_number && `TRN: ${customer.trn_number}`,
             customer.representative && `Representative: ${customer.representative}`,
@@ -155,23 +156,23 @@ export default async function CustomerDetailPage({
       <Card className="relative mb-6 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div>
-            <p className="text-xs text-slate-500">Account Balance</p>
+            <p className="text-xs text-zinc-500">Account Balance</p>
             <p className={`text-2xl font-bold ${accountBalance > 0 ? "text-red-600" : "text-emerald-600"}`}>
               AED {accountBalance.toFixed(2)}
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-zinc-400 mt-0.5">
               Unpaid invoices: AED {invoiceBalance.toFixed(2)}
               {adjustmentBalance !== 0 &&
                 ` · Manual adjustments: ${adjustmentBalance > 0 ? "+" : ""}AED ${adjustmentBalance.toFixed(2)}`}
             </p>
           </div>
           <details>
-            <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">
+            <summary className="cursor-pointer text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600">
               + Add balance adjustment
             </summary>
             <form
               action={addBalanceAdjustmentWithId}
-              className="absolute right-4 z-10 mt-2 w-72 space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-md"
+              className="absolute right-4 z-10 mt-2 w-72 space-y-2 rounded-lg border border-zinc-200 bg-white p-3 shadow-md"
             >
               <Field
                 label="Amount (AED, use negative for credit/payment)"
@@ -188,10 +189,10 @@ export default async function CustomerDetailPage({
           </details>
         </div>
         {adjustments && adjustments.length > 0 && (
-          <ul className="divide-y divide-slate-100 border-t border-slate-100 pt-2">
+          <ul className="divide-y divide-zinc-100 border-t border-zinc-100 pt-2">
             {adjustments.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-2 py-1.5 text-xs">
-                <span className="text-slate-500">
+                <span className="text-zinc-500">
                   {new Date(a.created_at).toLocaleDateString()} · {a.note}
                 </span>
                 <div className="flex items-center gap-2 shrink-0">
@@ -214,7 +215,7 @@ export default async function CustomerDetailPage({
 
       <Card className="mb-6 p-4">
         <details>
-          <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+          <summary className="cursor-pointer text-sm font-semibold text-zinc-700">
             Edit customer details
           </summary>
           <form action={updateCustomerWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
@@ -236,9 +237,9 @@ export default async function CustomerDetailPage({
         </details>
       </Card>
 
-      <h2 className="text-sm font-semibold text-slate-700 mb-3">Vehicles</h2>
+      <h2 className="text-sm font-semibold text-zinc-700 mb-3">Vehicles</h2>
       <Card className="mb-6 overflow-hidden">
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-zinc-100">
           {vehicles?.map((vehicle) => {
             const warranties = warrantyMap.get(vehicle.id) ?? [];
             return (
@@ -247,12 +248,12 @@ export default async function CustomerDetailPage({
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} />
                     {(vehicle.make || vehicle.model) && (
-                      <span className="font-medium text-slate-900">
+                      <span className="font-medium text-zinc-900">
                         {[vehicle.make, vehicle.model].filter(Boolean).join(" ")}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-zinc-500">
                     {[vehicle.year, vehicle.color, vehicle.body_type].filter(Boolean).join(" · ") || "—"}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1">
@@ -260,21 +261,22 @@ export default async function CustomerDetailPage({
                     {registrationBadge(vehicle.registration_expiry_date)}
                   </div>
                   {warranties.length > 0 && (
-                    <p className="text-xs text-emerald-600 mt-1">
-                      🛡 {warranties.map((w) => w.description).join(", ")} — until{" "}
+                    <p className="mt-1 flex items-center gap-1 text-xs text-emerald-700">
+                      <Icon name="shield" className="h-3.5 w-3.5" />
+                      {warranties.map((w) => w.description).join(", ")} — until{" "}
                       {warranties[0].until.toLocaleDateString()}
                     </p>
                   )}
                   <div className="flex flex-wrap items-center gap-3 mt-1">
                     <Link
                       href={`/vehicles/${vehicle.id}/qr`}
-                      className="text-xs text-indigo-600 hover:underline"
+                      className="text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
                     >
                       View QR Code &rarr;
                     </Link>
                     <Link
                       href={`/vehicles/${vehicle.id}/passport`}
-                      className="text-xs text-indigo-600 hover:underline"
+                      className="text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
                     >
                       Vehicle Passport &rarr;
                     </Link>
@@ -282,21 +284,21 @@ export default async function CustomerDetailPage({
                       action={updateVehicleServiceInterval.bind(null, id, vehicle.id)}
                       className="flex items-center gap-1"
                     >
-                      <span className="text-xs text-slate-400">Service every</span>
+                      <span className="text-xs text-zinc-400">Service every</span>
                       <input
                         type="number"
                         name="service_interval_days"
                         defaultValue={vehicle.service_interval_days ?? ""}
                         placeholder="90"
-                        className="w-14 rounded border border-slate-300 px-1 py-0.5 text-xs"
+                        className="w-14 rounded border border-zinc-300 px-1 py-0.5 text-xs"
                       />
-                      <span className="text-xs text-slate-400">days</span>
-                      <button type="submit" className="text-xs text-indigo-600 hover:underline">
+                      <span className="text-xs text-zinc-400">days</span>
+                      <button type="submit" className="text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600">
                         Save
                       </button>
                     </form>
                     <details className="inline-block">
-                      <summary className="cursor-pointer text-xs text-slate-500 hover:underline">
+                      <summary className="cursor-pointer text-xs text-zinc-500 hover:underline">
                         Edit vehicle
                       </summary>
                       <form
@@ -306,7 +308,7 @@ export default async function CustomerDetailPage({
                         <VehicleFields vehicle={vehicle} makeListId="vehicle-makes" modelListId="vehicle-models" required />
                         <button
                           type="submit"
-                          className="col-span-2 rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
+                          className="col-span-2 rounded-md border border-zinc-300 bg-white text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50 px-2 py-1 text-xs font-medium"
                         >
                           Save Vehicle
                         </button>
@@ -330,7 +332,7 @@ export default async function CustomerDetailPage({
 
       <Card className="p-4">
         <details>
-          <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+          <summary className="cursor-pointer text-sm font-semibold text-zinc-700">
             + Add a vehicle
           </summary>
           <form action={addVehicleWithId} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
@@ -338,7 +340,7 @@ export default async function CustomerDetailPage({
             <div className="col-span-2">
               <button
                 type="submit"
-                className="rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500"
+                className="rounded-md bg-brand-600 px-3.5 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700"
               >
                 Add Vehicle
               </button>

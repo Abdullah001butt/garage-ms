@@ -22,12 +22,12 @@ export function PlateBadge({
 
   return (
     <span
-      className={`inline-flex w-fit items-center overflow-hidden whitespace-nowrap rounded-md border-[3px] border-slate-900 bg-white ${
+      className={`inline-flex w-fit items-center overflow-hidden whitespace-nowrap rounded-md border-[3px] border-zinc-900 bg-white ${
         isLg ? "h-16 gap-3 px-3" : "h-7 gap-1.5 px-1.5"
       } ${className}`}
     >
       {code && (
-        <span className={`shrink-0 font-sans font-black leading-none text-slate-900 ${isLg ? "text-4xl" : "text-sm"}`}>
+        <span className={`shrink-0 font-sans font-black leading-none text-zinc-900 ${isLg ? "text-4xl" : "text-sm"}`}>
           {code}
         </span>
       )}
@@ -36,7 +36,7 @@ export function PlateBadge({
           <EmirateLogo emirate={emirate} size={isLg ? "md" : "xs"} />
         </span>
       )}
-      <span className={`shrink-0 font-sans font-black leading-none text-slate-900 ${isLg ? "text-4xl" : "text-base"}`}>
+      <span className={`shrink-0 font-sans font-black leading-none text-zinc-900 ${isLg ? "text-4xl" : "text-base"}`}>
         {number}
       </span>
     </span>

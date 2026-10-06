@@ -11,9 +11,9 @@ export default async function NewEstimatePage() {
     .order("name");
 
   return (
-    <div className="mx-auto max-w-2xl p-6 md:p-8">
-      <Link href="/estimates" className="text-sm text-indigo-600 hover:underline">
-        &larr; Back to estimates
+    <div className="page page-narrow">
+      <Link href="/estimates" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+        ← Back to estimates
       </Link>
       <PageHeader title="New Estimate" description="Pick a customer, then add line items on the next screen." />
 

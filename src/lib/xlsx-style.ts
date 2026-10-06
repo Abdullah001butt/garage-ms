@@ -1,12 +1,12 @@
 import ExcelJS from "exceljs";
 
 export const XLSX_COLORS = {
-  headerFill: "FF4F46E5", // indigo-600
+  headerFill: "FF4F46E5", // brand-600
   headerText: "FFFFFFFF",
-  stripeFill: "FFF8FAFC", // slate-50
-  border: "FFE2E8F0", // slate-200
-  totalFill: "FFEEF2FF", // indigo-50
-  totalText: "FF1E1B4B", // indigo-950
+  stripeFill: "FFF8FAFC", // zinc-50
+  border: "FFE2E8F0", // zinc-200
+  totalFill: "FFEEF2FF", // brand-50
+  totalText: "FF1E1B4B", // brand-950
 };
 
 export function applyHeaderRow(row: ExcelJS.Row) {

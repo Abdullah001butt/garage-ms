@@ -9,7 +9,7 @@ export default async function ServiceRemindersPage() {
   const dueSoon = vehicles.filter((v) => v.status === "due_soon");
 
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="Service Reminders"
         description="Vehicles overdue or coming up for their next service, based on time since last visit."
@@ -18,14 +18,14 @@ export default async function ServiceRemindersPage() {
       <div className="mb-6">
         <h2 className="text-sm font-semibold text-red-700 mb-2">Overdue {overdue.length > 0 && `(${overdue.length})`}</h2>
         <Card className="overflow-hidden">
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-zinc-100">
             {overdue.map((v) => (
               <li key={v.vehicleId} className="px-4 py-3 flex items-center justify-between gap-3">
                 <Link href={`/customers`} className="min-w-0">
-                  <p className="font-medium text-slate-900 truncate">
+                  <p className="font-medium text-zinc-900 truncate">
                     {v.plateNumber} — {[v.make, v.model].filter(Boolean).join(" ")}
                   </p>
-                  <p className="text-xs text-slate-500 truncate">
+                  <p className="text-xs text-zinc-500 truncate">
                     {v.customerName} · Last serviced {v.lastServiceAt.toLocaleDateString()}
                   </p>
                 </Link>
@@ -36,6 +36,7 @@ export default async function ServiceRemindersPage() {
                   <WhatsAppButton
                     phone={v.customerPhone}
                     label="Remind"
+                      size="sm"
                     message={`Hi ${v.customerName.split(" ")[0]}, your ${[v.make, v.model].filter(Boolean).join(" ") || "vehicle"} (${v.plateNumber}) is due for service at Al Bahir Garage. Would you like to book a time?`}
                   />
                 </div>
@@ -51,14 +52,14 @@ export default async function ServiceRemindersPage() {
           Due Soon (next 14 days) {dueSoon.length > 0 && `(${dueSoon.length})`}
         </h2>
         <Card className="overflow-hidden">
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-zinc-100">
             {dueSoon.map((v) => (
               <li key={v.vehicleId} className="px-4 py-3 flex items-center justify-between gap-3">
                 <Link href={`/customers`} className="min-w-0">
-                  <p className="font-medium text-slate-900 truncate">
+                  <p className="font-medium text-zinc-900 truncate">
                     {v.plateNumber} — {[v.make, v.model].filter(Boolean).join(" ")}
                   </p>
-                  <p className="text-xs text-slate-500 truncate">
+                  <p className="text-xs text-zinc-500 truncate">
                     {v.customerName} · Due {v.dueAt.toLocaleDateString()}
                   </p>
                 </Link>
@@ -67,6 +68,7 @@ export default async function ServiceRemindersPage() {
                   <WhatsAppButton
                     phone={v.customerPhone}
                     label="Remind"
+                      size="sm"
                     message={`Hi ${v.customerName.split(" ")[0]}, your ${[v.make, v.model].filter(Boolean).join(" ") || "vehicle"} (${v.plateNumber}) will be due for service soon. Would you like to book a time at Al Bahir Garage?`}
                   />
                 </div>

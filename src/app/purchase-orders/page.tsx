@@ -28,7 +28,7 @@ export default async function PurchaseOrdersPage() {
     .returns<PORow[]>();
 
   return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8">
+    <div className="page">
       <PageHeader
         title="Purchase Orders"
         description="Reorders for low-stock parts. Create these from the Parts Stock page."
@@ -40,7 +40,7 @@ export default async function PurchaseOrdersPage() {
 
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+          <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
             <tr>
               <th className="px-4 py-2.5 font-medium">Part</th>
               <th className="px-4 py-2.5 font-medium text-right">Qty</th>
@@ -49,20 +49,20 @@ export default async function PurchaseOrdersPage() {
               <th className="px-4 py-2.5 font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-zinc-100">
             {orders?.map((po) => (
               <tr key={po.id}>
-                <td className="px-4 py-2.5 font-medium text-slate-900">
+                <td className="px-4 py-2.5 font-medium text-zinc-900">
                   {po.parts?.name}
                   {po.parts?.sku && (
-                    <span className="text-slate-400 font-normal"> · {po.parts.sku}</span>
+                    <span className="text-zinc-400 font-normal"> · {po.parts.sku}</span>
                   )}
                 </td>
                 <td className="px-4 py-2.5 text-right">{po.quantity}</td>
                 <td className="px-4 py-2.5">
                   <Badge color={STATUS_COLOR[po.status]}>{po.status}</Badge>
                 </td>
-                <td className="px-4 py-2.5 text-slate-500">
+                <td className="px-4 py-2.5 text-zinc-500">
                   {new Date(po.created_at).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-2.5">

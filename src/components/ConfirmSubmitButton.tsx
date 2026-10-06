@@ -8,7 +8,7 @@ export function ConfirmSubmitButton({
   confirmMessage,
   successMessage = "Deleted successfully.",
   redirectTo,
-  className = "text-xs text-red-500 hover:underline disabled:opacity-50",
+  className = "text-xs font-medium text-zinc-500 hover:text-red-600 disabled:opacity-50",
   children,
 }: {
   action: () => Promise<void>;
