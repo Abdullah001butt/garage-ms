@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -36,7 +37,8 @@ export function MobileNav({ role }: { role: Role | null }) {
         <Icon name="menu" className="h-5 w-5" />
       </button>
 
-      {open && (
+      {open &&
+        createPortal(
         <div className="md:hidden fixed inset-0 z-50 print:hidden">
           <div className="absolute inset-0 bg-zinc-950/30" onClick={() => setOpen(false)} aria-hidden="true" />
           <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-2xl">
@@ -54,7 +56,9 @@ export function MobileNav({ role }: { role: Role | null }) {
             <NavLinks groups={groups} onNavigate={() => setOpen(false)} />
           </div>
         </div>
-      )}
+      ,
+          document.body
+        )}
     </>
   );
 }

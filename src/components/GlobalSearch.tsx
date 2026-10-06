@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -127,7 +128,8 @@ export function GlobalSearch() {
         </kbd>
       </button>
 
-      {open && (
+      {open &&
+        createPortal(
         <div className="fixed inset-0 z-[60] print:hidden">
           <div className="absolute inset-0 bg-zinc-950/30" onClick={() => setOpen(false)} />
           <div className="absolute inset-x-0 top-0 sm:top-20 mx-auto w-full sm:max-w-lg px-4">
@@ -196,7 +198,9 @@ export function GlobalSearch() {
             </div>
           </div>
         </div>
-      )}
+      ,
+          document.body
+        )}
     </>
   );
 }
