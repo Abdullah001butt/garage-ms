@@ -1,3 +1,4 @@
+import { formatDate, formatTime, formatWeekdayDate, uaeDayRange } from "@/lib/format";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, Panel, PanelEmpty, PrimaryButton, SecondaryButton } from "@/components/ui";
@@ -102,10 +103,7 @@ const viewAll = (href: string, label = "View all") => (
 
 export default async function TodayPage() {
   const supabase = await createClient();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
+  const { start: todayStart, end: todayEnd } = uaeDayRange();
 
   const [{ data: jobs }, { data: appointments }, { data: invoices }, { data: parts }, { data: completedJobs }] = await Promise.all([
     supabase
@@ -118,8 +116,8 @@ export default async function TodayPage() {
       .from("appointments")
       .select("id, scheduled_at, notes, customers(name), vehicles(plate_number, emirate)")
       .eq("status", "scheduled")
-      .gte("scheduled_at", todayStart.toISOString())
-      .lte("scheduled_at", todayEnd.toISOString())
+      .gte("scheduled_at", todayStart)
+      .lte("scheduled_at", todayEnd)
       .order("scheduled_at", { ascending: true })
       .returns<AppointmentRow[]>(),
     supabase
@@ -184,12 +182,7 @@ export default async function TodayPage() {
     })),
   ];
 
-  const dateLabel = new Date().toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const dateLabel = formatWeekdayDate(new Date());
 
   return (
     <div className="page">
@@ -226,7 +219,7 @@ export default async function TodayPage() {
         <KpiTile
           label="Appointments today"
           value={String(appointments?.length ?? 0)}
-          hint={appointments?.[0] ? `Next at ${new Date(appointments[0].scheduled_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Nothing booked"}
+          hint={appointments?.[0] ? `Next at ${formatTime(appointments[0].scheduled_at)}` : "Nothing booked"}
           icon="calendar"
           href="/appointments"
         />
@@ -314,7 +307,7 @@ export default async function TodayPage() {
               {appointments.map((apt) => (
                 <li key={apt.id} className="flex items-center gap-3 px-4 py-3">
                   <span className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm font-semibold text-zinc-900 tabular">
-                    {new Date(apt.scheduled_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                    {formatTime(apt.scheduled_at)}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-zinc-900">{apt.customers?.name}</p>
@@ -384,10 +377,10 @@ export default async function TodayPage() {
                     <p className="truncate text-sm font-medium text-zinc-900">
                       {v.plateNumber} <span className="font-normal text-zinc-500">· {v.customerName}</span>
                     </p>
-                    <p className="text-xs text-zinc-500">Last service {v.lastServiceAt.toLocaleDateString("en-GB")}</p>
+                    <p className="text-xs text-zinc-500">Last service {formatDate(v.lastServiceAt)}</p>
                   </div>
                   <Badge color={v.status === "overdue" ? "red" : "amber"}>
-                    {v.status === "overdue" ? "Overdue" : `Due ${v.dueAt.toLocaleDateString("en-GB")}`}
+                    {v.status === "overdue" ? "Overdue" : `Due ${formatDate(v.dueAt)}`}
                   </Badge>
                 </li>
               ))}

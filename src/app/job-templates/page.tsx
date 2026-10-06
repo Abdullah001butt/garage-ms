@@ -2,8 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { JobTemplate, JobTemplateItem } from "@/lib/types";
 import { createJobTemplate, updateJobTemplate, deleteJobTemplate } from "@/app/job-templates/actions";
 import { Card, PageHeader, EmptyState, PrimaryButton, Field, inputClass } from "@/components/ui";
+import { RowMenu, RowMenuDelete, RowMenuOpenPanel, RowMenuSeparator } from "@/components/RowMenu";
 import { SlideOver } from "@/components/SlideOver";
-import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 export default async function JobTemplatesPage() {
   const supabase = await createClient();
@@ -103,12 +103,8 @@ export default async function JobTemplatesPage() {
                     )}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    <details>
-                      <summary className="cursor-pointer text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600">Edit</summary>
-                      <form
-                        action={updateJobTemplate.bind(null, t.id)}
-                        className="absolute z-10 mt-2 w-80 space-y-3 rounded-lg border border-zinc-200 bg-white p-4 shadow-md"
-                      >
+                    <SlideOver id={`edit-template-${t.id}`} hideTrigger title="Edit job template" description="Change the name, description or line items." triggerLabel="Edit">
+                      <form action={updateJobTemplate.bind(null, t.id)} className="space-y-4">
                         <Field label="Template Name" name="name" defaultValue={t.name} required />
                         <Field label="Job Description" name="description" defaultValue={t.description} required />
                         <div>
@@ -159,21 +155,14 @@ export default async function JobTemplatesPage() {
                             })}
                           </div>
                         </div>
-                        <button
-                          type="submit"
-                          className="w-full rounded-md border border-zinc-300 bg-white text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50 px-3 py-1.5 text-xs font-medium"
-                        >
-                          Save Template
-                        </button>
+                        <PrimaryButton type="submit" className="w-full">Save changes</PrimaryButton>
                       </form>
-                    </details>
-                    <ConfirmSubmitButton
-                      action={deleteJobTemplate.bind(null, t.id)}
-                      confirmMessage={`Delete template "${t.name}"? This cannot be undone.`}
-                      successMessage="Template deleted."
-                    >
-                      Remove
-                    </ConfirmSubmitButton>
+                    </SlideOver>
+                    <RowMenu>
+                      <RowMenuOpenPanel panelId={`edit-template-${t.id}`} icon="pencil">Edit template</RowMenuOpenPanel>
+                      <RowMenuSeparator />
+                      <RowMenuDelete action={deleteJobTemplate.bind(null, t.id)} confirmMessage={`Delete template "${t.name}"? This cannot be undone.`} successMessage="Template deleted." label="Delete" />
+                    </RowMenu>
                   </div>
                 </div>
               </li>

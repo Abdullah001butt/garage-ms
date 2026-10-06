@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -90,7 +91,7 @@ export default async function CustomerFleetPage({ params }: { params: Promise<{ 
                   </div>
                   <p className="text-xs text-zinc-500">
                     {stat.jobCount} job(s)
-                    {stat.lastJobDate && ` · Last visit ${new Date(stat.lastJobDate).toLocaleDateString()}`}
+                    {stat.lastJobDate && ` · Last visit ${formatDate(stat.lastJobDate)}`}
                   </p>
                 </Link>
                 <p className="shrink-0 text-sm font-semibold text-zinc-900">AED {stat.totalSpent.toFixed(2)}</p>

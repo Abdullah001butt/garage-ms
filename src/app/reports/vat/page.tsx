@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, StatCard, SecondaryButton } from "@/components/ui";
 
@@ -112,7 +113,7 @@ export default async function VatReportPage({
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2.5 text-zinc-500">
-                  {new Date(r.created_at).toLocaleDateString()}
+                  {formatDate(r.created_at)}
                 </td>
                 <td className="px-4 py-2.5 font-medium text-zinc-900">{r.customers?.name}</td>
                 <td className="px-4 py-2.5 text-right">{r.subtotal.toFixed(2)}</td>

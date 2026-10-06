@@ -1,5 +1,6 @@
 "use server";
 
+import { uaeInputToISO } from "@/lib/format";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { AppointmentStatus } from "@/lib/types";
@@ -17,7 +18,7 @@ export async function createAppointment(formData: FormData) {
     throw new Error("Customer, date, and time are required.");
   }
 
-  const scheduled_at = new Date(`${date}T${time}`).toISOString();
+  const scheduled_at = uaeInputToISO(date, time);
 
   const { error } = await supabase.from("appointments").insert({
     customer_id,
@@ -44,7 +45,7 @@ export async function rescheduleAppointment(appointmentId: string, formData: For
     throw new Error("Date and time are required.");
   }
 
-  const scheduled_at = new Date(`${date}T${time}`).toISOString();
+  const scheduled_at = uaeInputToISO(date, time);
 
   const { error } = await supabase
     .from("appointments")

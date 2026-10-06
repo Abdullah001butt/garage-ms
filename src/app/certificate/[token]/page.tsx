@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -95,7 +96,7 @@ export default async function VehicleCertificatePage({
                     {job.odometer && <p className="text-xs text-zinc-500">Odometer: {job.odometer} KM</p>}
                   </div>
                   <p className="shrink-0 text-xs text-zinc-500">
-                    {new Date(job.completed_at ?? job.created_at).toLocaleDateString()}
+                    {formatDate(job.completed_at ?? job.created_at)}
                   </p>
                 </li>
               ))}

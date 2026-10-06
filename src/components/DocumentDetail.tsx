@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -133,7 +134,7 @@ export async function DocumentDetail({
           <p className="mt-1 text-sm text-zinc-500">
             {doc.customers?.name}
             {doc.job_cards?.vehicles?.plate_number ? ` · ${doc.job_cards.vehicles.plate_number}` : ""} ·{" "}
-            {new Date(doc.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+            {formatDate(doc.created_at)}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -209,7 +210,7 @@ export async function DocumentDetail({
                       <p className="font-medium text-zinc-900 tabular">AED {Number(p.amount).toFixed(2)}</p>
                       <p className="truncate text-xs text-zinc-500">
                         <span className="capitalize">{p.method.replace("_", " ")}</span> ·{" "}
-                        {new Date(p.paid_at).toLocaleDateString("en-GB")}
+                        {formatDate(p.paid_at)}
                         {p.notes ? ` · ${p.notes}` : ""}
                       </p>
                     </div>

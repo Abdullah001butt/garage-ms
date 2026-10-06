@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { VehicleEvaluation } from "@/lib/types";
@@ -38,7 +39,7 @@ export default async function EvaluationsPage() {
                   </p>
                 </div>
                 <p className="text-xs text-zinc-400 shrink-0">
-                  {new Date(ev.evaluation_date).toLocaleDateString()}
+                  {formatDate(ev.evaluation_date)}
                 </p>
               </Link>
             </li>

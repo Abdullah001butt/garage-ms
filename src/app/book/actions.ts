@@ -1,5 +1,6 @@
 "use server";
 
+import { uaeInputToISO } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 export async function bookAppointment(formData: FormData) {
@@ -18,7 +19,7 @@ export async function bookAppointment(formData: FormData) {
     return { error: "Name, phone, date, and time are required." };
   }
 
-  const scheduled_at = new Date(`${date}T${time}`).toISOString();
+  const scheduled_at = uaeInputToISO(date, time);
 
   const { error } = await supabase.rpc("public_book_appointment", {
     p_name: name,

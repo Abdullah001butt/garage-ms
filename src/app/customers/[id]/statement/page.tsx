@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -133,7 +134,7 @@ export default async function CustomerStatementPage({
             {customer.phone && <p>{customer.phone}</p>}
             {customer.address && <p>{customer.address}</p>}
             <p className="mt-2">
-              Period: {new Date(fromDate).toLocaleDateString()} – {new Date(toDate).toLocaleDateString()}
+              Period: {formatDate(fromDate)} – {formatDate(toDate)}
             </p>
           </div>
         </div>
@@ -153,7 +154,7 @@ export default async function CustomerStatementPage({
               running += r.amount - r.paid;
               return (
                 <tr key={i} className="border-b border-zinc-100">
-                  <td className="px-2 py-1.5 text-zinc-600">{new Date(r.date).toLocaleDateString()}</td>
+                  <td className="px-2 py-1.5 text-zinc-600">{formatDate(r.date)}</td>
                   <td className="px-2 py-1.5 text-zinc-900">{r.label}</td>
                   <td className="px-2 py-1.5 text-right text-zinc-900">AED {r.amount.toFixed(2)}</td>
                   <td className="px-2 py-1.5 text-right text-emerald-600">

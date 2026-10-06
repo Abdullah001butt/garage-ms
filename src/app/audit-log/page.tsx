@@ -1,37 +1,8 @@
+import { ACTION_LABEL } from "@/lib/audit-labels";
+import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { AuditLog } from "@/lib/types";
 import { Card, PageHeader, Badge, EmptyState } from "@/components/ui";
-
-const ACTION_LABEL: Record<string, string> = {
-  "job.status_change": "Changed job status",
-  "invoice.create": "Created invoice",
-  "estimate.create": "Created estimate",
-  "estimate.convert_to_invoice": "Converted estimate to invoice",
-  "invoice_item.add": "Added invoice item",
-  "invoice_item.delete": "Removed invoice item",
-  "invoice.discount_update": "Updated discount",
-  "payment.record": "Recorded payment",
-  "payment.delete": "Removed payment",
-  "expense.create": "Recorded expense",
-  "expense.update": "Updated expense",
-  "customer.balance_adjustment": "Added balance adjustment",
-  "customer.balance_adjustment_delete": "Removed balance adjustment",
-  "job.sublet_add": "Added sublet/outsourced cost",
-  "job.sublet_delete": "Removed sublet/outsourced cost",
-  "vehicle.transfer_ownership": "Transferred vehicle ownership",
-  "vehicle.incident_add": "Added vehicle incident",
-  "vehicle.incident_delete": "Removed vehicle incident",
-  "vehicle.document_upload": "Uploaded vehicle document",
-  "vehicle.document_delete": "Removed vehicle document",
-  "cash.reconciliation_save": "Saved cash reconciliation",
-  "expense.delete": "Removed expense",
-  "staff.create": "Added staff member",
-  "staff.update": "Updated staff member",
-  "staff.delete": "Removed staff member",
-  "purchase_order.create": "Created purchase order",
-  "purchase_order.status_change": "Updated purchase order",
-  "part.stock_adjust": "Adjusted stock",
-};
 
 const ACTION_COLOR: Record<string, "green" | "amber" | "red" | "blue" | "slate"> = {
   create: "green",
@@ -167,7 +138,7 @@ export default async function AuditLogPage({
             {logs?.map((log) => (
               <tr key={log.id}>
                 <td className="px-4 py-2.5 text-zinc-500 whitespace-nowrap">
-                  {new Date(log.created_at).toLocaleString()}
+                  {formatDateTime(log.created_at)}
                 </td>
                 <td className="px-4 py-2.5 font-medium text-zinc-900 whitespace-nowrap">{log.actor_name}</td>
                 <td className="px-4 py-2.5">

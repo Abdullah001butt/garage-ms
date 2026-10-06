@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, SegmentedLinks, theadClass, thClass } from "@/components/ui";
@@ -140,7 +141,7 @@ export default async function JobsPage({
                       </div>
                     </td>
                     <td className="hidden px-4 py-3 text-right text-zinc-500 tabular sm:table-cell">
-                      {new Date(job.created_at).toLocaleDateString("en-GB")}
+                      {formatDate(job.created_at)}
                     </td>
                   </tr>
                 ))}

@@ -1,3 +1,4 @@
+import { formatDateTime, formatMonth } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Panel, PanelEmpty, SecondaryButton, theadClass, thClass } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icons";
@@ -177,7 +178,7 @@ export default async function DashboardPage() {
   });
 
   const mixTotal = laborTotal + partsTotal + serviceTotal;
-  const monthLabel = new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const monthLabel = formatMonth(new Date());
   const totalJobs = jobCounts.pending + jobCounts.in_progress + jobCounts.completed;
 
   return (
@@ -295,7 +296,7 @@ export default async function DashboardPage() {
             </span>
             <div className="min-w-0">
               <p className="text-sm leading-relaxed text-zinc-700">{latestInsight.content}</p>
-              <p className="mt-2 text-xs text-zinc-400">Generated {new Date(latestInsight.created_at).toLocaleString("en-GB")}</p>
+              <p className="mt-2 text-xs text-zinc-400">Generated {formatDateTime(latestInsight.created_at)}</p>
             </div>
           </div>
         ) : (

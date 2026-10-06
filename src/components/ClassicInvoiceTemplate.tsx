@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDate } from "@/lib/format";
 import { useState } from "react";
 import type { InvoiceItem, ShopSettings } from "@/lib/types";
 
@@ -55,8 +56,8 @@ export function ClassicInvoiceTemplate({
 
   const date = new Date(createdAt);
   const reference = invoiceNumber || formatReference(createdAt);
-  const dateStr = date.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
-  const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  const dateStr = date.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric", timeZone: "Asia/Dubai" });
+  const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Dubai" });
 
   const subtotal = items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
   const vatAmount = showVat ? subtotal * (vatRate / 100) : 0;
@@ -143,7 +144,7 @@ export function ClassicInvoiceTemplate({
                     {warrantyUntil && (
                       <p className={`text-[10px] ${warrantyActive ? "text-emerald-600" : "text-zinc-400"}`}>
                         {item.warranty_days}-day warranty{" "}
-                        {warrantyActive ? "until" : "expired"} {warrantyUntil.toLocaleDateString()}
+                        {warrantyActive ? "until" : "expired"} {formatDate(warrantyUntil)}
                       </p>
                     )}
                   </td>

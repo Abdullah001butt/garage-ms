@@ -1,3 +1,4 @@
+import { formatWeekdayDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { ShopSettings, CompanyVehicle, ShopHoliday } from "@/lib/types";
 import {
@@ -153,7 +154,7 @@ export default async function SettingsPage() {
           {holidays?.map((h) => (
             <li key={h.id} className="flex items-center justify-between gap-2 py-2 text-sm">
               <span className="text-zinc-700">
-                {new Date(h.holiday_date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })} — {h.label}
+                {formatWeekdayDate(h.holiday_date)} — {h.label}
               </span>
               <ConfirmSubmitButton
                 action={deleteShopHoliday.bind(null, h.id)}

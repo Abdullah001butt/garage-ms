@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { PurchaseOrderStatus } from "@/lib/types";
 import { updatePurchaseOrderStatus } from "@/app/purchase-orders/actions";
@@ -63,7 +64,7 @@ export default async function PurchaseOrdersPage() {
                   <Badge color={STATUS_COLOR[po.status]}>{po.status}</Badge>
                 </td>
                 <td className="px-4 py-2.5 text-zinc-500">
-                  {new Date(po.created_at).toLocaleDateString()}
+                  {formatDate(po.created_at)}
                 </td>
                 <td className="px-4 py-2.5">
                   <div className="flex gap-2">

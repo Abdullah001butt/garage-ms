@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import { Icon } from "@/components/icons";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -150,7 +151,7 @@ export default async function VehiclePassportPage({
           </div>
           <div>
             <p className="text-xs text-zinc-400">On File Since</p>
-            <p className="font-medium text-zinc-900">{new Date(vehicle.created_at).toLocaleDateString()}</p>
+            <p className="font-medium text-zinc-900">{formatDate(vehicle.created_at)}</p>
           </div>
           <div>
             <p className="text-xs text-zinc-400">Origin / Trim</p>
@@ -167,7 +168,7 @@ export default async function VehiclePassportPage({
           <div>
             <p className="text-xs text-zinc-400">Registration Expiry</p>
             <p className="font-medium text-zinc-900">
-              {vehicle.registration_expiry_date ? new Date(vehicle.registration_expiry_date).toLocaleDateString() : "—"}
+              {vehicle.registration_expiry_date ? formatDate(vehicle.registration_expiry_date) : "—"}
             </p>
           </div>
           <div>
@@ -226,7 +227,7 @@ export default async function VehiclePassportPage({
                 </div>
                 <Badge color={job.status === "completed" ? "green" : "amber"}>{job.status}</Badge>
               </div>
-              <p className="text-xs text-zinc-400 mt-1">{new Date(job.created_at).toLocaleDateString()}</p>
+              <p className="text-xs text-zinc-400 mt-1">{formatDate(job.created_at)}</p>
             </li>
           ))}
         </ul>
@@ -242,7 +243,7 @@ export default async function VehiclePassportPage({
                 <li key={i} className="px-4 py-2.5 flex items-center justify-between gap-2 text-sm">
                   <span className="text-zinc-700">{w.description}</span>
                   <Badge color={w.until.getTime() > now ? "green" : "gray"}>
-                    {w.until.getTime() > now ? "Active until" : "Expired"} {w.until.toLocaleDateString()}
+                    {w.until.getTime() > now ? "Active until" : "Expired"} {formatDate(w.until)}
                   </Badge>
                 </li>
               ))}
@@ -274,7 +275,7 @@ export default async function VehiclePassportPage({
             <li key={inc.id} className="flex items-center justify-between gap-2 py-2 text-sm">
               <div>
                 <p className="text-zinc-700">{inc.description}</p>
-                <p className="text-xs text-zinc-400">{new Date(inc.incident_date).toLocaleDateString()}</p>
+                <p className="text-xs text-zinc-400">{formatDate(inc.incident_date)}</p>
               </div>
               <ConfirmSubmitButton
                 action={deleteVehicleIncident.bind(null, id, inc.id)}

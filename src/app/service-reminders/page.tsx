@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import { getServiceDueVehicles } from "@/lib/service-due";
 import { Card, PageHeader, Badge, EmptyState } from "@/components/ui";
@@ -26,7 +27,7 @@ export default async function ServiceRemindersPage() {
                     {v.plateNumber} — {[v.make, v.model].filter(Boolean).join(" ")}
                   </p>
                   <p className="text-xs text-zinc-500 truncate">
-                    {v.customerName} · Last serviced {v.lastServiceAt.toLocaleDateString()}
+                    {v.customerName} · Last serviced {formatDate(v.lastServiceAt)}
                   </p>
                 </Link>
                 <div className="flex items-center gap-2 shrink-0">
@@ -60,11 +61,11 @@ export default async function ServiceRemindersPage() {
                     {v.plateNumber} — {[v.make, v.model].filter(Boolean).join(" ")}
                   </p>
                   <p className="text-xs text-zinc-500 truncate">
-                    {v.customerName} · Due {v.dueAt.toLocaleDateString()}
+                    {v.customerName} · Due {formatDate(v.dueAt)}
                   </p>
                 </Link>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Badge color="amber">Due {v.dueAt.toLocaleDateString()}</Badge>
+                  <Badge color="amber">Due {formatDate(v.dueAt)}</Badge>
                   <WhatsAppButton
                     phone={v.customerPhone}
                     label="Remind"

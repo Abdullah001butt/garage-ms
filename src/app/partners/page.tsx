@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Partner } from "@/lib/types";
 import { createPartner, updatePartnerShare, deletePartner } from "@/app/partners/actions";
 import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, Field, Alert } from "@/components/ui";
+import { RowMenu, RowMenuDelete } from "@/components/RowMenu";
 import { SlideOver } from "@/components/SlideOver";
-import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 export default async function PartnersPage() {
   const supabase = await createClient();
@@ -75,13 +75,9 @@ export default async function PartnersPage() {
                   </form>
                 </td>
                 <td className="px-4 py-2.5 text-right">
-                  <ConfirmSubmitButton
-                    action={deletePartner.bind(null, p.id)}
-                    confirmMessage={`Remove partner "${p.full_name}"? This cannot be undone.`}
-                    successMessage="Partner removed."
-                  >
-                    Remove
-                  </ConfirmSubmitButton>
+                  <RowMenu>
+                    <RowMenuDelete action={deletePartner.bind(null, p.id)} confirmMessage={`Remove partner "${p.full_name}"? This cannot be undone.`} successMessage="Partner removed." label="Remove" />
+                  </RowMenu>
                 </td>
               </tr>
             ))}

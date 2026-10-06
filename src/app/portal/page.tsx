@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from "@/lib/format";
 import { Icon } from "@/components/icons";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
@@ -142,7 +143,7 @@ export default async function PortalPage({
                       <li key={i} className="px-4 py-3 flex items-center justify-between gap-3">
                         <p className="flex items-center gap-1.5 text-zinc-900"><Icon name="shield" className="h-4 w-4 text-emerald-600" />{w.description}</p>
                         <span className="text-xs text-emerald-600 font-medium">
-                          until {new Date(w.until).toLocaleDateString()}
+                          until {formatDate(w.until)}
                         </span>
                       </li>
                     ))}
@@ -160,7 +161,7 @@ export default async function PortalPage({
                       <div>
                         <p className="font-medium text-zinc-900">{job.description}</p>
                         <p className="text-xs text-zinc-500">
-                          {new Date(job.created_at).toLocaleDateString()}
+                          {formatDate(job.created_at)}
                           {job.mechanic_name ? ` · ${job.mechanic_name}` : ""}
                         </p>
                       </div>
@@ -184,7 +185,7 @@ export default async function PortalPage({
                     <li key={i} className="px-4 py-3 flex items-start justify-between gap-3">
                       <div>
                         <p className="font-medium text-zinc-900">
-                          {new Date(apt.scheduled_at).toLocaleString()}
+                          {formatDateTime(apt.scheduled_at)}
                         </p>
                         {apt.notes && <p className="text-xs text-zinc-500">{apt.notes}</p>}
                       </div>

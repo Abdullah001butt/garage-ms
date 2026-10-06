@@ -1,10 +1,11 @@
+import { formatDateTime, formatTime, formatWeekdayDate, dayKey as toDayKey, uaeInputValues } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { AppointmentStatus } from "@/lib/types";
 import { createAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } from "@/app/appointments/actions";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, labelClass, inputClass } from "@/components/ui";
-import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { SlideOver } from "@/components/SlideOver";
-import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import { RowMenu, RowMenuAction, RowMenuDelete, RowMenuSeparator } from "@/components/RowMenu";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 type AppointmentRow = {
   id: string;
@@ -101,109 +102,88 @@ export default async function AppointmentsPage({ searchParams }: { searchParams:
       {(() => {
         const groups = new Map<string, AppointmentRow[]>();
         for (const apt of appointments ?? []) {
-          const dayKey = new Date(apt.scheduled_at).toDateString();
+          const dayKey = toDayKey(apt.scheduled_at);
           const arr = groups.get(dayKey) ?? [];
           arr.push(apt);
           groups.set(dayKey, arr);
         }
-        const todayKey = new Date().toDateString();
+        const todayKey = toDayKey(new Date());
         return (
           <div className="mb-8 space-y-4">
             {[...groups.entries()].map(([dayKey, apts]) => (
               <div key={dayKey}>
                 <p className="mb-2 text-xs font-medium text-zinc-500">
-                  {dayKey === todayKey ? "Today" : new Date(dayKey).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
+                  {dayKey === todayKey ? "Today" : formatWeekdayDate(dayKey)}
                 </p>
-                <Card className="overflow-hidden">
+                <Card>
                   <ul className="divide-y divide-zinc-100">
                     {apts.map((apt) => (
-                      <li key={apt.id} className="relative flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                        <div>
-                          <p className="font-medium text-zinc-900">
-                            {new Date(apt.scheduled_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} —{" "}
+                      <li key={apt.id} className="relative flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap">
+                        <span className="w-20 shrink-0 text-sm font-semibold text-zinc-900 tabular">{formatTime(apt.scheduled_at)}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="flex items-center gap-2 truncate font-medium text-zinc-900">
                             {apt.customers?.name}
-                            {apt.booked_online && (
-                              <Badge color="blue" className="ml-2">
-                                Online
-                              </Badge>
-                            )}
+                            {apt.booked_online && <Badge color="blue">Online</Badge>}
                           </p>
-                          <p className="text-sm text-zinc-500">
+                          <p className="truncate text-sm text-zinc-500">
                             {apt.vehicles?.plate_number ?? "No vehicle specified"}
                             {apt.notes ? ` · ${apt.notes}` : ""}
                           </p>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Badge color={STATUS_COLOR[apt.status]}>{apt.status}</Badge>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Badge color={STATUS_COLOR[apt.status]} dot>
+                            {apt.status}
+                          </Badge>
                           {apt.status === "scheduled" && apt.customers?.phone && (
-                            <a
-                              href={buildWhatsAppLink(
-                                apt.customers.phone,
-                                `Hi ${apt.customers.name.split(" ")[0]}, this is a reminder of your appointment at Al Bahir Garage on ${new Date(
-                                  apt.scheduled_at
-                                ).toLocaleString()}${apt.vehicles?.plate_number ? ` for ${apt.vehicles.plate_number}` : ""}.`
-                              )}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs font-medium text-zinc-600 hover:text-zinc-900"
-                            >
-                              Remind
-                            </a>
+                            <WhatsAppButton
+                              size="sm"
+                              label="Remind"
+                              phone={apt.customers.phone}
+                              message={`Hi ${apt.customers.name.split(" ")[0]}, this is a reminder of your appointment at Al Bahir Garage on ${formatDateTime(apt.scheduled_at)}${apt.vehicles?.plate_number ? ` for ${apt.vehicles.plate_number}` : ""}.`}
+                            />
                           )}
                           {apt.status === "scheduled" && (
-                            <>
-                              <form action={updateAppointmentStatus.bind(null, apt.id, "completed")}>
-                                <button className="text-xs font-medium text-zinc-600 hover:text-zinc-900">Complete</button>
+                            <details className="relative">
+                              <summary className="inline-flex h-8 items-center rounded-md border border-zinc-300 bg-white px-2.5 text-[13px] font-medium text-zinc-800 hover:bg-zinc-50">
+                                Reschedule
+                              </summary>
+                              <form
+                                action={rescheduleAppointment.bind(null, apt.id)}
+                                className="absolute right-0 z-20 mt-1 grid w-64 gap-2 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg"
+                              >
+                                <input type="date" name="date" required defaultValue={uaeInputValues(apt.scheduled_at).date} className={inputClass} />
+                                <input type="time" name="time" required defaultValue={uaeInputValues(apt.scheduled_at).time} className={inputClass} />
+                                <input type="text" name="notes" defaultValue={apt.notes ?? ""} placeholder="Notes" className={inputClass} />
+                                <PrimaryButton type="submit">Save new time</PrimaryButton>
                               </form>
-                              <details className="inline-block">
-                                <summary className="cursor-pointer list-none text-xs font-medium text-zinc-600 hover:text-zinc-900">
-                                  Reschedule
-                                </summary>
-                                <form
-                                  action={rescheduleAppointment.bind(null, apt.id)}
-                                  className="absolute z-10 mt-1 flex flex-col gap-1 rounded-lg border border-zinc-200 bg-white p-3 shadow-md"
-                                >
-                                  <input
-                                    type="date"
-                                    name="date"
-                                    required
-                                    defaultValue={new Date(apt.scheduled_at).toISOString().slice(0, 10)}
-                                    className="rounded border border-zinc-300 px-2 py-1 text-xs"
-                                  />
-                                  <input
-                                    type="time"
-                                    name="time"
-                                    required
-                                    defaultValue={new Date(apt.scheduled_at).toTimeString().slice(0, 5)}
-                                    className="rounded border border-zinc-300 px-2 py-1 text-xs"
-                                  />
-                                  <input
-                                    type="text"
-                                    name="notes"
-                                    defaultValue={apt.notes ?? ""}
-                                    placeholder="Notes"
-                                    className="rounded border border-zinc-300 px-2 py-1 text-xs"
-                                  />
-                                  <button
-                                    type="submit"
-                                    className="rounded-md border border-zinc-300 bg-white text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50 px-2 py-1 text-xs font-medium"
-                                  >
-                                    Save
-                                  </button>
-                                </form>
-                              </details>
-                              <form action={updateAppointmentStatus.bind(null, apt.id, "cancelled")}>
-                                <button className="text-xs font-medium text-zinc-500 hover:text-red-600">Cancel</button>
-                              </form>
-                            </>
+                            </details>
                           )}
-                          <ConfirmSubmitButton
-                            action={deleteAppointment.bind(null, apt.id)}
-                            confirmMessage="Delete this appointment? This cannot be undone."
-                            successMessage="Appointment deleted."
-                          >
-                            Delete
-                          </ConfirmSubmitButton>
+                          <RowMenu>
+                            {apt.status === "scheduled" && (
+                              <>
+                                <RowMenuAction
+                                  action={updateAppointmentStatus.bind(null, apt.id, "completed")}
+                                  icon="check-circle"
+                                  successMessage="Marked as completed."
+                                >
+                                  Mark completed
+                                </RowMenuAction>
+                                <RowMenuAction
+                                  action={updateAppointmentStatus.bind(null, apt.id, "cancelled")}
+                                  icon="x"
+                                  successMessage="Appointment cancelled."
+                                >
+                                  Cancel appointment
+                                </RowMenuAction>
+                                <RowMenuSeparator />
+                              </>
+                            )}
+                            <RowMenuDelete
+                              action={deleteAppointment.bind(null, apt.id)}
+                              confirmMessage="Delete this appointment?"
+                              successMessage="Appointment deleted."
+                            />
+                          </RowMenu>
                         </div>
                       </li>
                     ))}

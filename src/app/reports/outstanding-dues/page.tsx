@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, EmptyState } from "@/components/ui";
@@ -81,7 +82,7 @@ export default async function OutstandingDuesPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-2.5 text-zinc-500">
-                    {new Date(r.created_at).toLocaleDateString()}
+                    {formatDate(r.created_at)}
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <Badge color={r.daysOld > 30 ? "red" : r.daysOld > 14 ? "amber" : "green"}>

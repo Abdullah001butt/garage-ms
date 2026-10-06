@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, SecondaryButton, EmptyState, inputClass, labelClass } from "@/components/ui";
 import { fetchBuilderRows } from "@/lib/reports/builder";
@@ -119,7 +120,7 @@ export default async function ReportBuilderPage({
           <tbody className="divide-y divide-zinc-100">
             {rows.map((r, i) => (
               <tr key={i}>
-                <td className="px-3 py-2 text-zinc-500">{new Date(r.invoice_date).toLocaleDateString()}</td>
+                <td className="px-3 py-2 text-zinc-500">{formatDate(r.invoice_date)}</td>
                 <td className="px-3 py-2 text-zinc-900">{r.customer_name}</td>
                 <td className="px-3 py-2 text-zinc-500">{r.vehicle}</td>
                 <td className="px-3 py-2 text-zinc-500">{r.mechanic_name ?? "—"}</td>

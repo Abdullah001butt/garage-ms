@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, SecondaryButton, SegmentedLinks, inputClass, theadClass, thClass } from "@/components/ui";
@@ -147,7 +148,7 @@ export async function DocumentList({
                       </Link>
                     </td>
                     <td className="hidden whitespace-nowrap px-4 py-3 text-zinc-500 tabular sm:table-cell">
-                      {new Date(doc.created_at).toLocaleDateString("en-GB")}
+                      {formatDate(doc.created_at)}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-zinc-900 tabular">
                       AED {totalOf(doc).toFixed(2)}

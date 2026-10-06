@@ -5,7 +5,7 @@ import type { Part } from "@/lib/types";
 import { Badge, EmptyState, Field, SecondaryButton } from "@/components/ui";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import { RowMenu, RowMenuButton, RowMenuDelete, RowMenuSeparator } from "@/components/RowMenu";
 
 export function InventoryTable({
   parts,
@@ -142,13 +142,6 @@ export function InventoryTable({
                         ) : (
                           <span className="text-zinc-400">—</span>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => setEditingSupplierId(part.id)}
-                          className="text-left text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
-                        >
-                          Edit
-                        </button>
                       </div>
                     )}
                   </td>
@@ -186,21 +179,21 @@ export function InventoryTable({
                     </form>
                   </td>
                   <td className="px-4 py-2.5">
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setEditingPartId(editingPartId === part.id ? null : part.id)}
-                        className="text-left text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
-                      >
-                        Edit
-                      </button>
-                      <ConfirmSubmitButton
-                        action={deletePart.bind(null, part.id)}
-                        confirmMessage={`Delete part "${part.name}"? This cannot be undone.`}
-                        successMessage="Part deleted."
-                      >
-                        Delete
-                      </ConfirmSubmitButton>
+                    <div className="flex justify-end">
+                      <RowMenu>
+                        <RowMenuButton icon="pencil" onClick={() => setEditingPartId(editingPartId === part.id ? null : part.id)}>
+                          Edit part
+                        </RowMenuButton>
+                        <RowMenuButton icon="user" onClick={() => setEditingSupplierId(part.id)}>
+                          Edit supplier
+                        </RowMenuButton>
+                        <RowMenuSeparator />
+                        <RowMenuDelete
+                          action={deletePart.bind(null, part.id)}
+                          confirmMessage={`Delete part "${part.name}"?`}
+                          successMessage="Part deleted."
+                        />
+                      </RowMenu>
                     </div>
                   </td>
                 </tr>

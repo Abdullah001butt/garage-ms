@@ -72,7 +72,7 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
               <span className="font-semibold">Evaluation Ref.:</span> #[{evaluation.ref_number}]
             </p>
             <p>
-              <span className="font-semibold">Date:</span> {new Date(evaluation.evaluation_date).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}
+              <span className="font-semibold">Date:</span> {new Date(evaluation.evaluation_date).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric", timeZone: "Asia/Dubai" })}
             </p>
             <div className="mt-3 text-left">
               <p className="font-semibold text-zinc-900">CUSTOMER DETAIL:</p>

@@ -67,7 +67,7 @@ export default async function RootLayout({
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                       <MobileNav role={role} />
                       <div className="min-w-0 flex-1 max-w-md">
-                        <GlobalSearch />
+                        <GlobalSearch role={role} />
                       </div>
                     </div>
                     <div className="flex min-w-0 items-center gap-3">

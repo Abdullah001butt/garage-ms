@@ -91,6 +91,52 @@ details[open] > summary::before {
   transform: rotate(45deg);
 }
 
+/* Loading skeletons: soft grey blocks with a slow shimmer sweep. */
+.skeleton {
+  background: linear-gradient(90deg, #f1f1f2 0%, #e7e7e9 40%, #f1f1f2 80%);
+  background-size: 300% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* Overlay entrance animations (toasts, dialogs, menus). */
+.toast-in {
+  animation: toast-in 0.18s ease-out;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.pop-in {
+  animation: pop-in 0.14s ease-out;
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast-in,
+  .pop-in {
+    animation: none;
+  }
+}
+
 /* Tabular figures for any money/quantity column. */
 @utility tabular {
   font-variant-numeric: tabular-nums;

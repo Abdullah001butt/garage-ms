@@ -1,15 +1,17 @@
+import { formatDate } from "@/lib/format";
 import { Icon } from "@/components/icons";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Expense, CompanyVehicle } from "@/lib/types";
 import { createExpense, updateExpense, deleteExpense, ensureMonthlyExpensesGenerated } from "@/app/expenses/actions";
 import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
+import { RowMenu, RowMenuDelete, RowMenuOpenPanel, RowMenuSeparator } from "@/components/RowMenu";
 import { SlideOver } from "@/components/SlideOver";
-import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 const CATEGORIES = ["Rent", "Utilities", "Salaries", "Tools & Equipment", "Marketing", "Other"];
 
-export default async function ExpensesPage() {
+export default async function ExpensesPage({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
+  const { new: newParam } = await searchParams;
   await ensureMonthlyExpensesGenerated();
   const supabase = await createClient();
   const [{ data: expenses, error }, { data: companyVehicles }] = await Promise.all([
@@ -39,7 +41,7 @@ export default async function ExpensesPage() {
             <Link href="/expenses/templates">
               <SecondaryButton type="button" icon="clock">Recurring</SecondaryButton>
             </Link>
-            <SlideOver title="Record an expense" description="Rent, utilities, parts or any other shop cost." triggerLabel="Record Expense">
+            <SlideOver title="Record an expense" description="Rent, utilities, parts or any other shop cost." triggerLabel="Record Expense" defaultOpen={newParam === "1"}>
               <form action={createExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label className="block">
                   <span className={labelClass}>Category</span>
@@ -93,7 +95,7 @@ export default async function ExpensesPage() {
             {expenses?.map((e) => (
               <tr key={e.id}>
                 <td className="px-4 py-2.5 text-zinc-500">
-                  {new Date(e.expense_date).toLocaleDateString()}
+                  {formatDate(e.expense_date)}
                 </td>
                 <td className="px-4 py-2.5 font-medium text-zinc-900">{e.category}</td>
                 <td className="px-4 py-2.5 text-zinc-500">
@@ -110,12 +112,8 @@ export default async function ExpensesPage() {
                 </td>
                 <td className="relative px-4 py-2.5 text-right print:hidden">
                   <div className="relative inline-flex items-center gap-2">
-                    <details>
-                      <summary className="cursor-pointer text-xs font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600">Edit</summary>
-                      <form
-                        action={updateExpense.bind(null, e.id)}
-                        className="absolute right-0 z-10 mt-2 w-64 space-y-2 rounded-lg border border-zinc-200 bg-white p-3 text-left shadow-md"
-                      >
+                    <SlideOver id={`edit-expense-${e.id}`} hideTrigger title="Edit expense" description="Update the category, date or amount." triggerLabel="Edit">
+                      <form action={updateExpense.bind(null, e.id)} className="space-y-4">
                         <label className="block">
                           <span className={labelClass}>Category</span>
                           <select name="category" defaultValue={e.category} required className={inputClass}>
@@ -142,21 +140,14 @@ export default async function ExpensesPage() {
                             </select>
                           </label>
                         )}
-                        <button
-                          type="submit"
-                          className="w-full rounded-md border border-zinc-300 bg-white text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50 px-2 py-1 text-xs font-medium"
-                        >
-                          Save
-                        </button>
+                        <PrimaryButton type="submit" className="w-full">Save changes</PrimaryButton>
                       </form>
-                    </details>
-                    <ConfirmSubmitButton
-                      action={deleteExpense.bind(null, e.id)}
-                      confirmMessage="Delete this expense? This cannot be undone."
-                      successMessage="Expense deleted."
-                    >
-                      Remove
-                    </ConfirmSubmitButton>
+                    </SlideOver>
+                    <RowMenu>
+                      <RowMenuOpenPanel panelId={`edit-expense-${e.id}`} icon="pencil">Edit expense</RowMenuOpenPanel>
+                      <RowMenuSeparator />
+                      <RowMenuDelete action={deleteExpense.bind(null, e.id)} confirmMessage="Delete this expense? This cannot be undone." successMessage="Expense deleted." label="Delete" />
+                    </RowMenu>
                   </div>
                 </td>
               </tr>

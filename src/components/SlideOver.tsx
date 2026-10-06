@@ -14,6 +14,8 @@ export function SlideOver({
   triggerIcon = "plus",
   variant = "primary",
   defaultOpen = false,
+  id,
+  hideTrigger = false,
   children,
 }: {
   title: string;
@@ -22,9 +24,19 @@ export function SlideOver({
   triggerIcon?: IconName;
   variant?: "primary" | "secondary";
   defaultOpen?: boolean;
+  /** Lets other controls (e.g. a row's "⋯ → Edit") open this panel via openSlideOver(id). */
+  id?: string;
+  hideTrigger?: boolean;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+
+  useEffect(() => {
+    if (!id) return;
+    const onOpen = (e: Event) => (e as CustomEvent<string>).detail === id && setOpen(true);
+    window.addEventListener("slideover:open", onOpen);
+    return () => window.removeEventListener("slideover:open", onOpen);
+  }, [id]);
 
   useEffect(() => {
     if (!open) return;
@@ -44,6 +56,7 @@ export function SlideOver({
 
   return (
     <>
+      {!hideTrigger && (
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -52,6 +65,7 @@ export function SlideOver({
         <Icon name={triggerIcon} className="h-4 w-4 -ml-0.5" />
         {triggerLabel}
       </button>
+      )}
 
       <div
         className={`fixed inset-0 z-50 print:hidden ${open ? "" : "pointer-events-none"}`}
@@ -93,4 +107,8 @@ export function SlideOver({
       </div>
     </>
   );
+}
+
+export function openSlideOver(id: string) {
+  window.dispatchEvent(new CustomEvent("slideover:open", { detail: id }));
 }

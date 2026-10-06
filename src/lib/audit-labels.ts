@@ -1,0 +1,47 @@
+// Human-readable names for audit_log actions (shared by the Audit Log page and activity timelines).
+export const ACTION_LABEL: Record<string, string> = {
+  "job.status_change": "Changed job status",
+  "invoice.create": "Created invoice",
+  "estimate.create": "Created estimate",
+  "estimate.convert_to_invoice": "Converted estimate to invoice",
+  "invoice_item.add": "Added invoice item",
+  "invoice_item.delete": "Removed invoice item",
+  "invoice.discount_update": "Updated discount",
+  "payment.record": "Recorded payment",
+  "payment.delete": "Removed payment",
+  "expense.create": "Recorded expense",
+  "expense.update": "Updated expense",
+  "customer.balance_adjustment": "Added balance adjustment",
+  "customer.balance_adjustment_delete": "Removed balance adjustment",
+  "job.sublet_add": "Added sublet/outsourced cost",
+  "job.sublet_delete": "Removed sublet/outsourced cost",
+  "vehicle.transfer_ownership": "Transferred vehicle ownership",
+  "vehicle.incident_add": "Added vehicle incident",
+  "vehicle.incident_delete": "Removed vehicle incident",
+  "vehicle.document_upload": "Uploaded vehicle document",
+  "vehicle.document_delete": "Removed vehicle document",
+  "cash.reconciliation_save": "Saved cash reconciliation",
+  "expense.delete": "Removed expense",
+  "staff.create": "Added staff member",
+  "staff.update": "Updated staff member",
+  "staff.delete": "Removed staff member",
+  "purchase_order.create": "Created purchase order",
+  "purchase_order.status_change": "Updated purchase order",
+  "part.stock_adjust": "Adjusted stock",
+  "customer.update": "Updated customer details",
+  "customer.delete": "Deleted customer",
+  "invoice.apply_template": "Applied job template",
+  "job.update": "Updated job card",
+  "job.delete": "Deleted job card",
+  "part.update": "Updated part",
+  "part.delete": "Deleted part",
+  "vehicle.update": "Updated vehicle",
+  "vehicle.delete": "Deleted vehicle",
+  "vehicle_evaluation.create": "Created vehicle evaluation",
+  "vehicle_evaluation.delete": "Deleted vehicle evaluation",
+};
+
+/** "customer.update" -> "Updated customer details"; falls back to a readable version of the key. */
+export function auditLabel(action: string) {
+  return ACTION_LABEL[action] ?? action.replace(/[._]/g, " ").replace(/^./, (c) => c.toUpperCase());
+}
