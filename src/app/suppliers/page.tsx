@@ -67,7 +67,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
 
       <Card className="overflow-hidden">
         {list.length === 0 ? (
-          <EmptyState icon="package" message="No suppliers yet. Add the parts shops you buy from on credit." />
+          <EmptyState icon="package" title="No suppliers yet" message="Add the parts shops you buy from on credit to track what you owe each one." action={<><Link href="/suppliers?new=1" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ Add supplier</Link></>} />
         ) : (
           <div className="relative overflow-x-auto">
             <table className="w-full text-sm">

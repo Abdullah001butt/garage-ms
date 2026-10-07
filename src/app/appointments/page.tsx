@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { formatDateTime, formatTime, formatWeekdayDate, dayKey as toDayKey, uaeInputValues } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { AppointmentStatus } from "@/lib/types";
@@ -193,7 +194,7 @@ export default async function AppointmentsPage({ searchParams }: { searchParams:
             ))}
             {(appointments?.length ?? 0) === 0 && (
               <Card>
-                <EmptyState message="No appointments yet." />
+                <EmptyState icon="calendar" title="No appointments yet" message="Book customers in, or share your online booking link so they can request a time themselves." action={<><Link href="/appointments?new=1" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ Book appointment</Link><Link href="/settings" className="inline-flex h-9 items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50">Get booking link</Link></>} />
               </Card>
             )}
           </div>

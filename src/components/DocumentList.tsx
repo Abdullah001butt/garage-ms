@@ -228,7 +228,12 @@ export async function DocumentList({
           </table>
         </div>
         {docs.length === 0 && (
-          <EmptyState icon="file" message={q || statusFilter ? "No matching results." : `No ${documentType}s yet.`} />
+          <EmptyState
+            icon="file"
+            title={q || statusFilter ? "No matches" : `No ${documentType}s yet`}
+            message={q || statusFilter ? "Try a different filter or customer name." : documentType === "invoice" ? "Invoices are created from finished job cards or counter sales." : "Quote a job before work starts, then convert it to an invoice."}
+            action={q || statusFilter ? undefined : documentType === "invoice" ? <><Link href="/jobs" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">Go to job cards</Link><Link href="/counter-sale" className="inline-flex h-9 items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50">Counter sale</Link></> : <><Link href="/estimates/new" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ New estimate</Link></>}
+          />
         )}
         {docs.length > 0 && (
           <div className="flex items-center justify-between border-t border-zinc-200 bg-zinc-50/60 px-4 py-2 text-xs text-zinc-500">

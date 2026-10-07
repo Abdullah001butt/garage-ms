@@ -13,7 +13,7 @@ import {
 import { updateDiscount } from "@/app/invoices/discount-actions";
 import { PrintButton } from "@/components/PrintButton";
 import { InvoiceItemForm } from "@/components/InvoiceItemForm";
-import { ClassicInvoiceTemplate } from "@/components/ClassicInvoiceTemplate";
+import { InvoiceDesign } from "@/components/InvoiceDesign";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { SendInvoicePdfButton } from "@/components/SendInvoicePdfButton";
 import { Alert, Badge, Panel, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
@@ -33,7 +33,7 @@ type DocDetail = {
   customers: { name: string; phone: string; address: string | null } | null;
   job_cards: {
     description: string;
-    vehicles: { plate_number: string; make: string | null; model: string | null; year: number | null } | null;
+    vehicles: { plate_number: string; make: string | null; model: string | null; year: number | null; share_token?: string | null } | null;
   } | null;
 };
 
@@ -68,7 +68,7 @@ export async function DocumentDetail({
       supabase
         .from("invoices")
         .select(
-          "id, status, document_type, vat_rate, discount, created_at, paid_at, job_card_id, invoice_number, customers(name, phone, address), job_cards(description, vehicles(plate_number, make, model, year))"
+          "id, status, document_type, vat_rate, discount, created_at, paid_at, job_card_id, invoice_number, customers(name, phone, address), job_cards(description, vehicles(plate_number, make, model, year, share_token))"
         )
         .eq("id", id)
         .single<DocDetail>(),
@@ -181,7 +181,9 @@ export async function DocumentDetail({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] print:block">
         <div className="min-w-0">
-          <ClassicInvoiceTemplate
+          <InvoiceDesign
+            defaultStyle={settings?.invoice_style === "modern" ? "modern" : "classic"}
+            qrPath={doc.job_cards?.vehicles?.share_token ? `/certificate/${doc.job_cards.vehicles.share_token}` : null}
             documentLabel={isEstimate ? "ESTIMATE" : "INVOICE"}
             createdAt={doc.created_at}
             items={items ?? []}

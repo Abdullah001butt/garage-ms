@@ -207,7 +207,7 @@ export default async function CustomersPage({
           </table>
         </div>
         {!error && rows.length === 0 && (
-          <EmptyState icon="user" message={q || type ? "No customers match these filters." : "No customers yet. Add your first one to get started."} />
+          <EmptyState icon="user" title={q || type ? "No matches" : "No customers yet"} message={q || type ? "No customers match these filters." : "Add your first customer and their car — it takes three quick steps."} action={q || type ? undefined : <><Link href="/customers/new" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ Add customer</Link></>} />
         )}
         {rows.length > 0 && (
           <div className="border-t border-zinc-200 bg-zinc-50/60 px-4 py-2 text-xs text-zinc-500">

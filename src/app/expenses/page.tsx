@@ -154,7 +154,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
             ))}
           </tbody>
         </table>
-        {expenses?.length === 0 && <EmptyState message="No expenses recorded yet." />}
+        {expenses?.length === 0 && <EmptyState icon="wallet" title="No expenses yet" message="Record rent, utilities and other costs so profit reports are accurate." action={<><Link href="/expenses?new=1" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ Record expense</Link><Link href="/expenses/templates" className="inline-flex h-9 items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50">Set up recurring</Link></>} />}
       </Card>
 
     </div>

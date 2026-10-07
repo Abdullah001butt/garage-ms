@@ -192,13 +192,42 @@ export function Badge({
   );
 }
 
-export function EmptyState({ message, icon = "inbox" }: { message: string; icon?: IconName }) {
+/**
+ * Empty list / no results. A small drawing of a stacked list with the section's icon,
+ * an optional title, the explanation, and an optional first action (e.g. "Add customer").
+ */
+export function EmptyState({
+  message,
+  icon = "inbox",
+  title,
+  action,
+  compact = false,
+}: {
+  message: string;
+  icon?: IconName;
+  title?: string;
+  action?: ReactNode;
+  compact?: boolean;
+}) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center">
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
-        <Icon name={icon} className="h-4 w-4" />
-      </span>
-      <p className="text-sm text-zinc-500">{message}</p>
+    <div className={`flex flex-col items-center justify-center px-4 text-center ${compact ? "py-8" : "py-12"}`}>
+      <div className="relative mb-4 h-[72px] w-[104px]" aria-hidden="true">
+        <svg viewBox="0 0 104 72" className="absolute inset-0 h-full w-full">
+          <rect x="14" y="4" width="76" height="20" rx="5" fill="#fafafa" stroke="#e4e4e7" />
+          <rect x="8" y="16" width="88" height="22" rx="5" fill="#ffffff" stroke="#e4e4e7" />
+          <rect x="18" y="24" width="30" height="5" rx="2.5" fill="#e4e4e7" />
+          <rect x="54" y="24" width="18" height="5" rx="2.5" fill="#f4f4f5" />
+          <rect x="2" y="32" width="100" height="26" rx="6" fill="#ffffff" stroke="#d4d4d8" />
+          <rect x="34" y="41" width="40" height="5" rx="2.5" fill="#d4d4d8" />
+          <rect x="34" y="49" width="26" height="4" rx="2" fill="#e4e4e7" />
+        </svg>
+        <span className="absolute left-[10px] top-[36px] flex h-[18px] w-[18px] items-center justify-center rounded-md bg-zinc-900 text-white ring-4 ring-white">
+          <Icon name={icon} className="h-[11px] w-[11px]" />
+        </span>
+      </div>
+      {title && <p className="text-sm font-semibold text-zinc-900">{title}</p>}
+      <p className={`max-w-sm text-[13px] leading-relaxed text-zinc-500 ${title ? "mt-1" : ""}`}>{message}</p>
+      {action && <div className="mt-4 flex flex-wrap items-center justify-center gap-2">{action}</div>}
     </div>
   );
 }

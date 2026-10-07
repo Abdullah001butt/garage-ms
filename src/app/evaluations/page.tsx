@@ -102,7 +102,7 @@ export default async function EvaluationsPage({ searchParams }: { searchParams: 
           </table>
         </div>
         {!error && rows.length === 0 && (
-          <EmptyState icon="file" message={needle ? "No reports match this filter." : "No evaluation reports yet. Create your first one."} />
+          <EmptyState icon="file" title={needle ? "No matches" : "No evaluation reports yet"} action={needle ? undefined : <><Link href="/evaluations/new" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ New evaluation</Link></>} message={needle ? "No reports match this filter." : "Create a professional vehicle evaluation report with damage diagram and valuation."} />
         )}
       </Card>
     </div>

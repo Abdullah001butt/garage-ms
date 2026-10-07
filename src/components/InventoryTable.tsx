@@ -233,7 +233,7 @@ export function InventoryTable({
             })}
           </tbody>
         </table>
-        {parts.length === 0 && <EmptyState message="No parts yet." />}
+        {parts.length === 0 && <EmptyState icon="package" title="No parts yet" message="Add the parts you keep on the shelf so invoices pick prices and stock counts itself." />}
       </div>
     </>
   );

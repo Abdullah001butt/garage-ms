@@ -39,6 +39,7 @@ export function ClassicInvoiceTemplate({
   jobDescription,
   onDeleteItem,
   invoiceNumber,
+  showVat: showVatProp,
 }: {
   documentLabel: "INVOICE" | "ESTIMATE";
   createdAt: string;
@@ -52,8 +53,12 @@ export function ClassicInvoiceTemplate({
   jobDescription: string | null;
   onDeleteItem: (itemId: string) => void | Promise<void>;
   invoiceNumber?: string | null;
+  /** When given, the VAT switch lives outside (InvoiceDesign) and this template follows it. */
+  showVat?: boolean;
+  qrPath?: string | null;
 }) {
-  const [showVat, setShowVat] = useState(false);
+  const [showVatLocal, setShowVat] = useState(false);
+  const showVat = showVatProp ?? showVatLocal;
 
   const date = new Date(createdAt);
   const reference = invoiceNumber || formatReference(createdAt);
@@ -74,6 +79,7 @@ export function ClassicInvoiceTemplate({
 
   return (
     <div>
+      {showVatProp === undefined && (
       <label className="flex items-center gap-2 text-sm text-zinc-600 mb-4 print:hidden">
         <input
           type="checkbox"
@@ -83,6 +89,7 @@ export function ClassicInvoiceTemplate({
         />
         Show VAT on printed invoice
       </label>
+      )}
 
       <FitToWidth width={640}>
       <div id="invoice-printable" className="bg-white text-black p-8 font-sans text-[13px] leading-snug print:p-0 rounded-xl border border-zinc-200 shadow-sm print:border-none print:shadow-none min-w-160 print:min-w-0">

@@ -95,7 +95,7 @@ export default async function JobsPage({
       {isBoard ? (
         allJobs.length === 0 ? (
           <Card>
-            <EmptyState icon="wrench" message="No job cards yet." />
+            <EmptyState icon="wrench" title="No job cards yet" message="Open a job card when a car arrives — it tracks the work from check-in to invoice." action={<><Link href="/jobs/new" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ New job card</Link></>} />
           </Card>
         ) : (
           <JobsBoard jobs={allJobs} uninvoicedIds={uninvoicedIds} updateJobStatus={updateJobStatus} />
@@ -153,7 +153,7 @@ export default async function JobsPage({
               </tbody>
             </table>
           </div>
-          {!error && allJobs.length === 0 && <EmptyState icon="wrench" message="No job cards yet." />}
+          {!error && allJobs.length === 0 && <EmptyState icon="wrench" title="No job cards yet" message="Open a job card when a car arrives." action={<><Link href="/jobs/new" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ New job card</Link></>} />}
         </Card>
       )}
     </div>
