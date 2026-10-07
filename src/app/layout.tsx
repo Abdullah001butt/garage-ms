@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
+import { Suspense } from "react";
 import { NoZoomGuard } from "@/components/NoZoomGuard";
+import { BrandSplash } from "@/components/BrandSplash";
+import { RouteProgress } from "@/components/RouteProgress";
 import { ToastProvider } from "@/components/Toast";
 import { QueryProvider } from "@/components/QueryProvider";
 import { MobileNav } from "@/components/MobileNav";
@@ -54,6 +57,10 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-zinc-50 text-zinc-900 overflow-x-hidden">
         <NoZoomGuard />
+        <BrandSplash />
+        <Suspense fallback={null}>
+          <RouteProgress />
+        </Suspense>
         <QueryProvider>
         <ToastProvider>
           {!user ? (
