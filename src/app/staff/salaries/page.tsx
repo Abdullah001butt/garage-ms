@@ -55,7 +55,7 @@ export default async function SalariesPage({ searchParams }: { searchParams: Pro
       baseSalary: Number(p.monthly_salary ?? 0),
       month,
       holidayDates,
-      statuses: (attendance ?? []).filter((a) => a.profile_id === p.id).map((a) => a.status),
+      attendance: (attendance ?? []).filter((a) => a.profile_id === p.id),
       advances: (advances ?? []).filter((a) => a.profile_id === p.id).reduce((s, a) => s + Number(a.amount), 0),
     });
     return { profile: p, line, payment: paidBy.get(p.id) ?? null };

@@ -35,28 +35,38 @@ export type SalaryLine = {
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+/** The garage is closed on Fridays, so they are never working days. */
+export function isFriday(date: string) {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay() === 5;
+}
+
 /**
  * Fixed monthly salary, minus a day's pay for each absent day, minus cash advances.
- * Working days = days in the month minus the shop's holidays (Fridays, public holidays).
- * Paid leave and holidays are never deducted.
+ * Working days = days in the month minus Fridays (closed) and the shop's other holidays.
+ * Paid leave, Fridays and holidays are never deducted, even if marked absent by mistake.
  */
 export function computeSalary({
   baseSalary,
   month,
   holidayDates,
-  statuses,
+  attendance,
   advances,
 }: {
   baseSalary: number;
   month: string;
   holidayDates: string[];
-  statuses: AttendanceStatus[];
+  attendance: { attendance_date: string; status: AttendanceStatus }[];
   advances: number;
 }): SalaryLine {
   const { days } = monthBounds(month);
-  const holidays = new Set(holidayDates.filter((d) => d.startsWith(month))).size;
-  const workingDays = Math.max(0, days - holidays);
-  const absentDays = statuses.filter((s) => s === "absent").length;
+  const offDays = new Set(holidayDates.filter((d) => d.startsWith(month)));
+  for (let d = 1; d <= days; d++) {
+    const date = `${month}-${String(d).padStart(2, "0")}`;
+    if (isFriday(date)) offDays.add(date);
+  }
+  const workingDays = Math.max(0, days - offDays.size);
+  const absentDays = attendance.filter((a) => a.status === "absent" && !offDays.has(a.attendance_date)).length;
   const dailyRate = workingDays > 0 ? baseSalary / workingDays : 0;
   const absenceDeduction = round2(Math.min(baseSalary, dailyRate * absentDays));
   return {

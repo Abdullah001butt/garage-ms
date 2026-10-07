@@ -47,7 +47,7 @@ export default async function PayslipPage({ searchParams }: { searchParams: Prom
     baseSalary: Number(profile.monthly_salary ?? 0),
     month,
     holidayDates: (holidays ?? []).map((h) => h.holiday_date),
-    statuses: (attendance ?? []).map((a) => a.status),
+    attendance: attendance ?? [],
     advances: (advances ?? []).reduce((s, a) => s + Number(a.amount), 0),
   });
   // Once paid, the payslip shows exactly what was paid (a snapshot), not today's recalculation.

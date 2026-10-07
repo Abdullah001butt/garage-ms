@@ -157,7 +157,7 @@ export const HELP_CONTENT: Record<string, HelpContent> = {
       "This is where your shop's name, address, and invoice details are set up.",
       "You usually only need to change this once — it's used on every invoice.",
       "Go through the numbered sections on the left (or the tabs on top on a phone) — Back and Next move between them.",
-      "Add Fridays and public holidays under Working calendar so salaries count the right working days.",
+      "Fridays are counted as closed automatically. Add public holidays under Working calendar so salaries count the right working days.",
     ],
   },
   "/staff": {
@@ -171,7 +171,7 @@ export const HELP_CONTENT: Record<string, HelpContent> = {
   "/staff/salaries": {
     title: "Salaries",
     steps: [
-      "Each person's pay = monthly salary, minus a day's pay for each absent day, minus cash advances.",
+      "Each person's pay = monthly salary, minus a day's pay for each absent day, minus cash advances. Fridays (closed) and holidays are never deducted.",
       "Tap \"Give advance\" whenever someone takes cash during the month — it is saved as an expense and taken off their salary.",
       "At month end, use ⋯ → Pay salary on each row, then ⋯ → Payslip to print it for signature.",
     ],

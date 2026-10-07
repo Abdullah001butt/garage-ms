@@ -77,7 +77,7 @@ export async function paySalary(profileId: string, month: string, formData: Form
   // Recalculate on the server from the database, never from numbers sent by the browser.
   const [{ data: profile }, { data: attendance }, { data: holidays }, { data: advances }] = await Promise.all([
     supabase.from("profiles").select("full_name, monthly_salary").eq("id", profileId).single(),
-    supabase.from("attendance").select("status").eq("profile_id", profileId).gte("attendance_date", start).lte("attendance_date", end),
+    supabase.from("attendance").select("attendance_date, status").eq("profile_id", profileId).gte("attendance_date", start).lte("attendance_date", end),
     supabase.from("shop_holidays").select("holiday_date").gte("holiday_date", start).lte("holiday_date", end),
     supabase.from("staff_advances").select("amount").eq("profile_id", profileId).gte("advance_date", start).lte("advance_date", end),
   ]);
@@ -87,7 +87,7 @@ export async function paySalary(profileId: string, month: string, formData: Form
     baseSalary: Number(profile.monthly_salary ?? 0),
     month,
     holidayDates: (holidays ?? []).map((h) => h.holiday_date),
-    statuses: (attendance ?? []).map((a) => a.status as AttendanceStatus),
+    attendance: (attendance ?? []).map((a) => ({ attendance_date: a.attendance_date, status: a.status as AttendanceStatus })),
     advances: (advances ?? []).reduce((s, a) => s + Number(a.amount), 0),
   });
   const net_pay = Math.round((line.net + bonus - other_deduction) * 100) / 100;
