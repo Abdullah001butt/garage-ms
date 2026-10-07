@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { formatWeekdayDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { ShopSettings, CompanyVehicle, ShopHoliday } from "@/lib/types";
@@ -10,34 +9,20 @@ import {
   deleteShopHoliday,
 } from "@/app/settings/actions";
 import { Card, PageHeader, PrimaryButton, SecondaryButton, Field, PanelEmpty, inputClass, labelClass } from "@/components/ui";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+import { Steps, Step, type StepDef } from "@/components/Steps";
 import { SlideOver } from "@/components/SlideOver";
 import { RowMenu, RowMenuDelete } from "@/components/RowMenu";
 
-const SECTIONS: { id: string; label: string; icon: IconName }[] = [
-  { id: "shop", label: "Shop details", icon: "building" },
-  { id: "invoicing", label: "Invoice & VAT", icon: "receipt" },
-  { id: "reminders", label: "Reminders & reviews", icon: "clock" },
-  { id: "booking", label: "Online booking", icon: "calendar" },
-  { id: "vehicles", label: "Company vehicles", icon: "car" },
-  { id: "holidays", label: "Working calendar", icon: "calendar" },
-  { id: "backup", label: "Data backup", icon: "download" },
+const STEPS: StepDef[] = [
+  { id: "shop", title: "Shop details", description: "Your business name and contact details, printed on every invoice, estimate and report." },
+  { id: "invoicing", title: "Invoice & VAT", description: "Tax registration and the wording shown at the bottom of invoices." },
+  { id: "reminders", title: "Reminders & reviews", description: "When customers are reminded about their next service, and where happy customers leave a review." },
+  { id: "booking", title: "Online booking", description: "Share this link on WhatsApp status, Google Business Profile or business cards so customers can request appointments anytime." },
+  { id: "vehicles", title: "Company vehicles", description: "Vehicles the garage owns (parts vans, recovery trucks), so their fuel, tolls and renewals can be tagged on expenses." },
+  { id: "holidays", title: "Working calendar", description: "Fridays and official holidays, marked as non-working days for scheduling and attendance." },
+  { id: "backup", title: "Data backup", description: "One zip with customers, invoices, expenses, this month's attendance and profit & loss — all as Excel files you keep." },
 ];
-
-// Section with its title/description on the left and the content on the right.
-function Section({ id, title, description, children }: { id: string; title: string; description: string; children: ReactNode }) {
-  return (
-    <section id={id} className="scroll-mt-20 border-b border-zinc-200 py-8 first:pt-0 last:border-0">
-      <div className="grid gap-6 xl:grid-cols-[16rem_1fr]">
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">{description}</p>
-        </div>
-        <div className="min-w-0">{children}</div>
-      </div>
-    </section>
-  );
-}
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -62,27 +47,10 @@ export default async function SettingsPage() {
     <div className="page">
       <PageHeader title="Settings" description="Shop details, invoicing defaults and workshop configuration." />
 
-      <div className="grid gap-8 lg:grid-cols-[13rem_1fr]">
-        <nav className="hidden lg:block" aria-label="Settings sections">
-          <ul className="sticky top-20 space-y-px">
-            {SECTIONS.map((s) => (
-              <li key={s.id}>
-                <a
-                  href={`#${s.id}`}
-                  className="flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-                >
-                  <Icon name={s.icon} className="h-4 w-4 text-zinc-400" />
-                  {s.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="min-w-0">
+      <Steps mode="sections" steps={STEPS}>
           {/* One form for every shop_settings field: the save action writes them all together. */}
           <form action={updateShopSettings.bind(null, settings.id)}>
-            <Section id="shop" title="Shop details" description="Your business name and contact details, printed on every invoice, estimate and report.">
+            <Step id="shop">
               <Card className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
                 <Field label="Shop name" name="shop_name" defaultValue={settings.shop_name} required className="sm:col-span-2" />
                 <Field label="Address" name="address" defaultValue={settings.address ?? ""} className="sm:col-span-2" />
@@ -91,9 +59,9 @@ export default async function SettingsPage() {
                 <Field label="Email" name="email" defaultValue={settings.email ?? ""} />
                 <Field label="Website" name="website" defaultValue={settings.website ?? ""} placeholder="http://www.yourdomain.com" />
               </Card>
-            </Section>
+            </Step>
 
-            <Section id="invoicing" title="Invoice & VAT" description="Tax registration and the wording shown at the bottom of invoices.">
+            <Step id="invoicing">
               <Card className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
                 <Field label="TRN (Tax Registration Number)" name="trn" defaultValue={settings.trn ?? ""} />
                 <Field label="VAT rate (%)" name="vat_rate" type="number" step="0.01" defaultValue={settings.vat_rate} />
@@ -104,13 +72,9 @@ export default async function SettingsPage() {
                   <textarea name="invoice_disclaimer" rows={3} defaultValue={settings.invoice_disclaimer ?? ""} className={inputClass} />
                 </label>
               </Card>
-            </Section>
+            </Step>
 
-            <Section
-              id="reminders"
-              title="Reminders & reviews"
-              description="When customers are reminded about their next service, and where happy customers leave a review."
-            >
+            <Step id="reminders">
               <Card className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
                 <Field
                   label="Default service interval (days)"
@@ -133,9 +97,9 @@ export default async function SettingsPage() {
                   </span>
                 </label>
               </Card>
-            </Section>
+            </Step>
 
-            <div className="sticky bottom-0 z-10 -mx-4 mb-2 flex items-center justify-end gap-3 border-t border-zinc-200 bg-zinc-50/90 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-lg sm:border">
+            <div data-step="shop invoicing reminders" className="sticky bottom-0 z-10 -mx-4 mb-2 flex items-center justify-end gap-3 border-t border-zinc-200 bg-zinc-50/90 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-lg sm:border">
               <span className="mr-auto text-xs text-zinc-500">Saves shop details, invoicing and reminder settings together.</span>
               <PrimaryButton type="submit" icon="check">
                 Save settings
@@ -143,18 +107,14 @@ export default async function SettingsPage() {
             </div>
           </form>
 
-          <Section id="booking" title="Online booking" description="Share this link on WhatsApp status, Google Business Profile or business cards so customers can request appointments anytime.">
+          <Step id="booking">
             <Card className="flex items-center gap-3 p-4">
               <Icon name="link" className="h-4 w-4 text-zinc-400" />
               <code className="min-w-0 flex-1 break-all font-mono text-[13px] text-zinc-700">{bookingLink}</code>
             </Card>
-          </Section>
+          </Step>
 
-          <Section
-            id="vehicles"
-            title="Company vehicles"
-            description="Vehicles the garage owns (parts vans, recovery trucks), so their fuel, tolls and renewals can be tagged on expenses."
-          >
+          <Step id="vehicles">
             <Card className="overflow-hidden">
               <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2.5">
                 <p className="text-[13px] font-medium text-zinc-700">{companyVehicles?.length ?? 0} vehicles</p>
@@ -190,9 +150,9 @@ export default async function SettingsPage() {
                 </ul>
               )}
             </Card>
-          </Section>
+          </Step>
 
-          <Section id="holidays" title="Working calendar" description="Fridays and official holidays, marked as non-working days for scheduling and attendance.">
+          <Step id="holidays">
             <Card className="overflow-hidden">
               <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2.5">
                 <p className="text-[13px] font-medium text-zinc-700">{holidays?.length ?? 0} non-working days</p>
@@ -224,13 +184,9 @@ export default async function SettingsPage() {
                 </ul>
               )}
             </Card>
-          </Section>
+          </Step>
 
-          <Section
-            id="backup"
-            title="Data backup"
-            description="One zip with customers, invoices, expenses, this month's attendance and profit & loss — all as Excel files you keep."
-          >
+          <Step id="backup">
             <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
               <p className="text-[13px] text-zinc-600">Download a copy regularly and keep it somewhere safe.</p>
               <a href="/backup/export">
@@ -239,9 +195,8 @@ export default async function SettingsPage() {
                 </SecondaryButton>
               </a>
             </Card>
-          </Section>
-        </div>
-      </div>
+          </Step>
+      </Steps>
     </div>
   );
 }

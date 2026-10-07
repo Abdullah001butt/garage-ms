@@ -4,7 +4,7 @@ import type { ExpenseTemplate } from "@/lib/types";
 import { createTemplate, toggleTemplateActive, deleteTemplate } from "@/app/expenses/templates/actions";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, Field, labelClass, inputClass } from "@/components/ui";
 
-const CATEGORIES = ["Rent", "Utilities", "Salaries", "Tools & Equipment", "Marketing", "Other"];
+const CATEGORIES = ["Rent", "Utilities", "Salaries", "Parts & Supplies", "Tools & Equipment", "Marketing", "Other"];
 
 export default async function ExpenseTemplatesPage() {
   const supabase = await createClient();

@@ -16,7 +16,7 @@ import { InvoiceItemForm } from "@/components/InvoiceItemForm";
 import { ClassicInvoiceTemplate } from "@/components/ClassicInvoiceTemplate";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { SendInvoicePdfButton } from "@/components/SendInvoicePdfButton";
-import { Badge, Panel, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
+import { Alert, Badge, Panel, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import type { DocumentType, InvoiceItem, JobTemplate, Part, Payment, ShopSettings } from "@/lib/types";
 import { formatInvoiceNumber } from "@/lib/invoice-number";
 
@@ -53,10 +53,13 @@ export async function DocumentDetail({
   id,
   expectedType,
   backHref,
+  justSold = false,
 }: {
   id: string;
   expectedType: DocumentType;
   backHref: string;
+  /** Arrived here straight after completing a counter sale. */
+  justSold?: boolean;
 }) {
   const supabase = await createClient();
 
@@ -120,6 +123,17 @@ export async function DocumentDetail({
       >
         ← Back to {isEstimate ? "estimates" : "invoices"}
       </Link>
+
+      {justSold && (
+        <Alert tone="success" icon="check-circle" className="mb-5 print:hidden" title="Sale complete — paid in full">
+          <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>Stock and today&apos;s cash are updated. Print the receipt below or start the next sale.</span>
+            <Link href="/counter-sale" className="font-medium text-emerald-900 underline underline-offset-2">
+              New counter sale →
+            </Link>
+          </span>
+        </Alert>
+      )}
 
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between print:hidden">
         <div className="min-w-0">

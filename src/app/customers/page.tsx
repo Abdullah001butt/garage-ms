@@ -63,7 +63,8 @@ export default async function CustomersPage({
     balances.set(a.customer_id, (balances.get(a.customer_id) ?? 0) + Number(a.amount));
   }
 
-  const rows = customers ?? [];
+  // The shared "Walk-in customer" (counter sales) is bookkeeping, not a real customer.
+  const rows = (customers ?? []).filter((c) => !c.is_walk_in);
   const filterHref = (value: string) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);

@@ -6,6 +6,9 @@ import { Icon, type IconName } from "@/components/icons";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { PlateBadge } from "@/components/PlateBadge";
 import { getServiceDueVehicles } from "@/lib/service-due";
+import { getCurrentUserAndProfile } from "@/lib/auth";
+import { supplierBalances } from "@/lib/suppliers";
+import { SetupGuide, type SetupStep } from "@/components/SetupGuide";
 
 type JobRow = {
   id: string;
@@ -184,6 +187,38 @@ export default async function TodayPage() {
 
   const dateLabel = formatWeekdayDate(new Date());
 
+  // Owner-only extras: what we owe suppliers, and the "Get set up" checklist.
+  const { profile } = await getCurrentUserAndProfile();
+  let supplierOwed = 0;
+  let suppliersOwing = 0;
+  let setupSteps: SetupStep[] = [];
+  if (profile?.role === "owner") {
+    const head = { count: "exact" as const, head: true };
+    const [{ data: supplierEntries }, { data: settings }, staffPaid, partsCount, supplierCount, customerCount, jobCount, invoiceCount] = await Promise.all([
+      supabase.from("supplier_entries").select("supplier_id, kind, amount"),
+      supabase.from("shop_settings").select("trn, phone, google_review_link").limit(1).maybeSingle(),
+      supabase.from("profiles").select("id", head).gt("monthly_salary", 0),
+      supabase.from("parts").select("id", head),
+      supabase.from("suppliers").select("id", head),
+      supabase.from("customers").select("id", head).neq("phone", "-"),
+      supabase.from("job_cards").select("id", head),
+      supabase.from("invoices").select("id", head).eq("document_type", "invoice"),
+    ]);
+    const balances = [...supplierBalances(supplierEntries ?? []).values()].filter((b) => b > 0.01);
+    supplierOwed = balances.reduce((s, b) => s + b, 0);
+    suppliersOwing = balances.length;
+    setupSteps = [
+      { title: "Shop details & TRN", detail: "Printed on every invoice", href: "/settings", done: Boolean(settings?.trn && settings?.phone) },
+      { title: "Staff & salaries", detail: "For attendance and payslips", href: "/staff", done: (staffPaid.count ?? 0) > 0 },
+      { title: "Parts in stock", detail: "So invoices pick prices", href: "/inventory", done: (partsCount.count ?? 0) > 0 },
+      { title: "Suppliers", detail: "Track what you owe", href: "/suppliers?new=1", done: (supplierCount.count ?? 0) > 0 },
+      { title: "First customer", detail: "With their vehicle", href: "/customers/new", done: (customerCount.count ?? 0) > 0 },
+      { title: "First job card", detail: "When a car comes in", href: "/jobs/new", done: (jobCount.count ?? 0) > 0 },
+      { title: "First invoice", detail: "From a finished job", href: "/jobs", done: (invoiceCount.count ?? 0) > 0 },
+      { title: "Google reviews", detail: "Link happy customers", href: "/settings", done: Boolean(settings?.google_review_link) },
+    ];
+  }
+
   return (
     <div className="page">
       <PageHeader
@@ -207,6 +242,8 @@ export default async function TodayPage() {
           </div>
         }
       />
+
+      {setupSteps.length > 0 && <SetupGuide steps={setupSteps} />}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiTile
@@ -348,6 +385,19 @@ export default async function TodayPage() {
                 </li>
               ))}
             </ul>
+          )}
+          {supplierOwed > 0 && (
+            <Link href="/suppliers" className="flex items-center gap-3 border-t border-zinc-200 bg-zinc-50/60 px-4 py-2.5 hover:bg-zinc-50">
+              <Icon name="package" className="h-4 w-4 shrink-0 text-zinc-400" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-medium text-zinc-900">We owe suppliers</span>
+                <span className="block text-xs text-zinc-500">
+                  {suppliersOwing} supplier{suppliersOwing === 1 ? "" : "s"} unpaid
+                </span>
+              </span>
+              <span className="text-sm font-semibold tabular text-red-700">{formatAed(supplierOwed)}</span>
+              <Icon name="chevron-right" className="h-4 w-4 text-zinc-300" />
+            </Link>
           )}
         </Panel>
 

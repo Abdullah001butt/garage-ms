@@ -28,6 +28,10 @@ const ACTIONS: (PaletteItem & { ownerOnly?: boolean })[] = [
   { key: "a-evaluation", group: "Actions", label: "New vehicle evaluation", href: "/evaluations/new", icon: "check-circle", keywords: "valuation report inspection" },
   { key: "a-expense", group: "Actions", label: "Record expense", href: "/expenses?new=1", icon: "wallet", keywords: "cost spend bill", ownerOnly: true },
   { key: "a-report", group: "Actions", label: "Build a report", href: "/reports/builder", icon: "trending", keywords: "export excel filter", ownerOnly: true },
+  { key: "a-counter", group: "Actions", label: "Counter sale", href: "/counter-sale", icon: "receipt", keywords: "walk-in sell part oil shop pos", ownerOnly: true },
+  { key: "a-advance", group: "Actions", label: "Give staff cash advance", href: "/staff/salaries?advance=1", icon: "wallet", keywords: "salary loan advance staff pay", ownerOnly: true },
+  { key: "a-salary", group: "Actions", label: "Pay salaries", href: "/staff/salaries", icon: "wallet", keywords: "payslip salary payroll wages", ownerOnly: true },
+  { key: "a-supplier", group: "Actions", label: "Add supplier", href: "/suppliers?new=1", icon: "package", keywords: "vendor parts shop credit owe", ownerOnly: true },
 ];
 
 const RECORD_GROUP: Record<SearchResult["type"], PaletteItem["group"]> = {

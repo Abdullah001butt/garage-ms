@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createVehicleEvaluation } from "@/app/evaluations/actions";
-import { Card, PageHeader, PrimaryButton, Field, inputClass } from "@/components/ui";
+import { PageHeader, Field, inputClass } from "@/components/ui";
+import { Steps, Step } from "@/components/Steps";
 import { DEFAULT_INSPECTION_PARTICULARS } from "@/lib/evaluation";
 import { CarDiagramMarkerInput } from "@/components/CarDiagramMarkerInput";
 
@@ -10,11 +11,20 @@ export default function NewEvaluationPage() {
       <Link href="/evaluations" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
         ← Back to evaluations
       </Link>
-      <PageHeader title="New Vehicle Evaluation Report" description="Fill this once — the printable report and reference number are generated automatically." />
+      <PageHeader title="New Vehicle Evaluation Report" description="Five short steps — the printable report and reference number are generated automatically." />
 
-      <form action={createVehicleEvaluation} className="space-y-6">
-        <Card className="p-5">
-          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Customer Detail</h2>
+      <Steps
+        action={createVehicleEvaluation}
+        submitLabel="Save & generate report"
+        steps={[
+          { id: "customer", title: "Customer", description: "Who the report is for and the evaluation date." },
+          { id: "vehicle", title: "Vehicle", description: "Copy these from the registration card (Mulkiya) and the car." },
+          { id: "damage", title: "Damage", description: "Tap the diagram to mark scratches, dents or repaired areas." },
+          { id: "inspection", title: "Inspection", description: "Condition of each part. Fair and Poor are printed in red." },
+          { id: "valuation", title: "Valuation", description: "Estimated market value, valuator and the fee charged." },
+        ]}
+      >
+        <Step id="customer">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Customer / Company Name" name="customer_name" required placeholder="e.g. Indonesian Consulate General" />
             <Field label="Location" name="customer_location" placeholder="e.g. Dubai, United Arab Emirates" />
@@ -22,10 +32,9 @@ export default function NewEvaluationPage() {
             <Field label="Reference (contact person)" name="customer_ref" placeholder="e.g. Mr. Cucu" />
             <Field label="Evaluation Date" name="evaluation_date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
           </div>
-        </Card>
+        </Step>
 
-        <Card className="p-5">
-          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Description</h2>
+        <Step id="vehicle">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Make and Model" name="make_model" required placeholder="MERCEDES-BENZ E300" />
             <Field label="Registration No." name="registration_no" placeholder="CC-2195(CONSULATE DXB)" />
@@ -48,17 +57,13 @@ export default function NewEvaluationPage() {
             <Field label="Gross Vehicle Weight" name="gross_weight" placeholder="2750 K" />
             <Field label="Remote" name="remote" placeholder="YES, PUSH START" />
           </div>
-        </Card>
+        </Step>
 
-        <Card className="p-5">
-          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Damage Diagram</h2>
+        <Step id="damage">
           <CarDiagramMarkerInput />
-        </Card>
+        </Step>
 
-        <Card className="p-5">
-          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">
-            The Inspection Reveals the Following
-          </h2>
+        <Step id="inspection">
           <div className="space-y-3">
             {DEFAULT_INSPECTION_PARTICULARS.map((particular, i) => (
               <div key={particular} className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-2 sm:items-center border-b border-zinc-100 pb-3 last:border-0 last:pb-0">
@@ -91,20 +96,18 @@ export default function NewEvaluationPage() {
               </div>
             ))}
           </div>
-        </Card>
+        </Step>
 
-        <Card className="p-5">
-          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Valuation</h2>
+        <Step id="valuation">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Estimated Value — Min (AED)" name="estimated_value_min" type="number" placeholder="15000" />
             <Field label="Estimated Value — Max (AED)" name="estimated_value_max" type="number" placeholder="18000" />
             <Field label="Name of Valuator" name="valuator_name" placeholder="Muhammad Akmal Butt" />
             <Field label="Fee Charged (AED)" name="fee_amount" type="number" placeholder="300" />
           </div>
-        </Card>
+        </Step>
 
-        <PrimaryButton type="submit">Save & Generate Report</PrimaryButton>
-      </form>
+      </Steps>
     </div>
   );
 }

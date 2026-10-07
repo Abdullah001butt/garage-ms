@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { NavGroup } from "@/lib/nav-data";
 
-function isActive(pathname: string, href: string) {
+function matches(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -12,6 +12,11 @@ function isActive(pathname: string, href: string) {
 // a clear active state so you always know which page you're on.
 export function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => void }) {
   const pathname = usePathname();
+  // The most specific match wins, so /staff/salaries highlights "Salaries", not "Staff".
+  const activeHref = groups
+    .flatMap((g) => g.items.map((i) => i.href))
+    .filter((href) => matches(pathname, href))
+    .sort((a, b) => b.length - a.length)[0];
 
   return (
     <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
@@ -20,7 +25,7 @@ export function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigat
           <p className="px-2.5 mb-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400">{group.label}</p>
           <div className="space-y-px">
             {group.items.map((item) => {
-              const active = isActive(pathname, item.href);
+              const active = item.href === activeHref;
               return (
                 <Link
                   key={item.href}

@@ -13,6 +13,8 @@ export type Customer = {
   representative: string | null;
   reference_name: string | null;
   notes: string | null;
+  /** The shared "Walk-in customer" used for counter sales. */
+  is_walk_in?: boolean;
   created_at: string;
 };
 
@@ -347,5 +349,56 @@ export type Appointment = {
   notes: string | null;
   status: AppointmentStatus;
   booked_online: boolean;
+  created_at: string;
+};
+
+export type StaffAdvance = {
+  id: string;
+  profile_id: string;
+  amount: number;
+  advance_date: string;
+  note: string | null;
+  expense_id: string | null;
+  created_at: string;
+};
+
+export type SalaryPayment = {
+  id: string;
+  profile_id: string;
+  month: string;
+  base_salary: number;
+  working_days: number;
+  absent_days: number;
+  absence_deduction: number;
+  advances: number;
+  bonus: number;
+  other_deduction: number;
+  net_pay: number;
+  method: string;
+  note: string | null;
+  expense_id: string | null;
+  paid_at: string;
+};
+
+export type Supplier = {
+  id: string;
+  name: string;
+  phone: string | null;
+  contact_person: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type SupplierEntryKind = "purchase" | "payment";
+
+export type SupplierEntry = {
+  id: string;
+  supplier_id: string;
+  kind: SupplierEntryKind;
+  amount: number;
+  entry_date: string;
+  reference: string | null;
+  note: string | null;
+  expense_id: string | null;
   created_at: string;
 };

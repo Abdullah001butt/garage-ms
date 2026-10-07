@@ -41,9 +41,9 @@ export const HELP_CONTENT: Record<string, HelpContent> = {
   "/jobs/new": {
     title: "New Job Card",
     steps: [
-      "Choose the car from the list (search by plate number).",
-      "Type what work needs to be done, or tap a quick template button to fill it in automatically.",
-      "Tap \"Create Job Card\" to save.",
+      "Step 1: choose the car from the list (search by plate number).",
+      "Step 2: type what work needs to be done, or tap a quick template button to fill it in.",
+      "Step 3: add the mechanic and odometer, check the summary, then tap \"Create job card\".",
     ],
   },
   "/appointments": {
@@ -156,7 +156,8 @@ export const HELP_CONTENT: Record<string, HelpContent> = {
     steps: [
       "This is where your shop's name, address, and invoice details are set up.",
       "You usually only need to change this once — it's used on every invoice.",
-      "Scroll down to manage company vehicles and holidays too.",
+      "Go through the numbered sections on the left (or the tabs on top on a phone) — Back and Next move between them.",
+      "Add Fridays and public holidays under Working calendar so salaries count the right working days.",
     ],
   },
   "/staff": {
@@ -165,6 +166,45 @@ export const HELP_CONTENT: Record<string, HelpContent> = {
       "This page lists everyone with an account in the system.",
       "Set each person's role and monthly salary here.",
       "Tap \"Attendance & Salary\" to record daily attendance and calculate pay.",
+    ],
+  },
+  "/staff/salaries": {
+    title: "Salaries",
+    steps: [
+      "Each person's pay = monthly salary, minus a day's pay for each absent day, minus cash advances.",
+      "Tap \"Give advance\" whenever someone takes cash during the month — it is saved as an expense and taken off their salary.",
+      "At month end, use ⋯ → Pay salary on each row, then ⋯ → Payslip to print it for signature.",
+    ],
+  },
+  "/suppliers": {
+    title: "Suppliers",
+    steps: [
+      "Track parts shops you buy from on credit, and how much you still owe each one.",
+      "Open a supplier and tap \"Purchase\" when you take parts on credit, and \"Pay\" when you pay them.",
+      "Payments are added to Expenses automatically (untick the box if you already entered it there).",
+    ],
+  },
+  "/counter-sale": {
+    title: "Counter Sale",
+    steps: [
+      "Sell oil, filters or any part over the counter without a job card.",
+      "Tap parts to add them (or scan the barcode), change quantity or price, choose how they paid, then Complete sale.",
+      "Stock goes down and the cash shows in today's reports. Print the receipt from the next page.",
+    ],
+  },
+  "/customers/new": {
+    title: "Add Customer",
+    steps: [
+      "Step 1: choose Individual or Company and enter their name and mobile number.",
+      "Step 2: add their car (optional — press Next to skip).",
+      "Step 3: check everything and tap \"Save customer\".",
+    ],
+  },
+  "/evaluations/new": {
+    title: "New Vehicle Evaluation",
+    steps: [
+      "Five short steps: customer, vehicle details, damage diagram, inspection, valuation.",
+      "Use Back and Next at the bottom, or tap a finished step at the top to go back to it.",
     ],
   },
   "/audit-log": {

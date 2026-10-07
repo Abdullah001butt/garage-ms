@@ -8,7 +8,7 @@ import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, Field, la
 import { RowMenu, RowMenuDelete, RowMenuOpenPanel, RowMenuSeparator } from "@/components/RowMenu";
 import { SlideOver } from "@/components/SlideOver";
 
-const CATEGORIES = ["Rent", "Utilities", "Salaries", "Tools & Equipment", "Marketing", "Other"];
+const CATEGORIES = ["Rent", "Utilities", "Salaries", "Parts & Supplies", "Tools & Equipment", "Marketing", "Other"];
 
 export default async function ExpensesPage({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
   const { new: newParam } = await searchParams;

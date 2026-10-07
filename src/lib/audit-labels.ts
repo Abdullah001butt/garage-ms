@@ -39,6 +39,17 @@ export const ACTION_LABEL: Record<string, string> = {
   "vehicle.delete": "Deleted vehicle",
   "vehicle_evaluation.create": "Created vehicle evaluation",
   "vehicle_evaluation.delete": "Deleted vehicle evaluation",
+  "staff.advance_add": "Gave staff cash advance",
+  "staff.advance_delete": "Removed staff cash advance",
+  "salary.pay": "Paid salary",
+  "salary.undo": "Undid salary payment",
+  "supplier.create": "Added supplier",
+  "supplier.update": "Updated supplier",
+  "supplier.delete": "Deleted supplier",
+  "supplier.purchase": "Recorded supplier purchase",
+  "supplier.payment": "Paid supplier",
+  "supplier.entry_delete": "Removed supplier entry",
+  "counter_sale.create": "Counter sale",
 };
 
 /** "customer.update" -> "Updated customer details"; falls back to a readable version of the key. */

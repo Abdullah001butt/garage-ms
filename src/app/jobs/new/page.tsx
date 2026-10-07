@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createJobCard } from "@/app/jobs/actions";
-import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass, Alert } from "@/components/ui";
+import { PageHeader, Field, labelClass, inputClass, Alert } from "@/components/ui";
+import { Steps, Step } from "@/components/Steps";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
 import { JobDescriptionField } from "@/components/JobDescriptionField";
 import type { JobTemplate } from "@/lib/types";
@@ -56,11 +57,20 @@ export default async function NewJobCardPage() {
         </Alert>
       )}
 
-      <Card className="p-5">
-        <form action={createJobCard} className="space-y-4">
+      <Steps
+        action={createJobCard}
+        submitLabel="Create job card"
+        review
+        steps={[
+          { id: "vehicle", title: "Vehicle", description: "Which car is in for service? It brings the customer with it." },
+          { id: "work", title: "Work needed", description: "What the customer asked for. Pick a template to fill it in quickly." },
+          { id: "assign", title: "Assign & save", description: "Who is working on it and the current odometer reading." },
+        ]}
+      >
+        <Step id="vehicle">
           <label className="block">
             <span className={labelClass}>
-              Vehicle <span className="text-red-500">*</span>
+              Vehicle <span className="text-brand-600">*</span>
             </span>
             <select name="vehicle_customer" required className={inputClass}>
               <option value="">Select a vehicle...</option>
@@ -76,18 +86,25 @@ export default async function NewJobCardPage() {
                 );
               })}
             </select>
+            <span className="mt-1.5 block text-xs text-zinc-500">
+              New car or customer?{" "}
+              <Link href="/customers/new" className="font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900">
+                Add them first
+              </Link>
+              .
+            </span>
           </label>
+        </Step>
 
+        <Step id="work">
           <JobDescriptionField templates={templates ?? []} />
+        </Step>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Mechanic" name="mechanic_name" />
-            <Field label="Odometer" name="odometer" type="number" />
-          </div>
-
-          <PrimaryButton type="submit">Create Job Card</PrimaryButton>
-        </form>
-      </Card>
+        <Step id="assign" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Mechanic" name="mechanic_name" />
+          <Field label="Odometer" name="odometer" type="number" />
+        </Step>
+      </Steps>
     </div>
   );
 }
