@@ -4,6 +4,8 @@ import { formatDate } from "@/lib/format";
 import { useState } from "react";
 import type { InvoiceItem, ShopSettings } from "@/lib/types";
 import { FitToWidth } from "@/components/FitToWidth";
+import { InlineEdit } from "@/components/InlineEdit";
+import type { InlineResult } from "@/app/inline-actions";
 
 type Customer = {
   name: string;
@@ -38,6 +40,8 @@ export function ClassicInvoiceTemplate({
   vehicle,
   jobDescription,
   onDeleteItem,
+  onEditItem,
+  linesLocked = false,
   invoiceNumber,
   showVat: showVatProp,
   driverName,
@@ -53,6 +57,9 @@ export function ClassicInvoiceTemplate({
   vehicle: VehicleInfo;
   jobDescription: string | null;
   onDeleteItem: (itemId: string) => void | Promise<void>;
+  /** Click-to-edit for lines (omitted or locked → read-only). */
+  onEditItem?: (itemId: string, field: "description" | "quantity" | "unit_price", raw: string) => Promise<InlineResult>;
+  linesLocked?: boolean;
   invoiceNumber?: string | null;
   /** When given, the VAT switch lives outside (InvoiceDesign) and this template follows it. */
   showVat?: boolean;
@@ -149,9 +156,11 @@ export function ClassicInvoiceTemplate({
               const warrantyActive = warrantyUntil && warrantyUntil.getTime() > Date.now();
               return (
                 <tr key={item.id} className={i % 2 === 0 ? "bg-red-50" : ""}>
-                  <td className="py-1.5">{item.quantity}</td>
                   <td className="py-1.5">
-                    {item.description}
+                    {onEditItem ? <InlineEdit label="Quantity" kind="number" value={String(item.quantity)} disabled={linesLocked} action={(raw) => onEditItem(item.id, "quantity", raw)} /> : item.quantity}
+                  </td>
+                  <td className="py-1.5">
+                    {onEditItem ? <InlineEdit label="Description" value={item.description} disabled={linesLocked} action={(raw) => onEditItem(item.id, "description", raw)} /> : item.description}
                     {warrantyUntil && (
                       <p className={`text-[10px] ${warrantyActive ? "text-emerald-600" : "text-zinc-400"}`}>
                         {item.warranty_days}-day warranty{" "}
@@ -159,7 +168,13 @@ export function ClassicInvoiceTemplate({
                       </p>
                     )}
                   </td>
-                  <td className="py-1.5 text-right">{item.unit_price.toFixed(2)}</td>
+                  <td className="py-1.5 text-right">
+                    {onEditItem ? (
+                      <InlineEdit label="Unit price" kind="number" align="right" value={item.unit_price.toFixed(2)} disabled={linesLocked} action={(raw) => onEditItem(item.id, "unit_price", raw)} />
+                    ) : (
+                      item.unit_price.toFixed(2)
+                    )}
+                  </td>
                   <td className="py-1.5 text-right">{(item.quantity * item.unit_price).toFixed(2)}</td>
                   <td className="py-1.5 text-right print:hidden">
                     <button

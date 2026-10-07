@@ -6,6 +6,7 @@ export const ACTION_LABEL: Record<string, string> = {
   "estimate.convert_to_invoice": "Converted estimate to invoice",
   "invoice_item.add": "Added invoice item",
   "invoice_item.delete": "Removed invoice item",
+  "invoice_item.update": "Edited invoice line",
   "invoice.discount_update": "Updated discount",
   "payment.record": "Recorded payment",
   "payment.delete": "Removed payment",

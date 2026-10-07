@@ -14,6 +14,7 @@ import { Icon } from "@/components/icons";
 import { formatInvoiceNumber } from "@/lib/invoice-number";
 import { auditLabel } from "@/lib/audit-labels";
 import { PlateBadge } from "@/components/PlateBadge";
+import { Morph } from "@/components/Morph";
 
 type JobDetail = {
   id: string;
@@ -163,12 +164,20 @@ export default async function JobDetailPage({
 
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
-          {job.vehicles && <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} size="lg" />}
+          {job.vehicles && (
+            <Morph name={`plate-job-${job.id}`}>
+              <span className="inline-flex w-fit shrink-0">
+                <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} size="lg" />
+              </span>
+            </Morph>
+          )}
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-[22px]">
-                {[job.vehicles?.make, job.vehicles?.model, job.vehicles?.year].filter(Boolean).join(" ") || "Job card"}
-              </h1>
+              <Morph name={`title-job-${job.id}`}>
+                <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-[22px]">
+                  {[job.vehicles?.make, job.vehicles?.model, job.vehicles?.year].filter(Boolean).join(" ") || "Job card"}
+                </h1>
+              </Morph>
               <Badge color={STATUS_COLOR[job.status]} dot>
                 {STATUS_LABEL[job.status]}
               </Badge>

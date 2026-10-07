@@ -13,6 +13,9 @@ export type StatItem = {
   invertDelta?: boolean;
   deltaLabel?: string;
   spark?: number[];
+  /** One label per spark point (e.g. "1–7 Sep"); enables the hover readout. */
+  sparkLabels?: string[];
+  sparkUnit?: "aed" | "count";
 };
 
 const TONE: Record<NonNullable<StatItem["tone"]>, string> = {
@@ -22,25 +25,8 @@ const TONE: Record<NonNullable<StatItem["tone"]>, string> = {
   warning: "text-amber-700",
 };
 
-/** Tiny trend line drawn on the server (no chart library needed). */
-export function Sparkline({ values, className = "", tone = "default" }: { values: number[]; className?: string; tone?: "default" | "positive" | "negative" }) {
-  if (values.length < 2) return null;
-  const w = 96;
-  const h = 28;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  const pts = values.map((v, i) => [(i / (values.length - 1)) * w, h - 2 - ((v - min) / span) * (h - 4)] as const);
-  const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const area = `${line} L${w},${h} L0,${h} Z`;
-  const stroke = tone === "negative" ? "#dc2626" : tone === "positive" ? "#059669" : "#2a78d6";
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className={`h-7 w-24 ${className}`} preserveAspectRatio="none" aria-hidden="true">
-      <path d={area} fill={stroke} opacity={0.08} />
-      <path d={line} fill="none" stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
+export { Sparkline } from "@/components/Sparkline";
+import { Sparkline } from "@/components/Sparkline";
 
 export function DeltaChip({ delta, invert = false, label }: { delta: number; invert?: boolean; label?: string }) {
   const good = invert ? delta <= 0 : delta >= 0;
@@ -70,7 +56,7 @@ export function StatStrip({ items, className = "" }: { items: StatItem[]; classN
           <p className="truncate text-[13px] font-medium text-zinc-500">{s.label}</p>
           <div className="mt-1.5 flex items-end justify-between gap-2">
             <p className={`whitespace-nowrap text-xl font-semibold tracking-tight tabular sm:text-2xl ${TONE[s.tone ?? "default"]}`}>{s.value}</p>
-            {s.spark && <Sparkline values={s.spark} className="mb-1 hidden shrink-0 xl:block" tone={s.tone === "negative" ? "negative" : "default"} />}
+            {s.spark && <Sparkline values={s.spark} labels={s.sparkLabels} unit={s.sparkUnit} className="mb-1 hidden shrink-0 xl:block" tone={s.tone === "negative" ? "negative" : "default"} />}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
             {s.delta !== undefined && s.delta !== null && <DeltaChip delta={s.delta} invert={s.invertDelta} />}

@@ -249,26 +249,104 @@ function JobView({ d }: { d: any }) {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+/** Loads the quick-view summary for one record. */
+function usePeekData(type: PeekType, id: string) {
+  const [state, setState] = useState<{ key: string; data: Record<string, unknown> | null; error: string | null }>({ key: "", data: null, error: null });
+  const key = `${type}:${id}`;
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/peek?type=${type}&id=${encodeURIComponent(id)}`)
+      .then(async (r) => {
+        const json = await r.json();
+        if (!r.ok) throw new Error(json.error ?? "Could not load");
+        if (alive) setState({ key, data: json, error: null });
+      })
+      .catch((err) => alive && setState({ key, data: null, error: err.message }));
+    return () => {
+      alive = false;
+    };
+  }, [type, id, key]);
+  // Never show the previous record's data while the next one loads.
+  return state.key === key ? state : { key, data: null, error: null };
+}
+
+/** Header, summary and actions for one record — used by the overlay and by the docked split-view pane. */
+export function PeekPanel({ type, id, onClose, docked = false }: { type: PeekType; id: string; onClose: () => void; docked?: boolean }) {
+  const { data, error } = usePeekData(type, id);
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const d = data as any;
+  const href =
+    type === "customer" ? `/customers/${id}` : type === "invoice" ? `/${d?.invoice?.document_type === "estimate" ? "estimates" : "invoices"}/${id}` : `/jobs/${id}`;
+  const title = !d ? "Loading…" : type === "customer" ? d.customer.name : type === "invoice" ? (d.invoice.document_type === "estimate" ? "Estimate" : d.invoice.number ?? "Invoice") : `${d.job.vehicles?.plate_number ?? "Job"}`;
+  const subtitle = !d
+    ? ""
+    : type === "customer"
+      ? `${d.customer.customer_type === "company" ? "Company" : "Individual"}${d.customer.city ? ` · ${d.customer.city}` : ""}`
+      : type === "invoice"
+        ? d.invoice.customers?.name
+        : [d.job.vehicles?.make, d.job.vehicles?.model].filter(Boolean).join(" ");
+  const status = d ? (type === "invoice" ? d.invoice.status : type === "job" ? d.job.status : null) : null;
+  const phone: string | undefined = d ? (type === "customer" ? d.customer.phone : type === "invoice" ? d.invoice.customers?.phone : d.job.customers?.phone) : undefined;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
+  return (
+    <>
+      <div className="flex items-start gap-3 px-5 pb-4 pt-5">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">{docked ? "Preview" : "Quick view"} · {type}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <h2 className={`truncate text-lg font-semibold text-zinc-900 ${type === "invoice" ? "font-mono" : ""}`}>{title}</h2>
+            {status && <Pill status={status} />}
+          </div>
+          {subtitle && <p className="truncate text-[13px] text-zinc-500">{subtitle}</p>}
+        </div>
+        <button type="button" onClick={onClose} aria-label="Close" className="-mr-1 rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700">
+          <Icon name="x" className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {error && <p className="mx-5 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{error}</p>}
+        {!d && !error && (
+          <div className="space-y-3 px-5">
+            <div className="skeleton h-16 rounded-lg" />
+            <div className="skeleton h-4 w-2/3 rounded" />
+            <div className="skeleton h-4 w-1/2 rounded" />
+            <div className="skeleton h-24 rounded-lg" />
+          </div>
+        )}
+        {d && (
+          <div key={id} className="peek-fade">
+            {type === "customer" && <CustomerView d={d} />}
+            {type === "invoice" && <InvoiceView d={d} />}
+            {type === "job" && <JobView d={d} />}
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-2 border-t border-zinc-200 bg-zinc-50 px-5 py-3">
+        {phone && (
+          <a href={buildWhatsAppLink(phone, "")} target="_blank" rel="noopener noreferrer" className={`${actionCls} border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50`}>
+            <Icon name="message" className="h-4 w-4 text-emerald-600" />
+            WhatsApp
+          </a>
+        )}
+        <Link href={href} onClick={docked ? undefined : onClose} className={`${actionCls} bg-zinc-900 text-white hover:bg-zinc-800`}>
+          Open full page
+          <Icon name="arrow-right" className="h-4 w-4" />
+        </Link>
+      </div>
+    </>
+  );
+}
+
 /** Mounted once in the layout; listens for openPeek() calls. */
 export function PeekHost() {
   const [target, setTarget] = useState<{ type: PeekType; id: string } | null>(null);
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const onOpen = (e: Event) => {
-      const detail = (e as CustomEvent<{ type: PeekType; id: string }>).detail;
-      setTarget(detail);
-      setData(null);
-      setError(null);
-      fetch(`/api/peek?type=${detail.type}&id=${encodeURIComponent(detail.id)}`)
-        .then(async (r) => {
-          const json = await r.json();
-          if (!r.ok) throw new Error(json.error ?? "Could not load");
-          setData(json);
-        })
-        .catch((err) => setError(err.message));
-    };
+    const onOpen = (e: Event) => setTarget((e as CustomEvent<{ type: PeekType; id: string }>).detail);
     window.addEventListener("peek:open", onOpen);
     return () => window.removeEventListener("peek:open", onOpen);
   }, []);
@@ -282,72 +360,11 @@ export function PeekHost() {
 
   if (!target) return null;
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const d = data as any;
-  const href =
-    target.type === "customer"
-      ? `/customers/${target.id}`
-      : target.type === "invoice"
-        ? `/${d?.invoice?.document_type === "estimate" ? "estimates" : "invoices"}/${target.id}`
-        : `/jobs/${target.id}`;
-  const title =
-    !d ? "Loading…" : target.type === "customer" ? d.customer.name : target.type === "invoice" ? (d.invoice.document_type === "estimate" ? "Estimate" : d.invoice.number ?? "Invoice") : `${d.job.vehicles?.plate_number ?? "Job"}`;
-  const subtitle = !d
-    ? ""
-    : target.type === "customer"
-      ? `${d.customer.customer_type === "company" ? "Company" : "Individual"}${d.customer.city ? ` · ${d.customer.city}` : ""}`
-      : target.type === "invoice"
-        ? d.invoice.customers?.name
-        : [d.job.vehicles?.make, d.job.vehicles?.model].filter(Boolean).join(" ");
-  const status = d ? (target.type === "invoice" ? d.invoice.status : target.type === "job" ? d.job.status : null) : null;
-  const phone: string | undefined = d ? (target.type === "customer" ? d.customer.phone : target.type === "invoice" ? d.invoice.customers?.phone : d.job.customers?.phone) : undefined;
-  /* eslint-enable @typescript-eslint/no-explicit-any */
-
   return createPortal(
     <div className="fixed inset-0 z-50 print:hidden" role="dialog" aria-modal="true" aria-label="Quick view">
       <div className="absolute inset-0 bg-zinc-950/30" onClick={() => setTarget(null)} />
       <aside className="slide-in-right absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl">
-        <div className="flex items-start gap-3 px-5 pb-4 pt-5">
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Quick view · {target.type}</p>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <h2 className={`truncate text-lg font-semibold text-zinc-900 ${target.type === "invoice" ? "font-mono" : ""}`}>{title}</h2>
-              {status && <Pill status={status} />}
-            </div>
-            {subtitle && <p className="truncate text-[13px] text-zinc-500">{subtitle}</p>}
-          </div>
-          <button type="button" onClick={() => setTarget(null)} aria-label="Close" className="-mr-1 rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700">
-            <Icon name="x" className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          {error && <p className="mx-5 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{error}</p>}
-          {!d && !error && (
-            <div className="space-y-3 px-5">
-              <div className="skeleton h-16 rounded-lg" />
-              <div className="skeleton h-4 w-2/3 rounded" />
-              <div className="skeleton h-4 w-1/2 rounded" />
-              <div className="skeleton h-24 rounded-lg" />
-            </div>
-          )}
-          {d && target.type === "customer" && <CustomerView d={d} />}
-          {d && target.type === "invoice" && <InvoiceView d={d} />}
-          {d && target.type === "job" && <JobView d={d} />}
-        </div>
-
-        <div className="flex gap-2 border-t border-zinc-200 bg-zinc-50 px-5 py-3">
-          {phone && (
-            <a href={buildWhatsAppLink(phone, "")} target="_blank" rel="noopener noreferrer" className={`${actionCls} border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50`}>
-              <Icon name="message" className="h-4 w-4 text-emerald-600" />
-              WhatsApp
-            </a>
-          )}
-          <Link href={href} onClick={() => setTarget(null)} className={`${actionCls} bg-zinc-900 text-white hover:bg-zinc-800`}>
-            Open full page
-            <Icon name="arrow-right" className="h-4 w-4" />
-          </Link>
-        </div>
+        <PeekPanel type={target.type} id={target.id} onClose={() => setTarget(null)} />
       </aside>
     </div>,
     document.body

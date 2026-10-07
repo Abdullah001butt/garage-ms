@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    // Lets <ViewTransition> animate route changes (job card → job page morphs).
+    viewTransition: true,
+  },
 };
 
 export default nextConfig;

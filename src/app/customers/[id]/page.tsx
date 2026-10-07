@@ -1,3 +1,4 @@
+import { Morph } from "@/components/Morph";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -235,16 +236,20 @@ export default async function CustomerDetailPage({
 
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3.5">
-          <span
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${
-              isCompany ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500"
-            }`}
-          >
-            <Icon name={isCompany ? "building" : "user"} className="h-5 w-5" />
-          </span>
+          <Morph name={`cust-icon-${customer.id}`}>
+            <span
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${
+                isCompany ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500"
+              }`}
+            >
+              <Icon name={isCompany ? "building" : "user"} className="h-5 w-5" />
+            </span>
+          </Morph>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-[22px]">{customer.name}</h1>
+              <Morph name={`cust-${customer.id}`}>
+                <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-[22px]">{customer.name}</h1>
+              </Morph>
               <Badge color={isCompany ? "indigo" : "slate"}>{isCompany ? "Company" : parentCompany ? "Employee" : "Individual"}</Badge>
               {isCompany && employees.length > 0 && <Badge color="slate">{employees.length} employees</Badge>}
             </div>

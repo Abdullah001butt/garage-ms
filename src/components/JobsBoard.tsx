@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { useToast } from "@/components/Toast";
 import { PeekButton } from "@/components/Peek";
 import { PlateBadge } from "@/components/PlateBadge";
+import { Morph } from "@/components/Morph";
 import { Icon } from "@/components/icons";
 import type { JobStatus } from "@/lib/types";
 
@@ -141,7 +142,13 @@ export function JobsBoard({
                   >
                     <Link href={`/jobs/${job.id}`} className="block">
                       <div className="flex items-start justify-between gap-2">
-                        {job.vehicles && <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />}
+                        {job.vehicles && (
+                          <Morph name={`plate-job-${job.id}`}>
+                            <span className="inline-flex">
+                              <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />
+                            </span>
+                          </Morph>
+                        )}
                         <span className="flex items-center gap-1">
                           <span className="text-[11px] text-zinc-400 tabular">{age(job.created_at)}</span>
                           <span className="-mr-1.5 -mt-1 opacity-100 transition-opacity md:opacity-0 md:group-hover/card:opacity-100">
@@ -149,9 +156,11 @@ export function JobsBoard({
                           </span>
                         </span>
                       </div>
-                      <p className="mt-2 truncate text-sm font-medium text-zinc-900">
-                        {[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "Vehicle"}
-                      </p>
+                      <Morph name={`title-job-${job.id}`}>
+                        <p className="mt-2 w-fit max-w-full truncate text-sm font-medium text-zinc-900">
+                          {[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "Vehicle"}
+                        </p>
+                      </Morph>
                       <p className="truncate text-xs text-zinc-500">{job.customers?.name}</p>
                       <p className="mt-1.5 line-clamp-2 text-xs text-zinc-600">{job.description}</p>
                     </Link>

@@ -10,6 +10,7 @@ export function SortHeader({
   href,
   align = "left",
   className = "",
+  splitHide = false,
   defaultDir = "desc",
 }: {
   label: string;
@@ -20,12 +21,14 @@ export function SortHeader({
   href: (sort: string, dir: "asc" | "desc") => string;
   align?: "left" | "right";
   className?: string;
+  /** Hide this column while the split-view pane is open. */
+  splitHide?: boolean;
   defaultDir?: "asc" | "desc";
 }) {
   const active = sort === field;
   const nextDir: "asc" | "desc" = active ? (dir === "asc" ? "desc" : "asc") : defaultDir;
   return (
-    <th className={`${thClass} ${align === "right" ? "text-right" : ""} ${className}`} aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : undefined}>
+    <th data-split-hide={splitHide || undefined} className={`${thClass} ${align === "right" ? "text-right" : ""} ${className}`} aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : undefined}>
       <Link
         href={href(field, nextDir)}
         scroll={false}

@@ -1,5 +1,5 @@
 import { dayKey, formatDateTime } from "@/lib/format";
-import { buckets, inRange, resolveRange } from "@/lib/date-range";
+import { buckets, inRange, resolveRange, spanLabel } from "@/lib/date-range";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { StatStrip, pctChange } from "@/components/report-ui";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +8,13 @@ import { Icon, type IconName } from "@/components/icons";
 import { MonthlyTrendChart, type MonthlyTrendPoint } from "@/components/MonthlyTrendChart";
 import { GenerateInsightsButton } from "@/components/GenerateInsightsButton";
 import { generateAndSaveWeeklyInsights } from "@/app/dashboard/insights-actions";
+import { saveDashboardLayout } from "@/app/dashboard/layout-actions";
+import { CustomizeDashboardButton, DashboardGrid, type DashboardWidget } from "@/components/DashboardGrid";
+import { defaultLayout, resolveLayout } from "@/lib/dashboard-layout";
+import { invoiceFigures } from "@/lib/invoice-math";
+import { formatInvoiceNumber } from "@/lib/invoice-number";
+import { PlateBadge } from "@/components/PlateBadge";
+import Link from "next/link";
 
 type InvoiceRow = {
   id: string;
@@ -29,11 +36,52 @@ type JobRow = {
   completed_at: string | null;
 };
 
+type OwingRow = {
+  id: string;
+  vat_rate: number;
+  discount: number;
+  customers: { id: string; name: string } | null;
+  invoice_items: { quantity: number; unit_price: number }[];
+  payments: { amount: number }[];
+  credit_notes: { amount: number }[];
+};
+type RecentPaymentRow = {
+  id: string;
+  amount: number;
+  method: string;
+  paid_at: string;
+  invoices: { id: string; invoice_number: number | null; created_at: string; customers: { name: string } | null } | null;
+};
+type OpenJobRow = {
+  id: string;
+  status: "pending" | "in_progress";
+  description: string;
+  created_at: string;
+  vehicles: { plate_number: string; emirate: string; make: string | null; model: string | null } | null;
+  customers: { name: string } | null;
+};
+
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ range?: string; from?: string; to?: string }> }) {
   const range = resolveRange(await searchParams, "month");
   const supabase = await createClient();
 
-  const [{ data: invoices }, { data: jobs }, { data: expenses }, { data: parts }, { data: pos }, { data: payments }, { data: latestInsight }, { data: customers }] =
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const [
+    { data: invoices },
+    { data: jobs },
+    { data: expenses },
+    { data: parts },
+    { data: pos },
+    { data: payments },
+    { data: latestInsight },
+    { data: customers },
+    { data: prefs },
+    { data: owing },
+    { data: recentPayments },
+    { data: openJobs },
+  ] =
     await Promise.all([
       supabase
         .from("invoices")
@@ -41,11 +89,31 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         .returns<InvoiceRow[]>(),
       supabase.from("job_cards").select("id, status, mechanic_name, created_at, completed_at").returns<JobRow[]>(),
       supabase.from("expenses").select("amount, expense_date"),
-      supabase.from("parts").select("id, stock_qty, reorder_threshold"),
+      supabase.from("parts").select("id, name, stock_qty, reorder_threshold"),
       supabase.from("purchase_orders").select("id, status"),
       supabase.from("payments").select("amount, paid_at"),
       supabase.from("weekly_insights").select("content, created_at").order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("customers").select("id, created_at"),
+      supabase.from("user_preferences").select("dashboard_layout").eq("user_id", user?.id ?? "").maybeSingle(),
+      supabase
+        .from("invoices")
+        .select("id, vat_rate, discount, customers(id, name), invoice_items(quantity, unit_price), payments(amount), credit_notes(amount)")
+        .eq("document_type", "invoice")
+        .in("status", ["unpaid", "partial"])
+        .returns<OwingRow[]>(),
+      supabase
+        .from("payments")
+        .select("id, amount, method, paid_at, invoices(id, invoice_number, created_at, customers(name))")
+        .order("paid_at", { ascending: false })
+        .limit(6)
+        .returns<RecentPaymentRow[]>(),
+      supabase
+        .from("job_cards")
+        .select("id, status, description, created_at, vehicles(plate_number, emirate, make, model), customers(name)")
+        .neq("status", "completed")
+        .order("created_at", { ascending: false })
+        .limit(6)
+        .returns<OpenJobRow[]>(),
     ]);
 
   const realInvoices = (invoices ?? []).filter((i) => i.document_type === "invoice");
@@ -66,6 +134,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const now = metrics(range.from, range.to);
   const prev = metrics(range.prevFrom, range.prevTo);
   const spark = (pick: (m: ReturnType<typeof metrics>) => number) => buckets(range.from, range.to).map((b) => pick(metrics(b.from, b.to)));
+  const sparkLabels = buckets(range.from, range.to).map((b) => spanLabel(b.from, b.to));
 
   const laborTotal = now.issued.reduce((s, i) => s + lineTotal(i, "labor"), 0);
   const partsTotal = now.issued.reduce((s, i) => s + lineTotal(i, "part"), 0);
@@ -117,6 +186,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const m = metrics(`${key}-01`, last);
     return {
       month: key,
+      from: `${key}-01`,
+      to: last,
       label: `${MONTH_LABELS[d.getUTCMonth()]} ${String(d.getUTCFullYear()).slice(2)}`,
       revenue: Math.round(m.revenue),
       expenses: Math.round(m.spent),
@@ -124,57 +195,86 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     };
   });
 
+  const owedByCustomer = new Map<string, { name: string; balance: number; invoices: number }>();
+  for (const inv of owing ?? []) {
+    const bal = invoiceFigures(inv).balance;
+    if (bal <= 0.01 || !inv.customers) continue;
+    const e = owedByCustomer.get(inv.customers.id) ?? { name: inv.customers.name, balance: 0, invoices: 0 };
+    e.balance += bal;
+    e.invoices += 1;
+    owedByCustomer.set(inv.customers.id, e);
+  }
+  const owedRows = [...owedByCustomer.entries()].sort((a, b) => b[1].balance - a[1].balance);
+  const owedTotal = owedRows.reduce((sum, [, r]) => sum + r.balance, 0);
+  const lowParts = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold).sort((a, b) => a.stock_qty - b.stock_qty);
+
   const mixTotal = laborTotal + partsTotal + serviceTotal;
   const totalJobs = jobCounts.pending + jobCounts.in_progress + jobCounts.completed;
   const vs = range.compareLabel;
 
-  return (
-    <div className="page">
-      <PageHeader
-        title="Dashboard"
-        description={`Business performance · ${range.label}`}
-        action={
-          <DateRangePicker range={range} basePath="/dashboard">
-            <a href={`/reports/monthly-summary/export?month=${range.to.slice(0, 7)}`}>
-              <SecondaryButton type="button" icon="download">
-                Export
-              </SecondaryButton>
-            </a>
-          </DateRangePicker>
-        }
-      />
-
-      <StatStrip
-        items={[
-          { label: "Revenue", value: aed(now.revenue), delta: pctChange(now.revenue, prev.revenue), deltaLabel: vs, spark: spark((m) => m.revenue) },
-          { label: "Expenses", value: aed(now.spent), delta: pctChange(now.spent, prev.spent), invertDelta: true, deltaLabel: vs, spark: spark((m) => m.spent) },
-          {
-            label: "Net profit",
-            value: aed(now.net),
-            tone: now.net >= 0 ? "positive" : "negative",
-            delta: pctChange(now.net, prev.net),
-            deltaLabel: vs,
-            spark: spark((m) => m.net),
-          },
-          { label: "Average repair order", value: aed(now.aro), delta: pctChange(now.aro, prev.aro), hint: `${now.issued.length} invoices`, spark: spark((m) => m.issued.length) },
-        ]}
-      />
-
-      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MiniStat icon="wrench" label="Jobs completed" value={String(now.completed)} hint={`${prev.completed} previous period · ${activeJobs} open now`} />
-        <MiniStat icon="user" label="New customers" value={String(now.newCustomers)} hint={`${prev.newCustomers} in previous period`} />
-        <MiniStat icon="package" label="Low stock parts" value={String(lowStockCount)} hint="At or below reorder level" warn={lowStockCount > 0} />
-        <MiniStat icon="trending" label="Shop utilisation" value={`${utilization}%`} hint={`${pendingPOs} open purchase orders`} />
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Panel title="Revenue vs expenses" action={<span className="text-xs text-zinc-500">Last 6 months</span>} className="lg:col-span-2">
+  const widgets: DashboardWidget[] = [
+    {
+      id: "kpis",
+      title: "Key numbers",
+      description: "Revenue, expenses, profit and average order",
+      sizes: [6],
+      size: 6,
+      node: (
+        <StatStrip
+          items={[
+            { label: "Revenue", value: aed(now.revenue), delta: pctChange(now.revenue, prev.revenue), deltaLabel: vs, spark: spark((m) => m.revenue), sparkLabels },
+            { label: "Expenses", value: aed(now.spent), delta: pctChange(now.spent, prev.spent), invertDelta: true, deltaLabel: vs, spark: spark((m) => m.spent), sparkLabels },
+            {
+              label: "Net profit",
+              value: aed(now.net),
+              tone: now.net >= 0 ? "positive" : "negative",
+              delta: pctChange(now.net, prev.net),
+              deltaLabel: vs,
+              spark: spark((m) => m.net),
+              sparkLabels,
+            },
+            { label: "Average repair order", value: aed(now.aro), delta: pctChange(now.aro, prev.aro), hint: `${now.issued.length} invoices`, spark: spark((m) => m.aro), sparkLabels },
+          ]}
+        />
+      ),
+    },
+    {
+      id: "tiles",
+      title: "Quick stats",
+      description: "Jobs done, new customers, low stock, utilisation",
+      sizes: [3, 6],
+      size: 6,
+      node: (
+        <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-4">
+          <MiniStat icon="wrench" label="Jobs completed" value={String(now.completed)} hint={`${prev.completed} previous period · ${activeJobs} open now`} />
+          <MiniStat icon="user" label="New customers" value={String(now.newCustomers)} hint={`${prev.newCustomers} in previous period`} />
+          <MiniStat icon="package" label="Low stock parts" value={String(lowStockCount)} hint="At or below reorder level" warn={lowStockCount > 0} />
+          <MiniStat icon="trending" label="Shop utilisation" value={`${utilization}%`} hint={`${pendingPOs} open purchase orders`} />
+        </div>
+      ),
+    },
+    {
+      id: "trend",
+      title: "Revenue vs expenses",
+      description: "Six-month chart — click a month for details",
+      sizes: [3, 4, 6],
+      size: 4,
+      node: (
+        <Panel title="Revenue vs expenses" action={<span className="text-xs text-zinc-500">Last 6 months</span>} className="h-full">
           <div className="p-4">
             <MonthlyTrendChart data={monthlyTrend} />
           </div>
         </Panel>
-
-        <Panel title="Revenue mix" action={<span className="text-xs text-zinc-500">Invoices in period</span>}>
+      ),
+    },
+    {
+      id: "mix",
+      title: "Revenue mix",
+      description: "Labour, parts and services, plus the job pipeline",
+      sizes: [2, 3],
+      size: 2,
+      node: (
+        <Panel title="Revenue mix" action={<span className="text-xs text-zinc-500">Invoices in period</span>} className="h-full">
           <div className="space-y-4 p-4">
             <p className="text-2xl font-semibold tracking-tight text-zinc-900 tabular">{aed(mixTotal)}</p>
             <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100">
@@ -201,10 +301,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             </div>
           </div>
         </Panel>
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Panel title="Technician performance" action={<span className="text-xs text-zinc-500">In period</span>}>
+      ),
+    },
+    {
+      id: "techs",
+      title: "Technician performance",
+      description: "Jobs finished and average time per mechanic",
+      sizes: [2, 3, 6],
+      size: 2,
+      node: (
+        <Panel title="Technician performance" action={<span className="text-xs text-zinc-500">In period</span>} className="h-full">
           {mechanicRows.length === 0 ? (
             <PanelEmpty message="No completed jobs with a mechanic in this period." />
           ) : (
@@ -230,26 +336,202 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             </table>
           )}
         </Panel>
-
-        <TopCustomersPanel title="Top customers · this period" rows={topCustomersPeriod} empty="No invoices in this period." />
-        <TopCustomersPanel title="Top customers · all time" rows={topCustomersAllTime} empty="No invoices yet." />
-      </div>
-
-      <Panel title="Weekly summary" className="mt-6" action={<GenerateInsightsButton action={generateAndSaveWeeklyInsights} />}>
-        {latestInsight ? (
-          <div className="flex gap-3 p-4">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-500">
-              <Icon name="sparkles" className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-sm leading-relaxed text-zinc-700">{latestInsight.content}</p>
-              <p className="mt-2 text-xs text-zinc-400">Generated {formatDateTime(latestInsight.created_at)}</p>
+      ),
+    },
+    {
+      id: "top-period",
+      title: "Top customers · this period",
+      description: "Biggest spenders in the chosen dates",
+      sizes: [2, 3],
+      size: 2,
+      node: <TopCustomersPanel title="Top customers · this period" rows={topCustomersPeriod} empty="No invoices in this period." />,
+    },
+    {
+      id: "top-all",
+      title: "Top customers · all time",
+      description: "Your most valuable customers ever",
+      sizes: [2, 3],
+      size: 2,
+      node: <TopCustomersPanel title="Top customers · all time" rows={topCustomersAllTime} empty="No invoices yet." />,
+    },
+    {
+      id: "insights",
+      title: "Weekly summary",
+      description: "AI-written overview of the week",
+      sizes: [3, 4, 6],
+      size: 6,
+      node: (
+        <Panel title="Weekly summary" className="h-full" action={<GenerateInsightsButton action={generateAndSaveWeeklyInsights} />}>
+          {latestInsight ? (
+            <div className="flex gap-3 p-4">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-500">
+                <Icon name="sparkles" className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm leading-relaxed text-zinc-700">{latestInsight.content}</p>
+                <p className="mt-2 text-xs text-zinc-400">Generated {formatDateTime(latestInsight.created_at)}</p>
+              </div>
             </div>
+          ) : (
+            <PanelEmpty message="No summary yet. Generate one for an AI-written overview of this week's business." />
+          )}
+        </Panel>
+      ),
+    },
+    {
+      id: "owed",
+      title: "Money owed to you",
+      description: "Customers with unpaid balances, biggest first",
+      sizes: [2, 3, 6],
+      size: 3,
+      hidden: true,
+      node: (
+        <Panel title="Money owed to you" count={owedRows.length} className="h-full" action={<Link href="/reports/outstanding-dues" className="font-medium text-zinc-500 hover:text-zinc-900">View all</Link>}>
+          <div className="border-b border-zinc-100 px-4 py-3">
+            <p className="text-xs text-zinc-500">Total outstanding</p>
+            <p className="text-xl font-semibold tracking-tight text-red-700 tabular">{aed(owedTotal)}</p>
           </div>
-        ) : (
-          <PanelEmpty message="No summary yet. Generate one for an AI-written overview of this week's business." />
-        )}
-      </Panel>
+          {owedRows.length === 0 ? (
+            <PanelEmpty message="Nobody owes you anything right now." />
+          ) : (
+            <ol className="divide-y divide-zinc-100">
+              {owedRows.slice(0, 5).map(([id, r]) => (
+                <li key={id}>
+                  <Link href={`/customers/${id}`} className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-zinc-50">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium text-zinc-900">{r.name}</span>
+                      <span className="block text-[11px] text-zinc-500">
+                        {r.invoices} invoice{r.invoices > 1 ? "s" : ""}
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-medium text-red-700 tabular">{aed(r.balance)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
+        </Panel>
+      ),
+    },
+    {
+      id: "lowstock",
+      title: "Low stock",
+      description: "Parts at or below their reorder level",
+      sizes: [2, 3],
+      size: 3,
+      hidden: true,
+      node: (
+        <Panel title="Low stock" count={lowParts.length} className="h-full" action={<Link href="/inventory" className="font-medium text-zinc-500 hover:text-zinc-900">Parts stock</Link>}>
+          {lowParts.length === 0 ? (
+            <PanelEmpty message="Everything is above its reorder level." />
+          ) : (
+            <ul className="divide-y divide-zinc-100">
+              {lowParts.slice(0, 6).map((p) => (
+                <li key={p.id}>
+                  <Link href={`/inventory/${p.id}`} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-zinc-50">
+                    <span className="min-w-0 truncate font-medium text-zinc-900">{p.name}</span>
+                    <span
+                      className={`shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium tabular ring-1 ring-inset ${
+                        p.stock_qty <= 0 ? "bg-red-50 text-red-700 ring-red-200" : "bg-amber-50 text-amber-800 ring-amber-200"
+                      }`}
+                    >
+                      {p.stock_qty} left · reorder at {p.reorder_threshold}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      ),
+    },
+    {
+      id: "payments",
+      title: "Recent payments",
+      description: "The latest money received",
+      sizes: [2, 3],
+      size: 3,
+      hidden: true,
+      node: (
+        <Panel title="Recent payments" className="h-full" action={<Link href="/reports/daily-cashflow" className="font-medium text-zinc-500 hover:text-zinc-900">Cash flow</Link>}>
+          {(recentPayments ?? []).length === 0 ? (
+            <PanelEmpty message="No payments yet." />
+          ) : (
+            <ul className="divide-y divide-zinc-100">
+              {(recentPayments ?? []).map((pay) => (
+                <li key={pay.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-zinc-900">{pay.invoices?.customers?.name ?? "Payment"}</span>
+                    <span className="block text-[11px] text-zinc-500">
+                      {formatDateTime(pay.paid_at)} · <span className="capitalize">{pay.method.replace("_", " ")}</span>
+                      {pay.invoices && <span className="font-mono"> · {formatInvoiceNumber(pay.invoices.invoice_number, pay.invoices.created_at)}</span>}
+                    </span>
+                  </span>
+                  <span className={`shrink-0 font-medium tabular ${Number(pay.amount) < 0 ? "text-red-700" : "text-emerald-700"}`}>{aed(Number(pay.amount))}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      ),
+    },
+    {
+      id: "openjobs",
+      title: "Open jobs",
+      description: "Cars in the workshop right now",
+      sizes: [2, 3, 6],
+      size: 3,
+      hidden: true,
+      node: (
+        <Panel title="Open jobs" count={activeJobs} className="h-full" action={<Link href="/jobs" className="font-medium text-zinc-500 hover:text-zinc-900">Job board</Link>}>
+          {(openJobs ?? []).length === 0 ? (
+            <PanelEmpty message="No cars in the workshop." />
+          ) : (
+            <ul className="divide-y divide-zinc-100">
+              {(openJobs ?? []).map((j) => (
+                <li key={j.id}>
+                  <Link href={`/jobs/${j.id}`} className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-zinc-50">
+                    {j.vehicles && <PlateBadge plateNumber={j.vehicles.plate_number} emirate={j.vehicles.emirate} />}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium text-zinc-900">{[j.vehicles?.make, j.vehicles?.model].filter(Boolean).join(" ") || "Vehicle"}</span>
+                      <span className="block truncate text-[11px] text-zinc-500">{j.customers?.name}</span>
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium ring-1 ring-inset ${
+                        j.status === "in_progress" ? "bg-amber-50 text-amber-800 ring-amber-200" : "bg-zinc-100 text-zinc-700 ring-zinc-200"
+                      }`}
+                    >
+                      {j.status === "in_progress" ? "In progress" : "Pending"}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      ),
+    },
+  ];
+  const specs = widgets.map((w) => ({ id: w.id, title: w.title, description: w.description, sizes: w.sizes, size: w.size, hidden: w.hidden }));
+
+  return (
+    <div className="page">
+      <PageHeader
+        title="Dashboard"
+        description={`Business performance · ${range.label}`}
+        action={
+          <DateRangePicker range={range} basePath="/dashboard">
+            <a href={`/reports/monthly-summary/export?month=${range.to.slice(0, 7)}`}>
+              <SecondaryButton type="button" icon="download">
+                Export
+              </SecondaryButton>
+            </a>
+            <CustomizeDashboardButton />
+          </DateRangePicker>
+        }
+      />
+
+      <DashboardGrid widgets={widgets} initial={resolveLayout(specs, prefs?.dashboard_layout ?? null)} defaults={defaultLayout(specs)} save={saveDashboardLayout} />
     </div>
   );
 }
@@ -307,7 +589,7 @@ function TopCustomersPanel({
   empty: string;
 }) {
   return (
-    <Panel title={title}>
+    <Panel title={title} className="h-full">
       {rows.length === 0 ? (
         <PanelEmpty message={empty} />
       ) : (

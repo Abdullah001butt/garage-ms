@@ -1,3 +1,5 @@
+import { SplitView } from "@/components/SplitView";
+import { Morph } from "@/components/Morph";
 import { formatDate, formatAed } from "@/lib/format";
 import { PeekButton } from "@/components/Peek";
 import { SortHeader, sortRows } from "@/components/SortHeader";
@@ -136,6 +138,7 @@ export async function DocumentList({
       {error && <p className="mb-4 text-sm text-red-600">Failed to load: {error.message}</p>}
 
       <BulkSelectProvider ids={docs.map((d) => d.id)}>
+      <SplitView type="invoice" storageKey={`split:${documentType}s`} hrefBase={detailBaseHref}>
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-zinc-200 p-3 sm:flex-row sm:items-center sm:justify-between">
           {documentType === "invoice" ? (
@@ -178,13 +181,15 @@ export async function DocumentList({
                 const number =
                   documentType === "invoice" ? formatInvoiceNumber(doc.invoice_number, doc.created_at) : null;
                 return (
-                  <tr key={doc.id} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                  <tr key={doc.id} data-split-id={doc.id} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
                     <td className="w-10 pl-4">
                       <RowCheckbox id={doc.id} label={doc.customers?.name} />
                     </td>
                     <td className="px-4 py-3 sm:whitespace-nowrap">
                       <Link href={href} className="whitespace-nowrap font-mono text-[13px] font-medium text-zinc-900">
-                        {number ?? `EST-${doc.id.slice(0, 6).toUpperCase()}`}
+                        <Morph name={`doc-${doc.id}`}>
+                          <span className="inline-block">{number ?? `EST-${doc.id.slice(0, 6).toUpperCase()}`}</span>
+                        </Morph>
                       </Link>
                       <p className="mt-0.5 text-xs text-zinc-500 sm:hidden">
                         {doc.customers?.name ?? "—"} · {formatDate(doc.created_at)}
@@ -249,6 +254,7 @@ export async function DocumentList({
           </div>
         )}
       </Card>
+      </SplitView>
       <BulkBar noun={documentType}>
         <BulkRemindButton targets={targets} label={documentType === "invoice" ? "WhatsApp reminders" : "WhatsApp follow-ups"} />
         {documentType === "invoice" && <BulkLinkButton href="/invoices/export" label="Export" />}

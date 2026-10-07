@@ -1,3 +1,5 @@
+import { SplitView } from "@/components/SplitView";
+import { Morph } from "@/components/Morph";
 import Link from "next/link";
 import { SortHeader, sortRows } from "@/components/SortHeader";
 import { BulkBar, BulkSelectProvider, RowCheckbox, SelectAllCheckbox } from "@/components/BulkSelect";
@@ -116,6 +118,7 @@ export default async function CustomersPage({
       {error && <p className="mb-4 text-sm text-red-600">Failed to load customers: {error.message}</p>}
 
       <BulkSelectProvider ids={rows.map((c) => c.id)}>
+      <SplitView type="customer" storageKey="split:customers" hrefBase="/customers">
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-zinc-200 p-3 sm:flex-row sm:items-center sm:justify-between">
           <SegmentedLinks
@@ -137,7 +140,7 @@ export default async function CustomersPage({
                 </th>
                 <SortHeader label="Customer" field="name" sort={sort} dir={dir} href={sortHref} defaultDir="asc" />
                 <th className={`${thClass} hidden md:table-cell`}>Phone</th>
-                <SortHeader label="Vehicles" field="vehicles" sort={sort} dir={dir} href={sortHref} className="hidden lg:table-cell" />
+                <SortHeader label="Vehicles" field="vehicles" sort={sort} dir={dir} href={sortHref} className="hidden lg:table-cell" splitHide />
                 <SortHeader label="Balance" field="balance" sort={sort} dir={dir} href={sortHref} align="right" />
                 <th className="w-8" />
               </tr>
@@ -148,21 +151,25 @@ export default async function CustomersPage({
                 const isCompany = customer.customer_type === "company";
                 const href = `/customers/${customer.id}`;
                 return (
-                  <tr key={customer.id} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                  <tr key={customer.id} data-split-id={customer.id} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
                     <td className="w-10 pl-4">
                       <RowCheckbox id={customer.id} label={customer.name} />
                     </td>
                     <td className="px-4 py-3">
                       <Link href={href} className="flex items-center gap-3">
-                        <span
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
-                            isCompany ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500"
-                          }`}
-                        >
-                          <Icon name={isCompany ? "building" : "user"} className="h-4 w-4" />
-                        </span>
+                        <Morph name={`cust-icon-${customer.id}`}>
+                          <span
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
+                              isCompany ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500"
+                            }`}
+                          >
+                            <Icon name={isCompany ? "building" : "user"} className="h-4 w-4" />
+                          </span>
+                        </Morph>
                         <span className="min-w-0">
-                          <span className="block truncate font-medium text-zinc-900">{customer.name}</span>
+                          <Morph name={`cust-${customer.id}`}>
+                            <span className="block w-fit max-w-full truncate font-medium text-zinc-900">{customer.name}</span>
+                          </Morph>
                           <span className="block truncate text-xs text-zinc-500">
                             {isCompany
                               ? `Company${employeeCount.get(customer.id) ? ` · ${employeeCount.get(customer.id)} employees` : ""}`
@@ -175,8 +182,8 @@ export default async function CustomersPage({
                         </span>
                       </Link>
                     </td>
-                    <td className="hidden px-4 py-3 text-zinc-600 tabular md:table-cell">{customer.phone}</td>
-                    <td className="hidden px-4 py-3 lg:table-cell">
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-zinc-600 tabular md:table-cell">{customer.phone}</td>
+                    <td data-split-hide className="hidden px-4 py-3 lg:table-cell">
                       {customer.vehicles.length === 0 ? (
                         <span className="text-xs text-zinc-400">No vehicles</span>
                       ) : (
@@ -222,6 +229,7 @@ export default async function CustomersPage({
           </div>
         )}
       </Card>
+      </SplitView>
       <BulkBar noun="customer">
         <BulkRemindButton
           targets={targets}

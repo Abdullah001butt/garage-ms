@@ -1,3 +1,4 @@
+import { SplitView } from "@/components/SplitView";
 import { formatDate } from "@/lib/format";
 import { PeekButton } from "@/components/Peek";
 import Link from "next/link";
@@ -5,7 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, SegmentedLinks, theadClass, thClass } from "@/components/ui";
 import { JobsBoard } from "@/components/JobsBoard";
 import { PlateBadge } from "@/components/PlateBadge";
+import { Morph } from "@/components/Morph";
 import { updateJobStatus } from "@/app/jobs/actions";
+import { updateJobInline } from "@/app/inline-actions";
+import { InlineEdit } from "@/components/InlineEdit";
 
 type JobRow = {
   id: string;
@@ -51,10 +55,16 @@ export default async function JobsPage({
 
   const { data: jobs, error } = await query.returns<JobRow[]>();
 
-  const { data: invoicedJobIds } = await supabase
-    .from("invoices")
-    .select("job_card_id")
-    .not("job_card_id", "is", null);
+  const [{ data: invoicedJobIds }, { data: staff }] = await Promise.all([
+    supabase.from("invoices").select("job_card_id").not("job_card_id", "is", null),
+    supabase.from("profiles").select("full_name").order("full_name"),
+  ]);
+  const staffNames = [...new Set((staff ?? []).map((p) => p.full_name).filter(Boolean))] as string[];
+  const mechanicOptions = (current: string | null) => [
+    { value: "", label: "Unassigned" },
+    ...[...new Set([...(current ? [current] : []), ...staffNames])].map((n) => ({ value: n, label: n })),
+  ];
+  const statusOptions = ["pending", "in_progress", "completed"].map((s) => ({ value: s, label: STATUS_LABEL[s] }));
   const invoicedSet = new Set((invoicedJobIds ?? []).map((i) => i.job_card_id));
 
   const allJobs = jobs ?? [];
@@ -101,6 +111,7 @@ export default async function JobsPage({
           <JobsBoard jobs={allJobs} uninvoicedIds={uninvoicedIds} updateJobStatus={updateJobStatus} />
         )
       ) : (
+        <SplitView type="job" storageKey="split:jobs" hrefBase="/jobs">
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -108,37 +119,66 @@ export default async function JobsPage({
                 <tr>
                   <th className={thClass}>Vehicle</th>
                   <th className={`${thClass} hidden md:table-cell`}>Customer</th>
-                  <th className={`${thClass} hidden lg:table-cell`}>Work</th>
+                  <th data-split-hide className={`${thClass} hidden lg:table-cell`}>Work</th>
                   <th className={`${thClass} hidden md:table-cell`}>Mechanic</th>
-                  <th className={thClass}>Status</th>
+                  <th className={`${thClass} hidden sm:table-cell`}>Status</th>
                   <th className={`${thClass} hidden sm:table-cell text-right`}>Opened</th>
                   <th className="w-10" />
                 </tr>
               </thead>
               <tbody>
                 {allJobs.map((job) => (
-                  <tr key={job.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                  <tr key={job.id} data-split-id={job.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
                     <td className="px-4 py-3">
                       <Link href={`/jobs/${job.id}`} className="flex items-center gap-3">
-                        {job.vehicles && <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />}
+                        {job.vehicles && (
+                          <Morph name={`plate-job-${job.id}`}>
+                            <span className="inline-flex shrink-0">
+                              <PlateBadge plateNumber={job.vehicles.plate_number} emirate={job.vehicles.emirate} />
+                            </span>
+                          </Morph>
+                        )}
                         <span className="min-w-0">
                           <span className="block truncate font-medium text-zinc-900">
                             {[job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "Vehicle"}
                           </span>
                           <span className="block truncate text-xs text-zinc-500 md:hidden">{job.customers?.name}</span>
+                          <span className="mt-1 block sm:hidden">
+                            <Badge color={STATUS_COLOR[job.status]} dot>
+                              {STATUS_LABEL[job.status]}
+                            </Badge>
+                          </span>
                         </span>
                       </Link>
                     </td>
                     <td className="hidden whitespace-nowrap px-4 py-3 text-zinc-700 md:table-cell">{job.customers?.name}</td>
-                    <td className="hidden max-w-xs px-4 py-3 lg:table-cell">
+                    <td data-split-hide className="hidden max-w-xs px-4 py-3 lg:table-cell">
                       <span className="block truncate text-zinc-600">{job.description}</span>
                     </td>
-                    <td className="hidden whitespace-nowrap px-4 py-3 text-zinc-600 md:table-cell">{job.mechanic_name ?? "—"}</td>
-                    <td className="px-4 py-3">
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-zinc-600 md:table-cell">
+                      <InlineEdit
+                        label="Mechanic"
+                        kind="select"
+                        value={job.mechanic_name ?? ""}
+                        display={job.mechanic_name ?? <span className="text-zinc-400">Unassigned</span>}
+                        options={mechanicOptions(job.mechanic_name)}
+                        action={updateJobInline.bind(null, job.id, "mechanic_name")}
+                      />
+                    </td>
+                    <td className="hidden px-4 py-3 sm:table-cell">
                       <div className="flex items-center gap-1.5 whitespace-nowrap">
-                        <Badge color={STATUS_COLOR[job.status]} dot>
-                          {STATUS_LABEL[job.status]}
-                        </Badge>
+                        <InlineEdit
+                          label="Status"
+                          kind="select"
+                          value={job.status}
+                          display={
+                            <Badge color={STATUS_COLOR[job.status]} dot>
+                              {STATUS_LABEL[job.status]}
+                            </Badge>
+                          }
+                          options={statusOptions}
+                          action={updateJobInline.bind(null, job.id, "status")}
+                        />
                         {job.status === "completed" && !invoicedSet.has(job.id) && <Badge color="amber">Needs invoice</Badge>}
                       </div>
                     </td>
@@ -155,6 +195,7 @@ export default async function JobsPage({
           </div>
           {!error && allJobs.length === 0 && <EmptyState icon="wrench" title="No job cards yet" message="Open a job card when a car arrives." action={<><Link href="/jobs/new" className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-700">+ New job card</Link></>} />}
         </Card>
+        </SplitView>
       )}
     </div>
   );

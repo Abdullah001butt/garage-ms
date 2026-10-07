@@ -7,6 +7,8 @@ import { Badge, EmptyState, Field, SecondaryButton } from "@/components/ui";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { RowMenu, RowMenuButton, RowMenuDelete, RowMenuSeparator } from "@/components/RowMenu";
+import { InlineEdit } from "@/components/InlineEdit";
+import { updatePartInline } from "@/app/inline-actions";
 
 export function InventoryTable({
   parts,
@@ -85,10 +87,21 @@ export function InventoryTable({
                   </td>
                   <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs text-zinc-500">{part.sku ?? "—"}</td>
                   <td className="px-4 py-2.5 text-right tabular">
-                    {isLow ? <Badge color="red">{part.stock_qty} low</Badge> : part.stock_qty}
+                    <InlineEdit
+                      label="Stock"
+                      kind="number"
+                      align="right"
+                      value={String(part.stock_qty)}
+                      display={isLow ? <Badge color="red">{part.stock_qty} low</Badge> : part.stock_qty}
+                      action={updatePartInline.bind(null, part.id, "stock_qty")}
+                    />
                   </td>
-                  <td className="px-4 py-2.5 text-right text-zinc-600 tabular">{part.unit_cost?.toFixed(2) ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-right text-zinc-900 tabular">{part.unit_price?.toFixed(2) ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-right text-zinc-600 tabular">
+                    <InlineEdit label="Cost" kind="number" align="right" value={part.unit_cost?.toFixed(2) ?? ""} display={part.unit_cost?.toFixed(2) ?? "—"} action={updatePartInline.bind(null, part.id, "unit_cost")} />
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-zinc-900 tabular">
+                    <InlineEdit label="Price" kind="number" align="right" value={part.unit_price?.toFixed(2) ?? ""} display={part.unit_price?.toFixed(2) ?? "—"} action={updatePartInline.bind(null, part.id, "unit_price")} />
+                  </td>
                   <td className="px-4 py-2.5">
                     {editingSupplierId === part.id ? (
                       <form

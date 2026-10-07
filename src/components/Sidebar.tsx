@@ -8,7 +8,7 @@ export function Sidebar({ role }: { role: Role | null }) {
   const isOwner = role === "owner";
   const groups = NAV_GROUPS.filter((g) => !g.ownerOnly || isOwner);
   return (
-    <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-zinc-200 bg-white print:hidden">
+    <aside style={{ viewTransitionName: "app-sidebar" }} className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-zinc-200 bg-white print:hidden">
       <Link href="/today" className="flex h-14 shrink-0 items-center border-b border-zinc-200 px-5">
         <Image
           src="/logoalbahir.png"

@@ -15,6 +15,7 @@ import { HelpBanner } from "@/components/HelpBanner";
 import { getCurrentUserAndProfile } from "@/lib/auth";
 import { signOut } from "@/app/login/actions";
 import { Icon } from "@/components/icons";
+import { PageTransition } from "@/components/PageTransition";
 
 function initials(name: string) {
   const parts = name.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
@@ -70,7 +71,7 @@ export default async function RootLayout({
             <>
               <Sidebar role={role} />
               <div className="md:pl-60 flex flex-col min-h-full">
-                <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/85 backdrop-blur supports-backdrop-filter:bg-white/75 print:hidden">
+                <header style={{ viewTransitionName: "app-header" }} className="sticky top-0 z-20 border-b border-zinc-200 bg-white/85 backdrop-blur supports-backdrop-filter:bg-white/75 print:hidden">
                   <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                       <MobileNav role={role} />
@@ -104,7 +105,7 @@ export default async function RootLayout({
                   <div className="page pt-4! pb-0! print:hidden">
                     <HelpBanner />
                   </div>
-                  {children}
+                  <PageTransition>{children}</PageTransition>
                 </main>
                 <PeekHost />
               </div>

@@ -1,3 +1,5 @@
+import { Morph } from "@/components/Morph";
+import { updateInvoiceItemInline } from "@/app/inline-actions";
 import { formatDate, formatAed } from "@/lib/format";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -168,7 +170,9 @@ export async function DocumentDetail({
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between print:hidden">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-mono text-xl font-semibold tracking-tight text-zinc-900">{docNumber}</h1>
+            <Morph name={`doc-${doc.id}`}>
+              <h1 className="font-mono text-xl font-semibold tracking-tight text-zinc-900">{docNumber}</h1>
+            </Morph>
             {!isEstimate && (
               <Badge color={STATUS_COLOR[doc.status]} dot>
                 {STATUS_LABEL[doc.status]}
@@ -230,6 +234,8 @@ export async function DocumentDetail({
             jobDescription={doc.job_cards?.description ?? null}
             driverName={doc.job_cards?.driver_name ?? null}
             onDeleteItem={deleteItemWithId}
+            onEditItem={updateInvoiceItemInline.bind(null, id)}
+            linesLocked={doc.status === "credited" || (creditNotes ?? []).length > 0}
             invoiceNumber={isEstimate ? null : formatInvoiceNumber(doc.invoice_number, doc.created_at)}
           />
 

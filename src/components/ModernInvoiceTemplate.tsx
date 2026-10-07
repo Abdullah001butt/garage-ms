@@ -5,6 +5,8 @@ import QRCode from "qrcode";
 import { formatDate } from "@/lib/format";
 import type { InvoiceItem, ShopSettings } from "@/lib/types";
 import { FitToWidth } from "@/components/FitToWidth";
+import { InlineEdit } from "@/components/InlineEdit";
+import type { InlineResult } from "@/app/inline-actions";
 
 type Customer = { name: string; phone: string; address: string | null };
 type VehicleInfo = { plate_number: string; make: string | null; model: string | null; year: number | null } | null;
@@ -25,6 +27,8 @@ export function ModernInvoiceTemplate({
   vehicle,
   jobDescription,
   onDeleteItem,
+  onEditItem,
+  linesLocked = false,
   invoiceNumber,
   showVat,
   qrPath,
@@ -41,6 +45,9 @@ export function ModernInvoiceTemplate({
   vehicle: VehicleInfo;
   jobDescription: string | null;
   onDeleteItem: (itemId: string) => void | Promise<void>;
+  /** Click-to-edit for lines (omitted or locked → read-only). */
+  onEditItem?: (itemId: string, field: "description" | "quantity" | "unit_price", raw: string) => Promise<InlineResult>;
+  linesLocked?: boolean;
   invoiceNumber?: string | null;
   showVat: boolean;
   /** Site path the QR code opens, e.g. the vehicle's service-history certificate. */
@@ -143,7 +150,13 @@ export function ModernInvoiceTemplate({
                 return (
                   <tr key={item.id} className="border-b border-zinc-100 align-top">
                     <td className="py-2.5 pr-3">
-                      <span className="font-medium text-zinc-900">{item.description}</span>
+                      <span className="font-medium text-zinc-900">
+                        {onEditItem ? (
+                          <InlineEdit label="Description" value={item.description} disabled={linesLocked} action={(raw) => onEditItem(item.id, "description", raw)} />
+                        ) : (
+                          item.description
+                        )}
+                      </span>
                       <span className="ml-2 rounded bg-zinc-100 px-1.5 py-px text-[10px] font-medium text-zinc-500">{TYPE_LABEL[item.item_type] ?? item.item_type}</span>
                       {until && (
                         <p className={`mt-0.5 text-[11px] ${until.getTime() > nowMs ? "text-emerald-700" : "text-zinc-400"}`}>
@@ -151,8 +164,16 @@ export function ModernInvoiceTemplate({
                         </p>
                       )}
                     </td>
-                    <td className="py-2.5 text-right tabular-nums">{item.quantity}</td>
-                    <td className="py-2.5 text-right tabular-nums">{aed(item.unit_price)}</td>
+                    <td className="py-2.5 text-right tabular-nums">
+                      {onEditItem ? <InlineEdit label="Quantity" kind="number" align="right" value={String(item.quantity)} disabled={linesLocked} action={(raw) => onEditItem(item.id, "quantity", raw)} /> : item.quantity}
+                    </td>
+                    <td className="py-2.5 text-right tabular-nums">
+                      {onEditItem ? (
+                        <InlineEdit label="Unit price" kind="number" align="right" prefix="AED" value={item.unit_price.toFixed(2)} display={aed(item.unit_price)} disabled={linesLocked} action={(raw) => onEditItem(item.id, "unit_price", raw)} />
+                      ) : (
+                        aed(item.unit_price)
+                      )}
+                    </td>
                     <td className="py-2.5 text-right font-medium tabular-nums text-zinc-900">{aed(item.quantity * item.unit_price)}</td>
                     <td className="py-2.5 text-right print:hidden">
                       <button type="button" onClick={() => onDeleteItem(item.id)} className="text-[11px] font-medium text-zinc-400 hover:text-red-600">
