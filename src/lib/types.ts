@@ -15,6 +15,9 @@ export type Customer = {
   notes: string | null;
   /** The shared "Walk-in customer" used for counter sales. */
   is_walk_in?: boolean;
+  /** Set when this person is an employee of a company customer. */
+  parent_customer_id?: string | null;
+  job_title?: string | null;
   created_at: string;
 };
 
@@ -63,6 +66,8 @@ export type Vehicle = {
   notes: string | null;
   service_interval_days: number | null;
   share_token: string | null;
+  /** For an employee's car: true = the company pays by default. */
+  company_pays?: boolean;
   created_at: string;
 };
 
@@ -116,6 +121,9 @@ export type JobCard = {
   mechanic_name: string | null;
   odometer: number | null;
   status: JobStatus;
+  /** The employee who brought the car when the company is billed. */
+  driver_customer_id?: string | null;
+  driver_name?: string | null;
   created_at: string;
   completed_at: string | null;
 };

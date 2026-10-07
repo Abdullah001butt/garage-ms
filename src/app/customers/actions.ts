@@ -18,6 +18,8 @@ function parseCustomerFields(formData: FormData) {
   const trn_number = String(formData.get("trn_number") ?? "").trim() || null;
   const representative = String(formData.get("representative") ?? "").trim() || null;
   const reference_name = String(formData.get("reference_name") ?? "").trim() || null;
+  const parent_customer_id = String(formData.get("parent_customer_id") ?? "").trim() || null;
+  const job_title = String(formData.get("job_title") ?? "").trim() || null;
 
   if (!name || !phone) {
     throw new Error("Name and Mobile No are required.");
@@ -34,6 +36,9 @@ function parseCustomerFields(formData: FormData) {
     trn_number,
     representative: customer_type === "company" ? representative : null,
     reference_name,
+    // Only individuals can be employees of a company.
+    parent_customer_id: customer_type === "company" ? null : parent_customer_id,
+    job_title: customer_type === "company" ? null : job_title,
   };
 }
 
@@ -101,6 +106,7 @@ export async function createCustomerWithVehicle(formData: FormData) {
     const { error: vehicleError } = await supabase.from("vehicles").insert({
       customer_id: customer.id,
       ...vehicleFields,
+      company_pays: Boolean(customerFields.parent_customer_id) && formData.get("company_pays") === "on",
     });
 
     if (vehicleError) {
@@ -251,4 +257,54 @@ export async function updateVehicleServiceInterval(
   }
 
   revalidatePath(`/customers/${customerId}`);
+}
+
+/** Adds an employee (individual customer) under a company, optionally with their first car. */
+export async function addEmployee(companyId: string, formData: FormData) {
+  const supabase = await createClient();
+  const name = String(formData.get("name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const job_title = String(formData.get("job_title") ?? "").trim() || null;
+  if (!name || !phone) throw new Error("Name and mobile number are required.");
+
+  const { data: company } = await supabase.from("customers").select("city").eq("id", companyId).maybeSingle();
+  const { data: employee, error } = await supabase
+    .from("customers")
+    .insert({ customer_type: "individual", name, phone, job_title, parent_customer_id: companyId, city: company?.city ?? null })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  if (combinedPlateRaw(formData)) {
+    const vehicleFields = parseVehicleFields(formData);
+    const { error: vehicleError } = await supabase
+      .from("vehicles")
+      .insert({ customer_id: employee.id, ...vehicleFields, company_pays: formData.get("company_pays") === "on" });
+    if (vehicleError) throw new Error(vehicleError.message);
+  }
+
+  await logAudit("customer.employee_add", "customer", companyId, { name });
+  revalidatePath(`/customers/${companyId}`);
+  revalidatePath("/customers");
+}
+
+/** Removes the company link (the person stays as a normal customer). */
+export async function unlinkEmployee(companyId: string, employeeId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("customers").update({ parent_customer_id: null }).eq("id", employeeId);
+  if (error) throw new Error(error.message);
+  await logAudit("customer.employee_remove", "customer", companyId, { employee_id: employeeId });
+  revalidatePath(`/customers/${companyId}`);
+  revalidatePath(`/customers/${employeeId}`);
+  revalidatePath("/customers");
+}
+
+/** Sets who pays by default for an employee's car. */
+export async function setVehicleCompanyPays(customerId: string, vehicleId: string, companyPays: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("vehicles").update({ company_pays: companyPays }).eq("id", vehicleId);
+  if (error) throw new Error(error.message);
+  await logAudit("vehicle.payer_change", "vehicle", vehicleId, { company_pays: companyPays });
+  revalidatePath(`/customers/${customerId}`);
+  revalidatePath("/jobs/new");
 }

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createJobCard } from "@/app/jobs/actions";
-import { PageHeader, Field, labelClass, inputClass, Alert } from "@/components/ui";
+import { PageHeader, Field, Alert } from "@/components/ui";
 import { Steps, Step } from "@/components/Steps";
+import { VehiclePicker, type VehicleOptionData } from "@/components/VehiclePicker";
 import { getActiveWarrantiesForVehicles } from "@/lib/warranty";
 import { JobDescriptionField } from "@/components/JobDescriptionField";
 import type { JobTemplate } from "@/lib/types";
@@ -13,7 +14,8 @@ type VehicleOption = {
   plate_number: string;
   make: string | null;
   model: string | null;
-  customers: { name: string } | null;
+  company_pays: boolean | null;
+  customers: { name: string; parent_customer_id: string | null } | null;
 };
 
 export default async function NewJobCardPage() {
@@ -21,13 +23,27 @@ export default async function NewJobCardPage() {
   const [{ data: vehicles }, { data: templates }] = await Promise.all([
     supabase
       .from("vehicles")
-      .select("id, customer_id, plate_number, make, model, customers(name)")
+      .select("id, customer_id, plate_number, make, model, company_pays, customers(name, parent_customer_id)")
       .order("plate_number")
       .returns<VehicleOption[]>(),
     supabase.from("job_templates").select("*").order("created_at").returns<JobTemplate[]>(),
   ]);
 
   const warrantyMap = await getActiveWarrantiesForVehicles((vehicles ?? []).map((v) => v.id));
+  const companyIds = [...new Set((vehicles ?? []).map((v) => v.customers?.parent_customer_id).filter(Boolean))] as string[];
+  const { data: companies } = companyIds.length
+    ? await supabase.from("customers").select("id, name").in("id", companyIds).returns<{ id: string; name: string }[]>()
+    : { data: [] as { id: string; name: string }[] };
+  const companyById = new Map((companies ?? []).map((c) => [c.id, c]));
+  const vehicleOptions: VehicleOptionData[] = (vehicles ?? []).map((v) => ({
+    id: v.id,
+    customerId: v.customer_id,
+    label: `${v.plate_number} — ${[v.make, v.model].filter(Boolean).join(" ")}`,
+    ownerName: v.customers?.name ?? "",
+    hasWarranty: (warrantyMap.get(v.id)?.length ?? 0) > 0,
+    company: v.customers?.parent_customer_id ? companyById.get(v.customers.parent_customer_id) ?? null : null,
+    companyPays: Boolean(v.company_pays),
+  }));
 
   return (
     <div className="page">
@@ -68,32 +84,14 @@ export default async function NewJobCardPage() {
         ]}
       >
         <Step id="vehicle">
-          <label className="block">
-            <span className={labelClass}>
-              Vehicle <span className="text-brand-600">*</span>
-            </span>
-            <select name="vehicle_customer" required className={inputClass}>
-              <option value="">Select a vehicle...</option>
-              {vehicles?.map((v) => {
-                const hasWarranty = (warrantyMap.get(v.id)?.length ?? 0) > 0;
-                return (
-                  <option key={v.id} value={`${v.id}::${v.customer_id}`}>
-                    {hasWarranty ? "[Warranty] " : ""}
-                    {v.plate_number} — {[v.make, v.model].filter(Boolean).join(" ")} (
-                    {v.customers?.name})
-                    {hasWarranty ? " — active warranty" : ""}
-                  </option>
-                );
-              })}
-            </select>
-            <span className="mt-1.5 block text-xs text-zinc-500">
-              New car or customer?{" "}
-              <Link href="/customers/new" className="font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900">
-                Add them first
-              </Link>
-              .
-            </span>
-          </label>
+          <VehiclePicker vehicles={vehicleOptions} />
+          <p className="mt-1.5 text-xs text-zinc-500">
+            New car or customer?{" "}
+            <Link href="/customers/new" className="font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900">
+              Add them first
+            </Link>
+            .
+          </p>
         </Step>
 
         <Step id="work">

@@ -28,6 +28,7 @@ export function ModernInvoiceTemplate({
   invoiceNumber,
   showVat,
   qrPath,
+  driverName,
 }: {
   documentLabel: "INVOICE" | "ESTIMATE";
   createdAt: string;
@@ -44,6 +45,8 @@ export function ModernInvoiceTemplate({
   showVat: boolean;
   /** Site path the QR code opens, e.g. the vehicle's service-history certificate. */
   qrPath?: string | null;
+  /** Employee who brought the car when the company is billed. */
+  driverName?: string | null;
 }) {
   const [qr, setQr] = useState<string | null>(null);
   useEffect(() => {
@@ -111,6 +114,7 @@ export function ModernInvoiceTemplate({
                     {vehicle.plate_number}
                     {vehicle.year ? ` · ${vehicle.year}` : ""}
                   </p>
+                  {driverName && <p className="text-zinc-500">Driver: {driverName}</p>}
                 </>
               ) : (
                 <p className="mt-1.5 text-zinc-500">Counter sale</p>

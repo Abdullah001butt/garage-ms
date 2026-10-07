@@ -20,9 +20,22 @@ export async function createJobCard(formData: FormData) {
     throw new Error("Vehicle and description are required.");
   }
 
+  // Employee cars can be billed to the employee or to their company (chosen per job).
+  let billTo = customer_id;
+  let driver_customer_id: string | null = null;
+  let driver_name: string | null = null;
+  const requested = String(formData.get("bill_to") ?? "").trim();
+  if (requested && requested !== customer_id) {
+    const { data: owner } = await supabase.from("customers").select("name, parent_customer_id").eq("id", customer_id).maybeSingle();
+    if (owner?.parent_customer_id !== requested) throw new Error("This car can only be billed to its owner or the owner's company.");
+    billTo = requested;
+    driver_customer_id = customer_id;
+    driver_name = owner.name;
+  }
+
   const { data: jobCard, error } = await supabase
     .from("job_cards")
-    .insert({ vehicle_id, customer_id, description, mechanic_name, odometer })
+    .insert({ vehicle_id, customer_id: billTo, description, mechanic_name, odometer, driver_customer_id, driver_name })
     .select()
     .single();
 

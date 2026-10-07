@@ -33,6 +33,7 @@ type DocDetail = {
   customers: { name: string; phone: string; address: string | null } | null;
   job_cards: {
     description: string;
+    driver_name?: string | null;
     vehicles: { plate_number: string; make: string | null; model: string | null; year: number | null; share_token?: string | null } | null;
   } | null;
 };
@@ -68,7 +69,7 @@ export async function DocumentDetail({
       supabase
         .from("invoices")
         .select(
-          "id, status, document_type, vat_rate, discount, created_at, paid_at, job_card_id, invoice_number, customers(name, phone, address), job_cards(description, vehicles(plate_number, make, model, year, share_token))"
+          "id, status, document_type, vat_rate, discount, created_at, paid_at, job_card_id, invoice_number, customers(name, phone, address), job_cards(description, driver_name, vehicles(plate_number, make, model, year, share_token))"
         )
         .eq("id", id)
         .single<DocDetail>(),
@@ -198,6 +199,7 @@ export async function DocumentDetail({
             }}
             vehicle={doc.job_cards?.vehicles ?? null}
             jobDescription={doc.job_cards?.description ?? null}
+            driverName={doc.job_cards?.driver_name ?? null}
             onDeleteItem={deleteItemWithId}
             invoiceNumber={isEstimate ? null : formatInvoiceNumber(doc.invoice_number, doc.created_at)}
           />

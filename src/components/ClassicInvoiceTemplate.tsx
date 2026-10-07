@@ -40,6 +40,7 @@ export function ClassicInvoiceTemplate({
   onDeleteItem,
   invoiceNumber,
   showVat: showVatProp,
+  driverName,
 }: {
   documentLabel: "INVOICE" | "ESTIMATE";
   createdAt: string;
@@ -56,6 +57,7 @@ export function ClassicInvoiceTemplate({
   /** When given, the VAT switch lives outside (InvoiceDesign) and this template follows it. */
   showVat?: boolean;
   qrPath?: string | null;
+  driverName?: string | null;
 }) {
   const [showVatLocal, setShowVat] = useState(false);
   const showVat = showVatProp ?? showVatLocal;
@@ -116,6 +118,7 @@ export function ClassicInvoiceTemplate({
             {customer.address && <p>{customer.address}</p>}
             <p>{customer.phone}</p>
             {vehicleLine && <p>{vehicleLine}</p>}
+            {driverName && <p>Driver: {driverName}</p>}
             {jobDescription && <p className="font-bold">{jobDescription}</p>}
           </div>
           <div className="text-right">

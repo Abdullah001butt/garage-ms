@@ -82,6 +82,9 @@ export default async function CustomersPage({
     params.set("dir", d);
     return `/customers?${params.toString()}`;
   };
+  const nameById = new Map((customers ?? []).map((c) => [c.id, c.name]));
+  const employeeCount = new Map<string, number>();
+  for (const c of customers ?? []) if (c.parent_customer_id) employeeCount.set(c.parent_customer_id, (employeeCount.get(c.parent_customer_id) ?? 0) + 1);
   const targets = rows.map((c) => ({ id: c.id, name: c.name, phone: c.phone, detail: c.phone, message: "" }));
   const filterHref = (value: string) => {
     const params = new URLSearchParams();
@@ -161,7 +164,11 @@ export default async function CustomersPage({
                         <span className="min-w-0">
                           <span className="block truncate font-medium text-zinc-900">{customer.name}</span>
                           <span className="block truncate text-xs text-zinc-500">
-                            {isCompany ? "Company" : "Individual"}
+                            {isCompany
+                              ? `Company${employeeCount.get(customer.id) ? ` · ${employeeCount.get(customer.id)} employees` : ""}`
+                              : customer.parent_customer_id && nameById.get(customer.parent_customer_id)
+                                ? `Employee · ${nameById.get(customer.parent_customer_id)}`
+                                : "Individual"}
                             {customer.city ? ` · ${customer.city}` : ""}
                             <span className="md:hidden"> · {customer.phone}</span>
                           </span>

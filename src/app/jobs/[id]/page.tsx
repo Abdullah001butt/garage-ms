@@ -25,6 +25,8 @@ type JobDetail = {
   completed_at: string | null;
   customer_id: string;
   vehicle_id: string;
+  driver_customer_id: string | null;
+  driver_name: string | null;
   vehicles: {
     plate_number: string;
     emirate: string;
@@ -59,7 +61,7 @@ export default async function JobDetailPage({
     supabase
       .from("job_cards")
       .select(
-        "id, description, mechanic_name, odometer, status, created_at, completed_at, customer_id, vehicle_id, vehicles(plate_number, emirate, make, model, year), customers(name, phone)"
+        "id, description, mechanic_name, odometer, status, created_at, completed_at, customer_id, vehicle_id, driver_customer_id, driver_name, vehicles(plate_number, emirate, make, model, year), customers(name, phone)"
       )
       .eq("id", id)
       .single<JobDetail>(),
@@ -176,6 +178,14 @@ export default async function JobDetailPage({
                 {job.customers?.name}
               </Link>
               {job.customers?.phone ? ` · ${job.customers.phone}` : ""}
+              {job.driver_name && (
+                <>
+                  {" · brought by "}
+                  <Link href={`/customers/${job.driver_customer_id}`} className="font-medium text-zinc-700 hover:underline">
+                    {job.driver_name}
+                  </Link>
+                </>
+              )}
             </p>
           </div>
         </div>

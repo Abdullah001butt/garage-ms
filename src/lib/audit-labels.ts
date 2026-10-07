@@ -50,6 +50,9 @@ export const ACTION_LABEL: Record<string, string> = {
   "supplier.payment": "Paid supplier",
   "supplier.entry_delete": "Removed supplier entry",
   "counter_sale.create": "Counter sale",
+  "customer.employee_add": "Added employee",
+  "customer.employee_remove": "Removed employee link",
+  "vehicle.payer_change": "Changed who pays for vehicle",
 };
 
 /** "customer.update" -> "Updated customer details"; falls back to a readable version of the key. */

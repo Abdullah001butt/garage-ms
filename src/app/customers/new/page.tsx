@@ -6,9 +6,13 @@ import { Steps, Step } from "@/components/Steps";
 import { CustomerFields } from "@/components/CustomerFields";
 import { VehicleFields } from "@/components/VehicleFields";
 
-export default async function NewCustomerPage() {
+export default async function NewCustomerPage({ searchParams }: { searchParams: Promise<{ company?: string }> }) {
+  const { company } = await searchParams;
   const supabase = await createClient();
-  const { data: vehicles } = await supabase.from("vehicles").select("make, model");
+  const [{ data: vehicles }, { data: companies }] = await Promise.all([
+    supabase.from("vehicles").select("make, model"),
+    supabase.from("customers").select("id, name").eq("customer_type", "company").order("name"),
+  ]);
 
   const uniqueMakes = [...new Set((vehicles ?? []).map((v) => v.make).filter(Boolean))];
   const uniqueModels = [...new Set((vehicles ?? []).map((v) => v.model).filter(Boolean))];
@@ -42,7 +46,7 @@ export default async function NewCustomerPage() {
         ]}
       >
         <Step id="customer" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <CustomerFields />
+          <CustomerFields companies={companies ?? []} defaultCompanyId={company} showCompanyPays />
         </Step>
         <Step id="vehicle" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <VehicleFields makeListId="vehicle-makes" modelListId="vehicle-models" />

@@ -17,6 +17,7 @@ type StatementInvoiceRow = {
   vat_rate: number;
   invoice_items: { quantity: number; unit_price: number }[];
   payments: { amount: number }[];
+  job_cards: { driver_name: string | null; vehicles: { plate_number: string } | null } | null;
 };
 
 export default async function CustomerStatementPage({
@@ -38,7 +39,7 @@ export default async function CustomerStatementPage({
     supabase
       .from("invoices")
       .select(
-        "id, invoice_number, created_at, discount, vat_rate, invoice_items(quantity, unit_price), payments(amount)"
+        "id, invoice_number, created_at, discount, vat_rate, invoice_items(quantity, unit_price), payments(amount), job_cards(driver_name, vehicles(plate_number))"
       )
       .eq("customer_id", id)
       .eq("document_type", "invoice")
@@ -62,6 +63,7 @@ export default async function CustomerStatementPage({
   type Row = {
     date: string;
     label: string;
+    detail?: string;
     amount: number;
     paid: number;
   };
@@ -74,6 +76,8 @@ export default async function CustomerStatementPage({
       return {
         date: inv.created_at,
         label: formatInvoiceNumber(inv.invoice_number, inv.created_at) ?? "Invoice",
+        // Company statements show which car and which employee each invoice was for.
+        detail: [inv.job_cards?.vehicles?.plate_number, inv.job_cards?.driver_name ? `Driver: ${inv.job_cards.driver_name}` : null].filter(Boolean).join(" · ") || undefined,
         amount: total,
         paid,
       };
@@ -157,7 +161,10 @@ export default async function CustomerStatementPage({
               return (
                 <tr key={i} className="border-b border-zinc-100">
                   <td className="px-2 py-1.5 text-zinc-600">{formatDate(r.date)}</td>
-                  <td className="px-2 py-1.5 text-zinc-900">{r.label}</td>
+                  <td className="px-2 py-1.5 text-zinc-900">
+                    {r.label}
+                    {r.detail && <span className="block text-[11px] text-zinc-500">{r.detail}</span>}
+                  </td>
                   <td className="px-2 py-1.5 text-right text-zinc-900">{formatAed(r.amount)}</td>
                   <td className="px-2 py-1.5 text-right text-emerald-600">
                     {r.paid > 0 ? `${formatAed(r.paid)}` : "—"}
