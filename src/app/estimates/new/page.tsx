@@ -15,13 +15,13 @@ export default async function NewEstimatePage() {
   const { data: customers } = await supabase.from("customers").select("id, name, phone").order("name");
 
   return (
-    <div className="page page-narrow">
+    <div className="page">
       <Link href="/estimates" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
         ← Back to estimates
       </Link>
       <PageHeader title="New Estimate" description="Quote a job before the work starts." />
 
-      <div className="grid gap-6 md:grid-cols-[1fr_15rem]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <Card className="p-5">
           <form action={createEstimate} className="space-y-4">
             <label className="block">

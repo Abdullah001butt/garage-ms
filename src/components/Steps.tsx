@@ -250,8 +250,38 @@ export function Steps({
   }
 
   return (
-    <div ref={rootRef} data-steps={uid} className="scroll-mt-20">
-      <div className="@container mb-6">
+    <div ref={rootRef} data-steps={uid} className="scroll-mt-20 xl:grid xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start xl:gap-8">
+      {/* Large screens: vertical step list on the left, like enterprise setup flows. */}
+      <aside className="hidden xl:sticky xl:top-20 xl:block">
+        <ol className="relative">
+          {steps.map((s, i) => {
+            const done = i < active;
+            const current = i === active;
+            const reachable = i <= visited;
+            return (
+              <li key={s.id} className="relative pb-6 last:pb-0">
+                {i < last && <span className={`absolute left-[13px] top-8 h-[calc(100%-2rem)] w-px ${i < active ? "bg-zinc-900" : "bg-zinc-200"}`} />}
+                <button type="button" disabled={!reachable} onClick={() => go(i)} className="group flex w-full items-start gap-3 text-left disabled:cursor-default">
+                  <span
+                    className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                      done ? "bg-zinc-900 text-white" : current ? "bg-brand-600 text-white ring-4 ring-brand-100" : "border border-zinc-300 bg-white text-zinc-400"
+                    }`}
+                  >
+                    {done ? <Icon name="check" className="h-3.5 w-3.5" /> : i + 1}
+                  </span>
+                  <span className="min-w-0 pt-0.5">
+                    <span className={`block text-[13px] font-medium ${current || done ? "text-zinc-900" : "text-zinc-400"} ${reachable && !current ? "group-hover:underline" : ""}`}>{s.title}</span>
+                    {s.description && <span className={`mt-0.5 block text-xs leading-relaxed ${current ? "text-zinc-500" : "text-zinc-400"}`}>{s.description}</span>}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </aside>
+
+      <div className="min-w-0">
+      <div className="@container mb-6 xl:hidden">
       <ol className="flex items-start">
         {steps.map((s, i) => {
           const done = i < active;
@@ -301,6 +331,7 @@ export function Steps({
           {nav}
         </div>
       </form>
+      </div>
     </div>
   );
 }

@@ -14,7 +14,7 @@ export default async function NewCustomerPage() {
   const uniqueModels = [...new Set((vehicles ?? []).map((v) => v.model).filter(Boolean))];
 
   return (
-    <div className="page page-narrow">
+    <div className="page">
       <Link href="/customers" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
         ← Back to customers
       </Link>

@@ -30,7 +30,7 @@ export default async function NewJobCardPage() {
   const warrantyMap = await getActiveWarrantiesForVehicles((vehicles ?? []).map((v) => v.id));
 
   return (
-    <div className="page page-narrow">
+    <div className="page">
       <Link href="/jobs" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
         ← Back to job cards
       </Link>

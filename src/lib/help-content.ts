@@ -168,6 +168,14 @@ export const HELP_CONTENT: Record<string, HelpContent> = {
       "Tap \"Attendance & Salary\" to record daily attendance and calculate pay.",
     ],
   },
+  "/staff/attendance": {
+    title: "Attendance",
+    steps: [
+      "Tap a day to cycle it: Present → Absent → Paid leave → Holiday → blank.",
+      "Fridays are shaded because the garage is closed — they are never counted as absent.",
+      "Absent days reduce the salary on the Salaries page. Use the arrows to change month.",
+    ],
+  },
   "/staff/salaries": {
     title: "Salaries",
     steps: [

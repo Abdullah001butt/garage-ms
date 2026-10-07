@@ -3,7 +3,7 @@ import { DocumentList } from "@/components/DocumentList";
 export default function InvoicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; sort?: string; dir?: string }>;
 }) {
   return (
     <DocumentList

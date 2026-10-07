@@ -1,4 +1,4 @@
-import { formatDate } from "@/lib/format";
+import { formatDate, formatAed } from "@/lib/format";
 import { Icon } from "@/components/icons";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -32,7 +32,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
     <div className="page">
       <PageHeader
         title="Expenses"
-        description={`This month: AED ${monthTotal.toFixed(2)}`}
+        description={`This month: ${formatAed(monthTotal)}`}
         action={
           <div className="flex flex-wrap gap-2">
             <a href="/expenses/export">
@@ -108,7 +108,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
                   )}
                 </td>
                 <td className="px-4 py-2.5 text-right font-medium">
-                  {Number(e.amount).toFixed(2)}
+                  {formatAed(Number(e.amount))}
                 </td>
                 <td className="relative px-4 py-2.5 text-right print:hidden">
                   <div className="relative inline-flex items-center gap-2">

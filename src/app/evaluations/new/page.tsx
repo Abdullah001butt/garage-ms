@@ -7,7 +7,7 @@ import { CarDiagramMarkerInput } from "@/components/CarDiagramMarkerInput";
 
 export default function NewEvaluationPage() {
   return (
-    <div className="page page-narrow">
+    <div className="page">
       <Link href="/evaluations" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
         ← Back to evaluations
       </Link>

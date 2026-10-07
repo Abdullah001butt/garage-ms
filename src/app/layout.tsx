@@ -7,6 +7,7 @@ import { NoZoomGuard } from "@/components/NoZoomGuard";
 import { BrandSplash } from "@/components/BrandSplash";
 import { RouteProgress } from "@/components/RouteProgress";
 import { ToastProvider } from "@/components/Toast";
+import { PeekHost } from "@/components/Peek";
 import { QueryProvider } from "@/components/QueryProvider";
 import { MobileNav } from "@/components/MobileNav";
 import { GlobalSearch } from "@/components/GlobalSearch";
@@ -105,6 +106,7 @@ export default async function RootLayout({
                   </div>
                   {children}
                 </main>
+                <PeekHost />
               </div>
             </>
           )}

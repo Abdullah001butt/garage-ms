@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import type { DailyCashReconciliation } from "@/lib/types";
 import { saveCashReconciliation } from "@/app/reports/daily-cashflow/actions";
-import { Card, PageHeader, StatCard, SecondaryButton, PrimaryButton, Field, EmptyState, Alert } from "@/components/ui";
+import { Alert, Field, PageHeader, Panel, PanelEmpty, PrimaryButton, SecondaryButton, tdClass, thClass, theadClass } from "@/components/ui";
+import { DateJump, MonthSwitcher, StatStrip } from "@/components/report-ui";
+import { addDays, isoBounds } from "@/lib/date-range";
+import { dayKey, formatAed, formatTime, formatWeekdayDate } from "@/lib/format";
 
 type PaymentRow = {
   id: string;
@@ -18,57 +21,35 @@ type PaymentRow = {
   } | null;
 };
 
-type ExpenseRow = {
-  id: string;
-  category: string;
-  description: string | null;
-  amount: number;
-};
+type ExpenseRow = { id: string; category: string; description: string | null; amount: number };
 
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
+const METHOD_LABEL: Record<string, string> = { cash: "Cash", card: "Card", bank_transfer: "Bank transfer", ziina: "Ziina", other: "Other" };
 
-export default async function DailyCashflowPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ date?: string }>;
-}) {
+export default async function DailyCashflowPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const { date } = await searchParams;
-  const selectedDate = date || today();
+  const today = dayKey(new Date());
+  const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(date ?? "") ? date! : today;
+  const { start, end } = isoBounds(selectedDate, selectedDate);
 
   const supabase = await createClient();
-
-  const [
-    { data: payments, error: paymentsError },
-    { data: expenses, error: expensesError },
-    { data: reconciliation },
-  ] = await Promise.all([
+  const [{ data: payments, error: paymentsError }, { data: expenses, error: expensesError }, { data: reconciliation }] = await Promise.all([
     supabase
       .from("payments")
-      .select(
-        "id, amount, method, paid_at, invoices(job_card_id, customers(name), job_cards(description, vehicles(plate_number, make, model)))"
-      )
-      .gte("paid_at", `${selectedDate}T00:00:00`)
-      .lte("paid_at", `${selectedDate}T23:59:59`)
+      .select("id, amount, method, paid_at, invoices(job_card_id, customers(name), job_cards(description, vehicles(plate_number, make, model)))")
+      .gte("paid_at", start)
+      .lte("paid_at", end)
+      .order("paid_at")
       .returns<PaymentRow[]>(),
-    supabase
-      .from("expenses")
-      .select("id, category, description, amount")
-      .eq("expense_date", selectedDate)
-      .returns<ExpenseRow[]>(),
-    supabase
-      .from("daily_cash_reconciliations")
-      .select("*")
-      .eq("reconciliation_date", selectedDate)
-      .maybeSingle<DailyCashReconciliation>(),
+    supabase.from("expenses").select("id, category, description, amount").eq("expense_date", selectedDate).returns<ExpenseRow[]>(),
+    supabase.from("daily_cash_reconciliations").select("*").eq("reconciliation_date", selectedDate).maybeSingle<DailyCashReconciliation>(),
   ]);
 
   const totalIn = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
   const totalOut = (expenses ?? []).reduce((s, e) => s + Number(e.amount), 0);
   const net = totalIn - totalOut;
-
-  const cashIn = (payments ?? []).filter((p) => p.method === "cash").reduce((s, p) => s + Number(p.amount), 0);
+  const byMethod = new Map<string, number>();
+  for (const p of payments ?? []) byMethod.set(p.method, (byMethod.get(p.method) ?? 0) + Number(p.amount));
+  const cashIn = byMethod.get("cash") ?? 0;
   const expectedCash = cashIn - totalOut;
   const difference = reconciliation ? reconciliation.counted_cash - expectedCash : null;
 
@@ -76,136 +57,141 @@ export default async function DailyCashflowPage({
     <div className="page">
       <PageHeader
         title="Daily Cash Flow"
-        description="Cash in (payments received) and out (expenses) for a single day."
+        description={`Money in and out · ${formatWeekdayDate(selectedDate)}`}
         action={
-          <div className="flex flex-wrap gap-2">
-            <a href={`/reports/monthly-summary/export?month=${selectedDate.slice(0, 7)}`}>
-              <SecondaryButton type="button">Export Month Summary (Excel)</SecondaryButton>
-            </a>
+          <>
+            <MonthSwitcher
+              label={formatWeekdayDate(selectedDate)}
+              prevHref={`/reports/daily-cashflow?date=${addDays(selectedDate, -1)}`}
+              nextHref={`/reports/daily-cashflow?date=${addDays(selectedDate, 1)}`}
+              thisHref="/reports/daily-cashflow"
+              thisLabel="Today"
+              isCurrent={selectedDate === today}
+            >
+              <DateJump basePath="/reports/daily-cashflow" value={selectedDate} />
+            </MonthSwitcher>
             <a href={`/reports/daily-cashflow/export?date=${selectedDate}`}>
-              <SecondaryButton type="button">Export Day (Excel)</SecondaryButton>
+              <SecondaryButton type="button" icon="download">
+                Export day
+              </SecondaryButton>
             </a>
-          </div>
+            <a href={`/reports/monthly-summary/export?month=${selectedDate.slice(0, 7)}`}>
+              <SecondaryButton type="button" icon="download">
+                Month summary
+              </SecondaryButton>
+            </a>
+          </>
         }
       />
 
-      <Card className="p-4 mb-6">
-        <form className="flex flex-wrap items-end gap-4">
-          <label className="block">
-            <span className="block text-xs font-medium text-zinc-700 mb-1">Date</span>
-            <input
-              type="date"
-              name="date"
-              defaultValue={selectedDate}
-              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
-            />
-          </label>
-          <button
-            type="submit"
-            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
-          >
-            View
-          </button>
-        </form>
-      </Card>
+      {(paymentsError || expensesError) && <p className="mb-4 text-sm text-red-600">Failed to load: {paymentsError?.message || expensesError?.message}</p>}
 
-      {(paymentsError || expensesError) && (
-        <p className="text-red-600 text-sm mb-4">
-          Failed to load: {paymentsError?.message || expensesError?.message}
-        </p>
-      )}
+      <StatStrip
+        className="mb-6"
+        items={[
+          {
+            label: "Money in",
+            value: formatAed(totalIn),
+            tone: "positive",
+            hint: byMethod.size ? [...byMethod.entries()].map(([m, v]) => `${METHOD_LABEL[m] ?? m} ${formatAed(v, 0)}`).join(" · ") : "No payments",
+          },
+          { label: "Money out", value: formatAed(totalOut), tone: totalOut > 0 ? "negative" : "default", hint: `${expenses?.length ?? 0} expenses` },
+          { label: "Net for the day", value: formatAed(net), tone: net >= 0 ? "default" : "negative" },
+          { label: "Expected in cash drawer", value: formatAed(expectedCash), hint: "Cash received − expenses" },
+        ]}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <StatCard label="Cash In" value={`AED ${totalIn.toFixed(2)}`} accent="green" />
-        <StatCard label="Cash Out" value={`AED ${totalOut.toFixed(2)}`} accent="red" />
-        <StatCard label="Net" value={`AED ${net.toFixed(2)}`} accent={net >= 0 ? "indigo" : "red"} />
-      </div>
-
-      <Card className="p-5 mb-6">
-        <p className="text-sm font-semibold text-zinc-700 mb-1">Cash Drawer Reconciliation</p>
-        <p className="text-xs text-zinc-500 mb-4">
-          Expected cash = cash payments received (AED {cashIn.toFixed(2)}) minus expenses (AED {totalOut.toFixed(2)}) = AED{" "}
-          {expectedCash.toFixed(2)}. Enter what was actually counted in the drawer at end of day.
-        </p>
-        {reconciliation && difference !== null && (
-          <Alert
-            className="mb-4"
-            tone={Math.abs(difference) < 0.01 ? "success" : "danger"}
-            title={Math.abs(difference) < 0.01 ? "Cash matches — no discrepancy" : "Cash mismatch"}
-          >
-            {Math.abs(difference) >= 0.01 &&
-              `Counted AED ${reconciliation.counted_cash.toFixed(2)} vs expected AED ${expectedCash.toFixed(2)} (${
-                difference > 0 ? "+" : ""
-              }AED ${difference.toFixed(2)})`}
-          </Alert>
-        )}
-        <form action={saveCashReconciliation} className="flex flex-wrap items-end gap-4">
-          <input type="hidden" name="reconciliation_date" value={selectedDate} />
-          <Field
-            label="Counted Cash (AED)"
-            name="counted_cash"
-            type="number"
-            step="0.01"
-            defaultValue={reconciliation?.counted_cash ?? ""}
-            required
-          />
-          <Field label="Notes (optional)" name="notes" defaultValue={reconciliation?.notes ?? ""} />
-          <PrimaryButton type="submit">Save Reconciliation</PrimaryButton>
-        </form>
-      </Card>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-700 mb-2">In</h2>
-          <Card className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Vehicle / Customer</th>
-                  <th className="px-3 py-2 font-medium">Job</th>
-                  <th className="px-3 py-2 font-medium text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {payments?.map((p) => (
-                  <tr key={p.id}>
-                    <td className="px-3 py-2">
-                      {p.invoices?.job_cards?.vehicles?.plate_number ?? p.invoices?.customers?.name ?? "—"}
-                    </td>
-                    <td className="px-3 py-2 text-zinc-500">{p.invoices?.job_cards?.description ?? "—"}</td>
-                    <td className="px-3 py-2 text-right font-medium">{Number(p.amount).toFixed(2)}</td>
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="grid min-w-0 items-start gap-6 lg:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+          <Panel title="Money in" count={payments?.length ?? 0} action={<span className="font-medium tabular text-emerald-700">{formatAed(totalIn)}</span>}>
+            {(payments?.length ?? 0) === 0 ? (
+              <PanelEmpty message="No payments received this day." />
+            ) : (
+              <table className="w-full text-sm">
+                <thead className={theadClass}>
+                  <tr>
+                    <th className={thClass}>Customer / vehicle</th>
+                    <th className={`${thClass} hidden sm:table-cell`}>Method</th>
+                    <th className={`${thClass} text-right`}>Amount</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {payments?.length === 0 && <EmptyState message="No payments this day." />}
-          </Card>
+                </thead>
+                <tbody>
+                  {payments!.map((p) => (
+                    <tr key={p.id} className="border-b border-zinc-100 last:border-0">
+                      <td className={tdClass}>
+                        <p className="font-medium text-zinc-900">{p.invoices?.customers?.name ?? "—"}</p>
+                        <p className="text-xs text-zinc-500">
+                          {[formatTime(p.paid_at), p.invoices?.job_cards?.vehicles?.plate_number, p.invoices?.job_cards?.description].filter(Boolean).join(" · ")}
+                        </p>
+                      </td>
+                      <td className={`${tdClass} hidden text-zinc-600 sm:table-cell`}>{METHOD_LABEL[p.method] ?? p.method}</td>
+                      <td className={`${tdClass} whitespace-nowrap text-right font-medium tabular text-zinc-900`}>{formatAed(Number(p.amount))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Panel>
+
+          <Panel title="Money out" count={expenses?.length ?? 0} action={<span className="font-medium tabular text-red-700">{formatAed(totalOut)}</span>}>
+            {(expenses?.length ?? 0) === 0 ? (
+              <PanelEmpty message="No expenses recorded this day." />
+            ) : (
+              <table className="w-full text-sm">
+                <thead className={theadClass}>
+                  <tr>
+                    <th className={thClass}>Expense</th>
+                    <th className={`${thClass} text-right`}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenses!.map((e) => (
+                    <tr key={e.id} className="border-b border-zinc-100 last:border-0">
+                      <td className={tdClass}>
+                        <p className="font-medium text-zinc-900">{e.category}</p>
+                        {e.description && <p className="text-xs text-zinc-500">{e.description}</p>}
+                      </td>
+                      <td className={`${tdClass} whitespace-nowrap text-right font-medium tabular text-zinc-900`}>{formatAed(Number(e.amount))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Panel>
         </div>
 
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-700 mb-2">Out</h2>
-          <Card className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Category</th>
-                  <th className="px-3 py-2 font-medium">Description</th>
-                  <th className="px-3 py-2 font-medium text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {expenses?.map((e) => (
-                  <tr key={e.id}>
-                    <td className="px-3 py-2">{e.category}</td>
-                    <td className="px-3 py-2 text-zinc-500">{e.description ?? "—"}</td>
-                    <td className="px-3 py-2 text-right font-medium">{Number(e.amount).toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {expenses?.length === 0 && <EmptyState message="No expenses this day." />}
-          </Card>
-        </div>
+        <Panel title="Cash drawer check">
+          <div className="space-y-4 p-4">
+            <dl className="space-y-1.5 text-[13px]">
+              <div className="flex justify-between">
+                <dt className="text-zinc-500">Cash received</dt>
+                <dd className="tabular text-zinc-900">{formatAed(cashIn)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-zinc-500">Expenses paid</dt>
+                <dd className="tabular text-zinc-900">− {formatAed(totalOut)}</dd>
+              </div>
+              <div className="flex justify-between border-t border-zinc-200 pt-1.5 font-semibold">
+                <dt className="text-zinc-900">Should be in drawer</dt>
+                <dd className="tabular text-zinc-900">{formatAed(expectedCash)}</dd>
+              </div>
+            </dl>
+            {reconciliation && difference !== null && (
+              <Alert tone={Math.abs(difference) < 0.01 ? "success" : "danger"} title={Math.abs(difference) < 0.01 ? "Cash matches" : `Short / over by ${formatAed(difference)}`}>
+                Counted {formatAed(reconciliation.counted_cash)}
+                {reconciliation.notes ? ` · ${reconciliation.notes}` : ""}
+              </Alert>
+            )}
+            <form action={saveCashReconciliation} className="space-y-3">
+              <input type="hidden" name="reconciliation_date" value={selectedDate} />
+              <Field label="Cash counted in drawer (AED)" name="counted_cash" type="number" step="0.01" defaultValue={reconciliation?.counted_cash ?? ""} required />
+              <Field label="Notes" name="notes" defaultValue={reconciliation?.notes ?? ""} placeholder="Optional" />
+              <PrimaryButton type="submit" icon="check" className="w-full">
+                {reconciliation ? "Update count" : "Save count"}
+              </PrimaryButton>
+            </form>
+          </div>
+        </Panel>
       </div>
     </div>
   );

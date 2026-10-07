@@ -93,3 +93,10 @@ export function uaeInputValues(value: DateInput) {
     time: d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TZ }),
   };
 }
+
+/** "AED 6,500.00" — the one money format used across the app. */
+export function formatAed(amount: number, digits = 2) {
+  const n = Number.isFinite(amount) ? amount : 0;
+  const sign = n < 0 ? "−" : "";
+  return `${sign}AED ${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+}

@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { createClient } from "@/lib/supabase/server";
-import { applyHeaderRow, applyBodyRow } from "@/lib/xlsx-style";
+import { applyBodyRow, startSheet, DATE_FORMAT, NUMBER_FORMAT, type SheetColumn } from "@/lib/xlsx-style";
 
 type CustomerRow = {
   name: string;
@@ -31,23 +31,21 @@ type CustomerRow = {
   }[];
 };
 
-export async function buildCustomersWorkbook() {
+export async function buildCustomersWorkbook(ids?: string[]) {
   const supabase = await createClient();
-  const { data: customers } = await supabase
+  let query = supabase
     .from("customers")
     .select(
-      "name, customer_type, phone, landline, email, trn_number, representative, reference_name, address, city, created_at, vehicles(plate_number, emirate, registration_expiry_date, make, model, year, origin_trim, vin, body_type, color, cylinders, current_mileage, odometer_reading)"
+      "name, customer_type, phone, landline, email, trn_number, representative, reference_name, address, city, created_at, is_walk_in, vehicles(plate_number, emirate, registration_expiry_date, make, model, year, origin_trim, vin, body_type, color, cylinders, current_mileage, odometer_reading)"
     )
-    .order("name")
-    .returns<CustomerRow[]>();
+    .order("name");
+  if (ids?.length) query = query.in("id", ids);
+  const { data: rawCustomers } = await query.returns<(CustomerRow & { is_walk_in?: boolean })[]>();
+  // The shared walk-in customer (counter sales) is bookkeeping, not a real customer.
+  const customers = (rawCustomers ?? []).filter((c) => !c.is_walk_in);
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Al Bahir Garage";
-  const sheet = workbook.addWorksheet("Customers", {
-    views: [{ state: "frozen", ySplit: 1 }],
-  });
-
-  sheet.columns = [
+  const columns: SheetColumn[] = [
     { header: "Type", key: "customer_type", width: 12 },
     { header: "Customer / Company Name", key: "name", width: 26 },
     { header: "TRN/VAT Number", key: "trn_number", width: 18 },
@@ -60,20 +58,26 @@ export async function buildCustomersWorkbook() {
     { header: "City", key: "city", width: 16 },
     { header: "Plate Number", key: "plate", width: 14 },
     { header: "Emirate", key: "emirate", width: 14 },
-    { header: "Registration Expiry", key: "reg_expiry", width: 16 },
+    { header: "Registration Expiry", key: "reg_expiry", width: 16, numFmt: DATE_FORMAT },
     { header: "Make", key: "make", width: 14 },
     { header: "Model", key: "model", width: 14 },
-    { header: "Year", key: "year", width: 10 },
+    { header: "Year", key: "year", width: 10, align: "center" },
     { header: "Origin/Trim", key: "origin_trim", width: 14 },
     { header: "VIN", key: "vin", width: 20 },
     { header: "Body Type", key: "body_type", width: 12 },
     { header: "Color", key: "color", width: 12 },
-    { header: "Cylinders", key: "cylinders", width: 10 },
-    { header: "Current Mileage (KM)", key: "current_mileage", width: 16 },
-    { header: "Odometer Reading", key: "odometer_reading", width: 16 },
-    { header: "Customer Since", key: "since", width: 16 },
+    { header: "Cylinders", key: "cylinders", width: 10, align: "center" },
+    { header: "Current Mileage (KM)", key: "current_mileage", width: 16, numFmt: NUMBER_FORMAT },
+    { header: "Odometer Reading", key: "odometer_reading", width: 16, numFmt: NUMBER_FORMAT },
+    { header: "Customer Since", key: "since", width: 16, numFmt: DATE_FORMAT },
   ];
-  applyHeaderRow(sheet.getRow(1));
+  const { sheet } = startSheet(workbook, "Customers", {
+    title: "Customers & Vehicles",
+    subtitle: `${customers?.length ?? 0} customers`,
+    columns,
+    freezeColumns: 2,
+    landscape: true,
+  });
 
   let rowIndex = 0;
   for (const c of customers ?? []) {
@@ -105,9 +109,7 @@ export async function buildCustomersWorkbook() {
         odometer_reading: v?.odometer_reading ?? "",
         since: new Date(c.created_at),
       });
-      if (v?.registration_expiry_date) row.getCell("reg_expiry").numFmt = "dd/mm/yyyy";
-      row.getCell("since").numFmt = "dd/mm/yyyy";
-      applyBodyRow(row, rowIndex);
+      applyBodyRow(row, rowIndex, columns);
       rowIndex++;
     }
   }

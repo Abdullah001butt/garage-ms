@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { createClient } from "@/lib/supabase/server";
-import { applyHeaderRow, applyBodyRow, applyTotalRow, CURRENCY_FORMAT } from "@/lib/xlsx-style";
+import { applyBodyRow, applyTotalRow, startSheet, CURRENCY_FORMAT, DATE_FORMAT, type SheetColumn } from "@/lib/xlsx-style";
 
 type ExpenseRow = {
   category: string;
@@ -18,18 +18,13 @@ export async function buildExpensesWorkbook() {
     .returns<ExpenseRow[]>();
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Al Bahir Garage";
-  const sheet = workbook.addWorksheet("Expenses", {
-    views: [{ state: "frozen", ySplit: 1 }],
-  });
-
-  sheet.columns = [
-    { header: "Date", key: "date", width: 14 },
-    { header: "Category", key: "category", width: 20 },
-    { header: "Description", key: "description", width: 34 },
-    { header: "Amount", key: "amount", width: 16, style: { numFmt: CURRENCY_FORMAT } },
+  const columns: SheetColumn[] = [
+    { header: "Date", key: "date", width: 14, numFmt: DATE_FORMAT },
+    { header: "Category", key: "category", width: 22 },
+    { header: "Description", key: "description", width: 44 },
+    { header: "Amount", key: "amount", width: 18, numFmt: CURRENCY_FORMAT },
   ];
-  applyHeaderRow(sheet.getRow(1));
+  const { sheet } = startSheet(workbook, "Expenses", { title: "Expenses", subtitle: `${expenses?.length ?? 0} entries`, columns });
 
   let total = 0;
   (expenses ?? []).forEach((e, i) => {
@@ -40,12 +35,11 @@ export async function buildExpensesWorkbook() {
       description: e.description ?? "",
       amount: Number(e.amount),
     });
-    row.getCell("date").numFmt = "dd/mm/yyyy";
-    applyBodyRow(row, i);
+    applyBodyRow(row, i, columns);
   });
 
-  const totalRow = sheet.addRow({ date: "", category: "", description: "TOTAL", amount: total });
-  applyTotalRow(totalRow);
+  const totalRow = sheet.addRow({ date: "Total", category: "", description: `${expenses?.length ?? 0} expenses`, amount: total });
+  applyTotalRow(totalRow, columns);
 
   return workbook;
 }

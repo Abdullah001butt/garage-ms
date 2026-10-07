@@ -60,9 +60,16 @@ body {
   }
 }
 
+/* Document-style pages (reports printed on paper, payslips, QR labels): a centred column. */
 @utility page-narrow {
   & > * {
-    max-width: 56rem;
+    max-width: 60rem;
+    margin-inline: auto;
+  }
+  /* Back links stay aligned with the centred column. */
+  & > a {
+    display: flex;
+    width: 100%;
   }
 }
 
@@ -73,6 +80,10 @@ summary {
 }
 summary::-webkit-details-marker {
   display: none;
+}
+/* Buttons built from <summary> (popovers) don't get the chevron. */
+summary[data-plain]::before {
+  display: none !important;
 }
 summary::before {
   content: "";
@@ -234,4 +245,16 @@ details[open] > summary::before {
     max-width: none !important;
     width: 100% !important;
   }
+}
+
+/* Quick-view side panel */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.slide-in-right {
+  animation: slide-in-right 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .slide-in-right { animation: none; }
 }

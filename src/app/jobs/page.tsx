@@ -1,4 +1,5 @@
 import { formatDate } from "@/lib/format";
+import { PeekButton } from "@/components/Peek";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, PageHeader, Badge, EmptyState, PrimaryButton, SegmentedLinks, theadClass, thClass } from "@/components/ui";
@@ -65,7 +66,7 @@ export default async function JobsPage({
     <div className="page">
       <PageHeader
         title="Job Cards"
-        description="Every vehicle in for service, from check-in to invoice."
+        description={isBoard ? "Every vehicle in for service. Drag a card to another column to change its stage." : "Every vehicle in for service, from check-in to invoice."}
         action={
           <Link href="/jobs/new">
             <PrimaryButton type="button">+ New Job Card</PrimaryButton>
@@ -111,6 +112,7 @@ export default async function JobsPage({
                   <th className={`${thClass} hidden md:table-cell`}>Mechanic</th>
                   <th className={thClass}>Status</th>
                   <th className={`${thClass} hidden sm:table-cell text-right`}>Opened</th>
+                  <th className="w-10" />
                 </tr>
               </thead>
               <tbody>
@@ -142,6 +144,9 @@ export default async function JobsPage({
                     </td>
                     <td className="hidden px-4 py-3 text-right text-zinc-500 tabular sm:table-cell">
                       {formatDate(job.created_at)}
+                    </td>
+                    <td className="pr-3 text-right">
+                      <PeekButton type="job" id={job.id} />
                     </td>
                   </tr>
                 ))}

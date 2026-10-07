@@ -1,4 +1,4 @@
-import { formatDate } from "@/lib/format";
+import { formatDate, formatAed } from "@/lib/format";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -71,7 +71,7 @@ export default async function CustomerFleetPage({ params }: { params: Promise<{ 
 
       <PageHeader
         title={`${customer.name} — Fleet Overview`}
-        description={`${vehicles?.length ?? 0} vehicle(s) on record · Lifetime spend: AED ${fleetTotal.toFixed(2)}`}
+        description={`${vehicles?.length ?? 0} vehicle(s) on record · Lifetime spend: ${formatAed(fleetTotal)}`}
       />
 
       <Card className="overflow-hidden">
@@ -94,7 +94,7 @@ export default async function CustomerFleetPage({ params }: { params: Promise<{ 
                     {stat.lastJobDate && ` · Last visit ${formatDate(stat.lastJobDate)}`}
                   </p>
                 </Link>
-                <p className="shrink-0 text-sm font-semibold text-zinc-900">AED {stat.totalSpent.toFixed(2)}</p>
+                <p className="shrink-0 text-sm font-semibold text-zinc-900">{formatAed(stat.totalSpent)}</p>
               </li>
             );
           })}

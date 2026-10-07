@@ -375,9 +375,7 @@ export default async function TodayPage() {
                   {inv.customers?.phone && (
                     <WhatsAppButton
                       phone={inv.customers.phone}
-                      message={`Hi ${inv.customers.name.split(" ")[0]}, a friendly reminder that AED ${inv.balance.toFixed(
-                        2
-                      )} is still due for your service at Al Bahir Garage. — Al Bahir Garage`}
+                      message={`Hi ${inv.customers.name.split(" ")[0]}, a friendly reminder that ${formatAed(inv.balance)} is still due for your service at Al Bahir Garage. — Al Bahir Garage`}
                       label="Remind"
                       size="sm"
                     />

@@ -1,4 +1,4 @@
-import { formatDate } from "@/lib/format";
+import { formatDate, formatAed } from "@/lib/format";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -108,10 +108,10 @@ export async function DocumentDetail({
   const customerFirstName = doc.customers?.name?.split(" ")[0] ?? "there";
   const vehicleLabel = doc.job_cards?.vehicles?.plate_number ?? "your vehicle";
   const notifyMessage = isEstimate
-    ? `Hi ${customerFirstName}, here's the estimate for ${vehicleLabel}: AED ${total.toFixed(2)}. Let us know if you'd like to go ahead. — Al Bahir Garage`
+    ? `Hi ${customerFirstName}, here's the estimate for ${vehicleLabel}: ${formatAed(total)}. Let us know if you'd like to go ahead. — Al Bahir Garage`
     : balanceDue > 0
-    ? `Hi ${customerFirstName}, your invoice for ${vehicleLabel} is AED ${total.toFixed(2)}, with a remaining balance of AED ${balanceDue.toFixed(2)}. — Al Bahir Garage`
-    : `Hi ${customerFirstName}, your invoice for ${vehicleLabel} (AED ${total.toFixed(2)}) is fully paid. Thank you for choosing Al Bahir Garage!`;
+    ? `Hi ${customerFirstName}, your invoice for ${vehicleLabel} is ${formatAed(total)}, with a remaining balance of ${formatAed(balanceDue)}. — Al Bahir Garage`
+    : `Hi ${customerFirstName}, your invoice for ${vehicleLabel} (${formatAed(total)}) is fully paid. Thank you for choosing Al Bahir Garage!`;
 
   const docNumber = isEstimate ? "Estimate" : formatInvoiceNumber(doc.invoice_number, doc.created_at) ?? "Invoice";
 
@@ -213,7 +213,7 @@ export async function DocumentDetail({
               title="Payments"
               action={
                 <span className={`font-medium tabular ${balanceDue > 0 ? "text-red-700" : "text-emerald-700"}`}>
-                  {balanceDue > 0 ? `AED ${balanceDue.toFixed(2)} due` : "Settled"}
+                  {balanceDue > 0 ? `${formatAed(balanceDue)} due` : "Settled"}
                 </span>
               }
             >
@@ -221,7 +221,7 @@ export async function DocumentDetail({
                 {payments?.map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-2 px-4 py-2.5 text-sm">
                     <div className="min-w-0">
-                      <p className="font-medium text-zinc-900 tabular">AED {Number(p.amount).toFixed(2)}</p>
+                      <p className="font-medium text-zinc-900 tabular">{formatAed(Number(p.amount))}</p>
                       <p className="truncate text-xs text-zinc-500">
                         <span className="capitalize">{p.method.replace("_", " ")}</span> ·{" "}
                         {formatDate(p.paid_at)}

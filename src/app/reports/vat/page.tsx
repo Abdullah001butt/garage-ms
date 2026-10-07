@@ -1,136 +1,137 @@
-import { formatDate } from "@/lib/format";
+import Link from "next/link";
+import { formatAed, formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
-import { Card, PageHeader, StatCard, SecondaryButton } from "@/components/ui";
+import { formatInvoiceNumber } from "@/lib/invoice-number";
+import { PageHeader, Panel, PanelEmpty, SecondaryButton, tdClass, thClass, theadClass } from "@/components/ui";
+import { StatStrip, pctChange } from "@/components/report-ui";
+import { DateRangePicker } from "@/components/DateRangePicker";
+import { isoBounds, resolveRange } from "@/lib/date-range";
 
 type InvoiceRow = {
   id: string;
+  invoice_number: number | null;
   created_at: string;
   vat_rate: number;
-  customers: { name: string } | null;
+  customers: { name: string; trn_number: string | null } | null;
   invoice_items: { quantity: number; unit_price: number }[];
 };
 
-function firstOfMonth() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
-}
-
-function today() {
-  const d = new Date();
-  return d.toISOString().slice(0, 10);
-}
-
-export default async function VatReportPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ start?: string; end?: string }>;
-}) {
-  const { start, end } = await searchParams;
-  const startDate = start || firstOfMonth();
-  const endDate = end || today();
+export default async function VatReportPage({ searchParams }: { searchParams: Promise<{ range?: string; from?: string; to?: string }> }) {
+  const range = resolveRange(await searchParams, "quarter");
+  const now = isoBounds(range.from, range.to);
+  const prev = isoBounds(range.prevFrom, range.prevTo);
 
   const supabase = await createClient();
-  const { data: invoices, error } = await supabase
-    .from("invoices")
-    .select("id, created_at, vat_rate, customers(name), invoice_items(quantity, unit_price)")
-    .eq("document_type", "invoice")
-    .gte("created_at", startDate)
-    .lte("created_at", `${endDate}T23:59:59`)
-    .order("created_at")
-    .returns<InvoiceRow[]>();
+  const select = "id, invoice_number, created_at, vat_rate, customers(name, trn_number), invoice_items(quantity, unit_price)";
+  const [{ data: invoices, error }, { data: previous }] = await Promise.all([
+    supabase.from("invoices").select(select).eq("document_type", "invoice").gte("created_at", now.start).lte("created_at", now.end).order("created_at").returns<InvoiceRow[]>(),
+    supabase.from("invoices").select(select).eq("document_type", "invoice").gte("created_at", prev.start).lte("created_at", prev.end).returns<InvoiceRow[]>(),
+  ]);
 
-  const rows = (invoices ?? []).map((inv) => {
-    const subtotal = inv.invoice_items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
-    const vat = subtotal * (inv.vat_rate / 100);
-    return { ...inv, subtotal, vat, total: subtotal + vat };
-  });
+  const summarise = (list: InvoiceRow[]) =>
+    list.map((inv) => {
+      const subtotal = inv.invoice_items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
+      const vat = subtotal * (inv.vat_rate / 100);
+      return { ...inv, subtotal, vat, total: subtotal + vat };
+    });
+  const rows = summarise(invoices ?? []);
+  const prevRows = summarise(previous ?? []);
+  const sum = (list: typeof rows, key: "subtotal" | "vat" | "total") => list.reduce((s, r) => s + r[key], 0);
 
-  const totalSubtotal = rows.reduce((s, r) => s + r.subtotal, 0);
-  const totalVat = rows.reduce((s, r) => s + r.vat, 0);
-  const totalAmount = rows.reduce((s, r) => s + r.total, 0);
+  const net = sum(rows, "subtotal");
+  const vat = sum(rows, "vat");
+  const total = sum(rows, "total");
 
   return (
     <div className="page">
       <PageHeader
         title="VAT Report"
-        description="Tax collected per period, ready for filing."
+        description={`Output tax on invoices · ${range.label}`}
         action={
-          <a href={`/reports/vat/export?start=${startDate}&end=${endDate}`}>
-            <SecondaryButton type="button">Export Excel</SecondaryButton>
-          </a>
+          <>
+            <DateRangePicker range={range} basePath="/reports/vat" presets={["month", "last-month", "quarter", "year"]}>
+              <a href={`/reports/vat/export?start=${range.from}&end=${range.to}`}>
+                <SecondaryButton type="button" icon="download">
+                  Export
+                </SecondaryButton>
+              </a>
+            </DateRangePicker>
+          </>
         }
       />
 
-      <Card className="p-4 mb-6">
-        <form className="flex flex-wrap items-end gap-4">
-          <label className="block">
-            <span className="block text-xs font-medium text-zinc-700 mb-1">Start date</span>
-            <input
-              type="date"
-              name="start"
-              defaultValue={startDate}
-              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
-            />
-          </label>
-          <label className="block">
-            <span className="block text-xs font-medium text-zinc-700 mb-1">End date</span>
-            <input
-              type="date"
-              name="end"
-              defaultValue={endDate}
-              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
-            />
-          </label>
-          <button
-            type="submit"
-            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
-          >
-            Filter
-          </button>
-        </form>
-      </Card>
+      {error && <p className="mb-4 text-sm text-red-600">Failed to load: {error.message}</p>}
 
-      {error && <p className="text-red-600 text-sm mb-4">Failed to load: {error.message}</p>}
+      <StatStrip
+        className="mb-6"
+        items={[
+          { label: "Net sales (excl. VAT)", value: formatAed(net), delta: pctChange(net, sum(prevRows, "subtotal")), deltaLabel: range.compareLabel },
+          { label: "VAT collected", value: formatAed(vat), delta: pctChange(vat, sum(prevRows, "vat")), deltaLabel: range.compareLabel },
+          { label: "Total invoiced", value: formatAed(total), tone: "positive", hint: "Including VAT" },
+          { label: "Invoices", value: String(rows.length), hint: `${prevRows.length} in previous period` },
+        ]}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <StatCard label="Net Sales" value={`AED ${totalSubtotal.toFixed(2)}`} />
-        <StatCard label="VAT Collected" value={`AED ${totalVat.toFixed(2)}`} accent="indigo" />
-        <StatCard label="Total Invoiced" value={`AED ${totalAmount.toFixed(2)}`} accent="green" />
-      </div>
-
-      <Card className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
-            <tr>
-              <th className="px-4 py-2.5 font-medium">Date</th>
-              <th className="px-4 py-2.5 font-medium">Customer</th>
-              <th className="px-4 py-2.5 font-medium text-right">Net</th>
-              <th className="px-4 py-2.5 font-medium text-right">VAT</th>
-              <th className="px-4 py-2.5 font-medium text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100">
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td className="px-4 py-2.5 text-zinc-500">
-                  {formatDate(r.created_at)}
-                </td>
-                <td className="px-4 py-2.5 font-medium text-zinc-900">{r.customers?.name}</td>
-                <td className="px-4 py-2.5 text-right">{r.subtotal.toFixed(2)}</td>
-                <td className="px-4 py-2.5 text-right">{r.vat.toFixed(2)}</td>
-                <td className="px-4 py-2.5 text-right font-medium">{r.total.toFixed(2)}</td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-zinc-400">
-                  No invoices in this period.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </Card>
+      <Panel title="Invoices in period" count={rows.length}>
+        {rows.length === 0 ? (
+          <PanelEmpty message="No invoices in this period." />
+        ) : (
+          <div className="relative overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className={theadClass}>
+                <tr>
+                  <th className={`${thClass} hidden sm:table-cell`}>Date</th>
+                  <th className={`${thClass} hidden sm:table-cell`}>Invoice</th>
+                  <th className={thClass}>Customer</th>
+                  <th className={`${thClass} hidden md:table-cell`}>Customer TRN</th>
+                  <th className={`${thClass} hidden text-right sm:table-cell`}>Net</th>
+                  <th className={`${thClass} hidden text-right sm:table-cell`}>VAT</th>
+                  <th className={`${thClass} text-right`}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id} className="border-b border-zinc-100 hover:bg-zinc-50/60">
+                    <td className={`${tdClass} hidden whitespace-nowrap text-zinc-500 tabular sm:table-cell`}>{formatDate(r.created_at)}</td>
+                    <td className={`${tdClass} hidden whitespace-nowrap sm:table-cell`}>
+                      <Link href={`/invoices/${r.id}`} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
+                        {formatInvoiceNumber(r.invoice_number, r.created_at) ?? "Invoice"}
+                      </Link>
+                    </td>
+                    <td className={`${tdClass} font-medium text-zinc-900`}>
+                      {r.customers?.name ?? "—"}
+                      <p className="text-xs font-normal text-zinc-500 sm:hidden">
+                        {formatInvoiceNumber(r.invoice_number, r.created_at)} · {formatDate(r.created_at)}
+                      </p>
+                    </td>
+                    <td className={`${tdClass} hidden font-mono text-xs text-zinc-500 md:table-cell`}>{r.customers?.trn_number || "—"}</td>
+                    <td className={`${tdClass} hidden whitespace-nowrap text-right tabular sm:table-cell`}>{formatAed(r.subtotal)}</td>
+                    <td className={`${tdClass} hidden whitespace-nowrap text-right tabular sm:table-cell`}>{formatAed(r.vat)}</td>
+                    <td className={`${tdClass} whitespace-nowrap text-right font-medium text-zinc-900 tabular`}>
+                      {formatAed(r.total)}
+                      <p className="text-xs font-normal text-zinc-500 sm:hidden">VAT {formatAed(r.vat)}</p>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-zinc-50 font-semibold text-zinc-900">
+                  <td className="hidden px-4 py-3 sm:table-cell" colSpan={2}>
+                    Total · {rows.length} invoices
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="sm:hidden">Total</span>
+                  </td>
+                  <td className="hidden md:table-cell" />
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-right tabular sm:table-cell">{formatAed(net)}</td>
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-right tabular sm:table-cell">{formatAed(vat)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right tabular">{formatAed(total)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }

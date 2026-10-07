@@ -1,4 +1,4 @@
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatAed } from "@/lib/format";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -106,7 +106,7 @@ export default async function JobDetailPage({
       id: `s-${s.id}`,
       at: s.created_at,
       title: `Outsourced to ${s.vendor_name}`,
-      detail: `${s.description} · AED ${Number(s.cost).toFixed(2)}`,
+      detail: `${s.description} · ${formatAed(Number(s.cost))}`,
       icon: "package",
       tone: "slate",
     })),
@@ -122,7 +122,7 @@ export default async function JobDetailPage({
           ...invoice.payments.map((p): ActivityEvent => ({
             id: `p-${p.id}`,
             at: p.paid_at,
-            title: `Payment received · AED ${Number(p.amount).toFixed(2)}`,
+            title: `Payment received · ${formatAed(Number(p.amount))}`,
             detail: methodLabel(p.method),
             icon: "wallet",
             tone: "green",
@@ -299,7 +299,7 @@ export default async function JobDetailPage({
             count={(sublets ?? []).length}
             action={
               <div className="flex items-center gap-3">
-                {subletTotal > 0 && <span className="font-medium text-zinc-900 tabular">AED {subletTotal.toFixed(2)}</span>}
+                {subletTotal > 0 && <span className="font-medium text-zinc-900 tabular">{formatAed(subletTotal)}</span>}
                 <SlideOver title="Add outsourced cost" description="Work sent to another workshop or specialist." triggerLabel="Add" variant="secondary">
                   <form action={addJobSublet.bind(null, job.id)} className="space-y-4">
                     <Field label="Vendor" name="vendor_name" placeholder="e.g. Al Ayaam Garage" required />
@@ -323,7 +323,7 @@ export default async function JobDetailPage({
                       <p className="truncate font-medium text-zinc-900">{sub.vendor_name}</p>
                       <p className="truncate text-xs text-zinc-500">{sub.description}</p>
                     </div>
-                    <span className="shrink-0 font-medium text-zinc-900 tabular">AED {Number(sub.cost).toFixed(2)}</span>
+                    <span className="shrink-0 font-medium text-zinc-900 tabular">{formatAed(Number(sub.cost))}</span>
                     <RowMenu>
                       <RowMenuDelete
                         action={deleteJobSublet.bind(null, job.id, sub.id)}

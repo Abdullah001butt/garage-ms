@@ -1,4 +1,9 @@
 import Link from "next/link";
+import { SortHeader, sortRows } from "@/components/SortHeader";
+import { BulkBar, BulkSelectProvider, RowCheckbox, SelectAllCheckbox } from "@/components/BulkSelect";
+import { BulkLinkButton, BulkRemindButton } from "@/components/BulkActions";
+import { PeekButton } from "@/components/Peek";
+import { formatAed } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { Customer } from "@/lib/types";
 import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, SegmentedLinks, inputClass, theadClass, thClass } from "@/components/ui";
@@ -24,9 +29,9 @@ const TYPE_FILTERS = [
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; type?: string }>;
+  searchParams: Promise<{ q?: string; type?: string; sort?: string; dir?: string }>;
 }) {
-  const { q, type } = await searchParams;
+  const { q, type, sort = "recent", dir = "desc" } = await searchParams;
   const supabase = await createClient();
 
   let query = supabase
@@ -64,7 +69,20 @@ export default async function CustomersPage({
   }
 
   // The shared "Walk-in customer" (counter sales) is bookkeeping, not a real customer.
-  const rows = (customers ?? []).filter((c) => !c.is_walk_in);
+  const rows = sortRows(
+    (customers ?? []).filter((c) => !c.is_walk_in),
+    (c) => (sort === "name" ? c.name : sort === "balance" ? balances.get(c.id) ?? 0 : sort === "vehicles" ? c.vehicles.length : c.created_at),
+    dir
+  );
+  const sortHref = (field: string, d: string) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (type) params.set("type", type);
+    params.set("sort", field);
+    params.set("dir", d);
+    return `/customers?${params.toString()}`;
+  };
+  const targets = rows.map((c) => ({ id: c.id, name: c.name, phone: c.phone, detail: c.phone, message: "" }));
   const filterHref = (value: string) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -94,6 +112,7 @@ export default async function CustomersPage({
 
       {error && <p className="mb-4 text-sm text-red-600">Failed to load customers: {error.message}</p>}
 
+      <BulkSelectProvider ids={rows.map((c) => c.id)}>
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-zinc-200 p-3 sm:flex-row sm:items-center sm:justify-between">
           <SegmentedLinks
@@ -106,14 +125,17 @@ export default async function CustomersPage({
           </form>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full text-sm">
             <thead className={theadClass}>
               <tr>
-                <th className={thClass}>Customer</th>
+                <th className="w-10 pl-4">
+                  <SelectAllCheckbox />
+                </th>
+                <SortHeader label="Customer" field="name" sort={sort} dir={dir} href={sortHref} defaultDir="asc" />
                 <th className={`${thClass} hidden md:table-cell`}>Phone</th>
-                <th className={`${thClass} hidden lg:table-cell`}>Vehicles</th>
-                <th className={`${thClass} text-right`}>Balance</th>
+                <SortHeader label="Vehicles" field="vehicles" sort={sort} dir={dir} href={sortHref} className="hidden lg:table-cell" />
+                <SortHeader label="Balance" field="balance" sort={sort} dir={dir} href={sortHref} align="right" />
                 <th className="w-8" />
               </tr>
             </thead>
@@ -124,6 +146,9 @@ export default async function CustomersPage({
                 const href = `/customers/${customer.id}`;
                 return (
                   <tr key={customer.id} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                    <td className="w-10 pl-4">
+                      <RowCheckbox id={customer.id} label={customer.name} />
+                    </td>
                     <td className="px-4 py-3">
                       <Link href={href} className="flex items-center gap-3">
                         <span
@@ -162,15 +187,18 @@ export default async function CustomersPage({
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right tabular">
                       {balance > 0.01 ? (
-                        <span className="font-medium text-red-700">AED {balance.toFixed(2)}</span>
+                        <span className="font-medium text-red-700">{formatAed(balance)}</span>
                       ) : (
                         <span className="text-zinc-400">—</span>
                       )}
                     </td>
                     <td className="pr-3">
-                      <Link href={href} aria-label={`Open ${customer.name}`} className="text-zinc-300 group-hover:text-zinc-500">
-                        <Icon name="chevron-right" className="h-4 w-4" />
-                      </Link>
+                      <span className="flex items-center justify-end gap-0.5">
+                        <PeekButton type="customer" id={customer.id} />
+                        <Link href={href} aria-label={`Open ${customer.name}`} className="hidden text-zinc-300 group-hover:text-zinc-500 sm:block">
+                          <Icon name="chevron-right" className="h-4 w-4" />
+                        </Link>
+                      </span>
                     </td>
                   </tr>
                 );
@@ -187,6 +215,15 @@ export default async function CustomersPage({
           </div>
         )}
       </Card>
+      <BulkBar noun="customer">
+        <BulkRemindButton
+          targets={targets}
+          label="WhatsApp message"
+          compose="Hi {name}, this is Al Bahir Garage. "
+        />
+        <BulkLinkButton href="/customers/export" label="Export" />
+      </BulkBar>
+      </BulkSelectProvider>
     </div>
   );
 }

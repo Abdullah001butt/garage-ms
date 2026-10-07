@@ -1,4 +1,4 @@
-import { formatDate } from "@/lib/format";
+import { formatDate, formatAed } from "@/lib/format";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -158,11 +158,11 @@ export default async function CustomerStatementPage({
                 <tr key={i} className="border-b border-zinc-100">
                   <td className="px-2 py-1.5 text-zinc-600">{formatDate(r.date)}</td>
                   <td className="px-2 py-1.5 text-zinc-900">{r.label}</td>
-                  <td className="px-2 py-1.5 text-right text-zinc-900">AED {r.amount.toFixed(2)}</td>
+                  <td className="px-2 py-1.5 text-right text-zinc-900">{formatAed(r.amount)}</td>
                   <td className="px-2 py-1.5 text-right text-emerald-600">
-                    {r.paid > 0 ? `AED ${r.paid.toFixed(2)}` : "—"}
+                    {r.paid > 0 ? `${formatAed(r.paid)}` : "—"}
                   </td>
-                  <td className="px-2 py-1.5 text-right font-medium text-zinc-900">AED {running.toFixed(2)}</td>
+                  <td className="px-2 py-1.5 text-right font-medium text-zinc-900">{formatAed(running)}</td>
                 </tr>
               );
             })}
@@ -179,16 +179,16 @@ export default async function CustomerStatementPage({
         <div className="mt-4 flex flex-col @xl:flex-row justify-end gap-6 border-t border-zinc-300 pt-3">
           <div className="text-right">
             <p className="text-xs text-zinc-500">Total Invoiced</p>
-            <p className="text-sm font-bold text-zinc-900">AED {totalInvoiced.toFixed(2)}</p>
+            <p className="text-sm font-bold text-zinc-900">{formatAed(totalInvoiced)}</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-zinc-500">Total Paid</p>
-            <p className="text-sm font-bold text-emerald-600">AED {totalPaid.toFixed(2)}</p>
+            <p className="text-sm font-bold text-emerald-600">{formatAed(totalPaid)}</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-zinc-500">Balance Due</p>
             <p className={`text-lg font-bold ${balance > 0 ? "text-red-600" : "text-emerald-600"}`}>
-              AED {balance.toFixed(2)}
+              {formatAed(balance)}
             </p>
           </div>
         </div>

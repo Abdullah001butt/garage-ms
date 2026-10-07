@@ -1,65 +1,55 @@
 import { NextRequest } from "next/server";
 import ExcelJS from "exceljs";
 import { createClient } from "@/lib/supabase/server";
-import { applyHeaderRow, applyBodyRow, applyTotalRow, CURRENCY_FORMAT, xlsxResponse } from "@/lib/xlsx-style";
+import { dayKey } from "@/lib/format";
+import { isoBounds } from "@/lib/date-range";
+import { currentMonth, isFriday, monthBounds, monthLabel } from "@/lib/salary";
+import { applyBodyRow, applyTotalRow, startSheet, CURRENCY_FORMAT, DATE_FORMAT, XLSX_COLORS, xlsxResponse, type SheetColumn } from "@/lib/xlsx-style";
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const month = searchParams.get("month") ?? new Date().toISOString().slice(0, 7);
-  const [year, mon] = month.split("-").map(Number);
-  const daysInMonth = new Date(year, mon, 0).getDate();
+  const param = request.nextUrl.searchParams.get("month");
+  const month = param && /^\d{4}-\d{2}$/.test(param) ? param : currentMonth();
+  const { start, end, days } = monthBounds(month);
+  const bounds = isoBounds(start, end);
 
   const supabase = await createClient();
+  const [{ data: payments }, { data: expenses }] = await Promise.all([
+    supabase.from("payments").select("amount, paid_at").gte("paid_at", bounds.start).lte("paid_at", bounds.end),
+    supabase.from("expenses").select("amount, expense_date").gte("expense_date", start).lte("expense_date", end),
+  ]);
 
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("amount, paid_at")
-    .gte("paid_at", `${month}-01T00:00:00`)
-    .lte("paid_at", `${month}-${String(daysInMonth).padStart(2, "0")}T23:59:59`);
-
-  const { data: expenses } = await supabase
-    .from("expenses")
-    .select("amount, expense_date")
-    .gte("expense_date", `${month}-01`)
-    .lte("expense_date", `${month}-${String(daysInMonth).padStart(2, "0")}`);
-
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Al Bahir Garage";
-  const sheet = workbook.addWorksheet(`Summary ${month}`, {
-    views: [{ state: "frozen", ySplit: 1 }],
-  });
-
-  sheet.columns = [
-    { header: "Day", key: "day", width: 10 },
-    { header: "Cash In", key: "in", width: 16, style: { numFmt: CURRENCY_FORMAT } },
-    { header: "Cash Out", key: "out", width: 16, style: { numFmt: CURRENCY_FORMAT } },
-    { header: "Net", key: "net", width: 16, style: { numFmt: CURRENCY_FORMAT } },
+  const columns: SheetColumn[] = [
+    { header: "Date", key: "date", width: 14, numFmt: DATE_FORMAT },
+    { header: "Day", key: "weekday", width: 8 },
+    { header: "Money in", key: "in", width: 16, numFmt: CURRENCY_FORMAT },
+    { header: "Money out", key: "out", width: 16, numFmt: CURRENCY_FORMAT },
+    { header: "Net", key: "net", width: 16, numFmt: CURRENCY_FORMAT },
+    { header: "Running total", key: "running", width: 16, numFmt: CURRENCY_FORMAT },
   ];
-  applyHeaderRow(sheet.getRow(1));
+  const workbook = new ExcelJS.Workbook();
+  const { sheet } = startSheet(workbook, `Summary ${month}`, { title: `Monthly Cash Summary — ${monthLabel(month)}`, subtitle: "Payments received and expenses paid, day by day", columns });
 
   let totalIn = 0;
   let totalOut = 0;
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${month}-${String(day).padStart(2, "0")}`;
-    const dayIn = (payments ?? [])
-      .filter((p) => p.paid_at.slice(0, 10) === dateStr)
-      .reduce((s, p) => s + Number(p.amount), 0);
-    const dayOut = (expenses ?? [])
-      .filter((e) => e.expense_date === dateStr)
-      .reduce((s, e) => s + Number(e.amount), 0);
+  for (let d = 1; d <= days; d++) {
+    const date = `${month}-${String(d).padStart(2, "0")}`;
+    const dayIn = (payments ?? []).filter((p) => dayKey(p.paid_at) === date).reduce((s, p) => s + Number(p.amount), 0);
+    const dayOut = (expenses ?? []).filter((e) => e.expense_date === date).reduce((s, e) => s + Number(e.amount), 0);
     totalIn += dayIn;
     totalOut += dayOut;
-
-    const row = sheet.addRow({ day, in: dayIn, out: dayOut, net: dayIn - dayOut });
-    applyBodyRow(row, day - 1);
-    if (dayIn - dayOut < 0) {
-      row.getCell("net").font = { color: { argb: "FFDC2626" }, bold: true };
-    }
+    const [y, m] = month.split("-").map(Number);
+    const row = sheet.addRow({
+      date: new Date(Date.UTC(y, m - 1, d)),
+      weekday: new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" }),
+      in: dayIn,
+      out: dayOut,
+      net: dayIn - dayOut,
+      running: totalIn - totalOut,
+    });
+    applyBodyRow(row, d - 1, columns);
+    if (isFriday(date)) row.eachCell((cell) => (cell.font = { ...cell.font, color: { argb: XLSX_COLORS.muted } }));
   }
-
-  const totalRow = sheet.addRow({ day: "Total", in: totalIn, out: totalOut, net: totalIn - totalOut });
-  applyTotalRow(totalRow);
+  applyTotalRow(sheet.addRow({ date: "Total", in: totalIn, out: totalOut, net: totalIn - totalOut }), columns);
 
   const buffer = await workbook.xlsx.writeBuffer();
   return xlsxResponse(buffer, `summary-${month}.xlsx`);
