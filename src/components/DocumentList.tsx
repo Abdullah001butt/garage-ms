@@ -123,10 +123,10 @@ export async function DocumentList({
             <thead className={theadClass}>
               <tr>
                 <th className={thClass}>{label}</th>
-                <th className={thClass}>Customer</th>
+                <th className={`${thClass} hidden sm:table-cell`}>Customer</th>
                 <th className={`${thClass} hidden sm:table-cell`}>Date</th>
                 <th className={`${thClass} text-right`}>Amount</th>
-                {documentType === "invoice" && <th className={thClass}>Status</th>}
+                {documentType === "invoice" && <th className={`${thClass} hidden sm:table-cell`}>Status</th>}
                 <th className="w-8" />
               </tr>
             </thead>
@@ -137,12 +137,15 @@ export async function DocumentList({
                   documentType === "invoice" ? formatInvoiceNumber(doc.invoice_number, doc.created_at) : null;
                 return (
                   <tr key={doc.id} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <Link href={href} className="font-mono text-[13px] font-medium text-zinc-900">
+                    <td className="px-4 py-3 sm:whitespace-nowrap">
+                      <Link href={href} className="whitespace-nowrap font-mono text-[13px] font-medium text-zinc-900">
                         {number ?? `EST-${doc.id.slice(0, 6).toUpperCase()}`}
                       </Link>
+                      <p className="mt-0.5 text-xs text-zinc-500 sm:hidden">
+                        {doc.customers?.name ?? "—"} · {formatDate(doc.created_at)}
+                      </p>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="hidden px-4 py-3 sm:table-cell">
                       <Link href={href} className="font-medium text-zinc-900">
                         {doc.customers?.name ?? "—"}
                       </Link>
@@ -152,9 +155,16 @@ export async function DocumentList({
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-zinc-900 tabular">
                       AED {totalOf(doc).toFixed(2)}
+                      {documentType === "invoice" && (
+                        <div className="mt-1 sm:hidden">
+                          <Badge color={STATUS_COLOR[doc.status]} dot>
+                            {STATUS_LABEL[doc.status]}
+                          </Badge>
+                        </div>
+                      )}
                     </td>
                     {documentType === "invoice" && (
-                      <td className="px-4 py-3">
+                      <td className="hidden px-4 py-3 sm:table-cell">
                         <Badge color={STATUS_COLOR[doc.status]} dot>
                           {STATUS_LABEL[doc.status]}
                         </Badge>

@@ -3,6 +3,7 @@
 import { formatDate } from "@/lib/format";
 import { useState } from "react";
 import type { InvoiceItem, ShopSettings } from "@/lib/types";
+import { FitToWidth } from "@/components/FitToWidth";
 
 type Customer = {
   name: string;
@@ -83,7 +84,7 @@ export function ClassicInvoiceTemplate({
         Show VAT on printed invoice
       </label>
 
-      <div className="w-full overflow-x-auto print:overflow-visible">
+      <FitToWidth width={640}>
       <div id="invoice-printable" className="bg-white text-black p-8 font-sans text-[13px] leading-snug print:p-0 rounded-xl border border-zinc-200 shadow-sm print:border-none print:shadow-none min-w-160 print:min-w-0">
         <div className="flex items-start justify-between border-b-4 border-black pb-3 mb-4">
           <h1 className="font-serif text-3xl">
@@ -237,7 +238,7 @@ export function ClassicInvoiceTemplate({
           </p>
         )}
       </div>
-      </div>
+      </FitToWidth>
     </div>
   );
 }

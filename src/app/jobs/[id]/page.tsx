@@ -252,7 +252,7 @@ export default async function JobDetailPage({
         <ol className="flex items-center">
           {steps.map((step, i) => (
             <li key={step.key} className={`flex items-center ${i < steps.length - 1 ? "flex-1" : ""}`}>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
                 <span
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
                     step.done
@@ -264,9 +264,9 @@ export default async function JobDetailPage({
                 >
                   {step.done ? <Icon name="check" className="h-3 w-3" /> : i + 1}
                 </span>
-                <span className={`hidden text-[13px] font-medium sm:inline ${step.done || i === currentStep ? "text-zinc-900" : "text-zinc-400"}`}>{step.label}</span>
+                <span className={`whitespace-nowrap text-[11px] font-medium sm:text-[13px] ${step.done || i === currentStep ? "text-zinc-900" : "text-zinc-400"}`}>{step.label}</span>
               </div>
-              {i < steps.length - 1 && <span className={`mx-3 h-px flex-1 ${steps[i + 1].done ? "bg-zinc-900" : "bg-zinc-200"}`} />}
+              {i < steps.length - 1 && <span className={`mx-1.5 mb-5 h-px flex-1 sm:mx-3 sm:mb-0 ${steps[i + 1].done ? "bg-zinc-900" : "bg-zinc-200"}`} />}
             </li>
           ))}
         </ol>

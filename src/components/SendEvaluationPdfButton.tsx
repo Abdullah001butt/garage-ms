@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/icons";
+import { withNaturalSize } from "@/components/FitToWidth";
 import { createClient } from "@/lib/supabase/client";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { useActionMutation } from "@/hooks/useActionMutation";
@@ -28,7 +29,7 @@ export function SendEvaluationPdfButton({
         import("jspdf"),
       ]);
 
-      const canvas = await html2canvas(node, {
+      const canvas = await withNaturalSize(node, () => html2canvas(node, {
         scale: 2,
         backgroundColor: "#ffffff",
         onclone: (doc) => {
@@ -36,7 +37,7 @@ export function SendEvaluationPdfButton({
             (el as HTMLElement).style.display = "none";
           });
         },
-      });
+      }));
 
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });

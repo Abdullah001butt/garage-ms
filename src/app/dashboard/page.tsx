@@ -368,13 +368,13 @@ function MiniStat({
 }) {
   return (
     <Card className="flex items-center gap-3 p-3.5">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-zinc-50 text-zinc-500">
+      <span className="hidden h-9 w-9 shrink-0 sm:flex items-center justify-center rounded-md border border-zinc-200 bg-zinc-50 text-zinc-500">
         <Icon name={icon} className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-xs font-medium text-zinc-500">{label}</p>
+        <p className="line-clamp-2 text-xs font-medium text-zinc-500 sm:truncate">{label}</p>
         <p className={`text-lg font-semibold leading-tight tabular ${warn ? "text-amber-700" : "text-zinc-900"}`}>{value}</p>
-        <p className="truncate text-[11px] text-zinc-400">{hint}</p>
+        <p className="line-clamp-2 text-[11px] text-zinc-400 sm:truncate">{hint}</p>
       </div>
     </Card>
   );

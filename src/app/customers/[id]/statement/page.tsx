@@ -7,6 +7,7 @@ import type { Customer, CustomerBalanceAdjustment, ShopSettings } from "@/lib/ty
 import { Card, PageHeader, SecondaryButton, inputClass, labelClass } from "@/components/ui";
 import { formatInvoiceNumber } from "@/lib/invoice-number";
 import { DownloadStatementPdfButton } from "@/components/DownloadStatementPdfButton";
+import { FitToWidth } from "@/components/FitToWidth";
 
 type StatementInvoiceRow = {
   id: string;
@@ -101,24 +102,25 @@ export default async function CustomerStatementPage({
         title="Statement of Account"
         description={customer.name}
         action={
-          <div className="flex flex-wrap gap-2">
-            <form className="flex items-center gap-2 print:hidden">
+          <div className="flex w-full flex-col gap-2 xl:w-auto xl:flex-row xl:items-center">
+            <form className="grid grid-cols-2 gap-2 xl:flex xl:items-center print:hidden">
               <label>
                 <span className={`${labelClass} sr-only`}>From</span>
-                <input type="date" name="from" defaultValue={from ?? ""} className={`${inputClass} !py-1.5 text-xs`} />
+                <input type="date" name="from" defaultValue={from ?? ""} aria-label="From date" className={`${inputClass} py-1.5! text-xs`} />
               </label>
               <label>
                 <span className={`${labelClass} sr-only`}>To</span>
-                <input type="date" name="to" defaultValue={to ?? ""} className={`${inputClass} !py-1.5 text-xs`} />
+                <input type="date" name="to" defaultValue={to ?? ""} aria-label="To date" className={`${inputClass} py-1.5! text-xs`} />
               </label>
-              <SecondaryButton type="submit">Filter</SecondaryButton>
+              <SecondaryButton type="submit" className="col-span-2 xl:col-auto">Filter</SecondaryButton>
             </form>
             <DownloadStatementPdfButton customerName={customer.name} />
           </div>
         }
       />
 
-      <Card className="p-6 md:p-8" id="statement-printable">
+      <FitToWidth width={704}>
+      <Card className="@container min-w-[44rem] p-8 print:min-w-0" id="statement-printable">
         <div className="flex items-start justify-between gap-4 border-b-4 border-zinc-900 pb-4">
           <div>
             <h1 className="text-2xl font-bold uppercase text-zinc-400">Statement of Account</h1>
@@ -174,7 +176,7 @@ export default async function CustomerStatementPage({
           </tbody>
         </table>
 
-        <div className="mt-4 flex flex-col sm:flex-row justify-end gap-6 border-t border-zinc-300 pt-3">
+        <div className="mt-4 flex flex-col @xl:flex-row justify-end gap-6 border-t border-zinc-300 pt-3">
           <div className="text-right">
             <p className="text-xs text-zinc-500">Total Invoiced</p>
             <p className="text-sm font-bold text-zinc-900">AED {totalInvoiced.toFixed(2)}</p>
@@ -191,6 +193,7 @@ export default async function CustomerStatementPage({
           </div>
         </div>
       </Card>
+      </FitToWidth>
     </div>
   );
 }

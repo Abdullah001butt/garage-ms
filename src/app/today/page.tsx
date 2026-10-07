@@ -81,12 +81,12 @@ function KpiTile({
       <Card className="flex h-full items-start justify-between gap-3 p-4 transition-colors group-hover:border-zinc-300">
         <div className="min-w-0">
           <p className="text-[13px] font-medium text-zinc-500">{label}</p>
-          <p className={`mt-1.5 text-2xl font-semibold tracking-tight tabular ${tone === "warn" ? "text-red-700" : "text-zinc-900"}`}>
+          <p className={`mt-1.5 text-xl font-semibold tracking-tight whitespace-nowrap tabular sm:text-2xl ${tone === "warn" ? "text-red-700" : "text-zinc-900"}`}>
             {value}
           </p>
-          <p className="mt-1 truncate text-xs text-zinc-500">{hint}</p>
+          <p className="mt-1 line-clamp-2 text-xs text-zinc-500 sm:truncate">{hint}</p>
         </div>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-zinc-50 text-zinc-500">
+        <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-zinc-50 text-zinc-500 sm:flex">
           <Icon name={icon} className="h-4 w-4" />
         </span>
       </Card>
@@ -190,7 +190,10 @@ export default async function TodayPage() {
         title="Today"
         description={dateLabel}
         action={
-          <>
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto [&_button]:w-full">
+            <Link href="/jobs/new" className="col-span-2 sm:order-last">
+              <PrimaryButton type="button">+ New Job</PrimaryButton>
+            </Link>
             <Link href="/appointments?new=1">
               <SecondaryButton type="button" icon="calendar">
                 Appointment
@@ -201,10 +204,7 @@ export default async function TodayPage() {
                 Estimate
               </SecondaryButton>
             </Link>
-            <Link href="/jobs/new">
-              <PrimaryButton type="button">+ New Job</PrimaryButton>
-            </Link>
-          </>
+          </div>
         }
       />
 

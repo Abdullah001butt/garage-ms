@@ -51,7 +51,7 @@ export function InventoryTable({
         </SecondaryButton>
         {scanMessage && <span className="text-xs text-zinc-500">{scanMessage}</span>}
       </div>
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b border-zinc-200 bg-zinc-50/80 text-left text-xs text-zinc-500">
             <tr>
@@ -77,7 +77,7 @@ export function InventoryTable({
                   }}
                   className={highlightId === part.id ? "bg-amber-50 transition-colors" : ""}
                 >
-                  <td className="px-4 py-2.5 font-medium text-zinc-900">{part.name}</td>
+                  <td className="min-w-40 px-4 py-2.5 font-medium text-zinc-900">{part.name}</td>
                   <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs text-zinc-500">{part.sku ?? "—"}</td>
                   <td className="px-4 py-2.5 text-right tabular">
                     {isLow ? <Badge color="red">{part.stock_qty} low</Badge> : part.stock_qty}

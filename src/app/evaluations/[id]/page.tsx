@@ -7,6 +7,7 @@ import { PageHeader, SecondaryButton, Card } from "@/components/ui";
 import { CarDiagramView } from "@/components/CarDiagramView";
 import { DownloadEvaluationPdfButton } from "@/components/DownloadEvaluationPdfButton";
 import { SendEvaluationPdfButton } from "@/components/SendEvaluationPdfButton";
+import { FitToWidth } from "@/components/FitToWidth";
 
 const CONDITION_LABEL: Record<string, string> = { good: "Good", fair: "Fair", poor: "Poor", na: "N/A" };
 
@@ -38,7 +39,7 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
         title="Vehicle Evaluation Report"
         description={evaluation.ref_number}
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link href="/evaluations">
               <SecondaryButton type="button">Back</SecondaryButton>
             </Link>
@@ -53,7 +54,8 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
         }
       />
 
-      <Card className="p-6 md:p-8" id="evaluation-printable">
+      <FitToWidth width={736}>
+      <Card className="@container min-w-[46rem] p-8 print:min-w-0" id="evaluation-printable">
         <div className="flex items-start justify-between gap-4 border-b-4 border-zinc-900 pb-4">
           <div>
             <h1 className="text-2xl font-bold uppercase text-zinc-400">Vehicle Evaluation Report</h1>
@@ -86,7 +88,7 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
 
         <div className="mt-4 border border-zinc-300">
           <div className="border-b border-zinc-300 bg-zinc-100 px-2 py-1 text-xs font-bold text-zinc-700">DESCRIPTION</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2">
+          <div className="grid grid-cols-1 @xl:grid-cols-2">
             <div>
               {descRow("Make and Model:", evaluation.make_model)}
               {descRow("Year of Manufacture:", evaluation.year_of_manufacture)}
@@ -114,8 +116,8 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-3">
-          <div className="hidden sm:block rounded-md border border-zinc-300 p-2">
+        <div className="mt-4 grid grid-cols-1 @xl:grid-cols-[160px_1fr] gap-3">
+          <div className="hidden @xl:block rounded-md border border-zinc-300 p-2">
             <CarDiagramView markers={evaluation.diagram_markers ?? []} />
           </div>
 
@@ -147,7 +149,7 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col sm:flex-row justify-between gap-4 border-t border-zinc-300 pt-3">
+        <div className="mt-4 flex flex-col @xl:flex-row justify-between gap-4 border-t border-zinc-300 pt-3">
           <div>
             <p className="text-xs font-medium text-zinc-500">Estimated True and Fair Market Value of Vehicle:</p>
             <p className="text-lg font-bold text-zinc-900">
@@ -167,6 +169,7 @@ export default async function EvaluationDetailPage({ params }: { params: Promise
           been charged for this service.
         </p>
       </Card>
+      </FitToWidth>
     </div>
   );
 }

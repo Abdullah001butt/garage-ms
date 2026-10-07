@@ -514,7 +514,7 @@ function InvoiceTable({ rows, totalOf }: { rows: CustomerInvoiceRow[]; totalOf: 
         <thead className={theadClass}>
           <tr>
             <th className={thClass}>Document</th>
-            <th className={thClass}>Date</th>
+            <th className={`${thClass} hidden sm:table-cell`}>Date</th>
             <th className={`${thClass} text-right`}>Amount</th>
             <th className={thClass}>Status</th>
           </tr>
@@ -529,9 +529,10 @@ function InvoiceTable({ rows, totalOf }: { rows: CustomerInvoiceRow[]; totalOf: 
                   <Link href={href} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
                     {isEstimate ? "Estimate" : formatInvoiceNumber(inv.invoice_number, inv.created_at) ?? "Invoice"}
                   </Link>
+                  <p className="text-xs text-zinc-500 tabular sm:hidden">{formatDate(inv.created_at)}</p>
                 </td>
-                <td className="px-4 py-2.5 text-zinc-500 tabular">{formatDate(inv.created_at)}</td>
-                <td className="px-4 py-2.5 text-right font-medium text-zinc-900 tabular">{money(totalOf(inv))}</td>
+                <td className="hidden px-4 py-2.5 text-zinc-500 tabular sm:table-cell">{formatDate(inv.created_at)}</td>
+                <td className="whitespace-nowrap px-4 py-2.5 text-right font-medium text-zinc-900 tabular">{money(totalOf(inv))}</td>
                 <td className="px-4 py-2.5">
                   {isEstimate ? (
                     <Badge color="slate">Estimate</Badge>

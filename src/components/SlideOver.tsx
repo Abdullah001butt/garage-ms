@@ -68,8 +68,9 @@ export function SlideOver({
       )}
 
       <div
-        className={`fixed inset-0 z-50 print:hidden ${open ? "" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-50 overflow-hidden print:hidden ${open ? "" : "pointer-events-none"}`}
         aria-hidden={!open}
+        inert={!open}
       >
         <div
           className={`absolute inset-0 bg-zinc-950/30 transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0"}`}

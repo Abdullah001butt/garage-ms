@@ -159,7 +159,7 @@ export default async function CustomersPage({
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right tabular">
+                    <td className="whitespace-nowrap px-4 py-3 text-right tabular">
                       {balance > 0.01 ? (
                         <span className="font-medium text-red-700">AED {balance.toFixed(2)}</span>
                       ) : (
