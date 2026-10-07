@@ -19,7 +19,7 @@ export function ShareCertificateButton({ shareToken }: { shareToken: string }) {
 
   return (
     <SecondaryButton type="button" icon={copied ? "check" : "link"} onClick={handleClick}>
-      {copied ? "Link copied" : "Share history certificate"}
+      {copied ? "Link copied" : "Share certificate"}
     </SecondaryButton>
   );
 }

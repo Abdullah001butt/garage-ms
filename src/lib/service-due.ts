@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ServiceDueVehicle = {
   vehicleId: string;
+  customerId: string;
+  emirate: string;
   plateNumber: string;
   make: string | null;
   model: string | null;
@@ -21,11 +23,13 @@ export async function getServiceDueVehicles(): Promise<ServiceDueVehicle[]> {
     supabase.from("shop_settings").select("default_service_interval_days").maybeSingle(),
     supabase
       .from("vehicles")
-      .select("id, plate_number, make, model, service_interval_days, customers(name, phone)")
+      .select("id, customer_id, plate_number, emirate, make, model, service_interval_days, customers(name, phone)")
       .returns<
         {
           id: string;
+          customer_id: string;
           plate_number: string;
+          emirate: string;
           make: string | null;
           model: string | null;
           service_interval_days: number | null;
@@ -64,6 +68,8 @@ export async function getServiceDueVehicles(): Promise<ServiceDueVehicle[]> {
     if (dueAt.getTime() <= dueSoonCutoff) {
       results.push({
         vehicleId: v.id,
+        customerId: v.customer_id,
+        emirate: v.emirate,
         plateNumber: v.plate_number,
         make: v.make,
         model: v.model,

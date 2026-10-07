@@ -2,7 +2,10 @@ import { formatDate } from "@/lib/format";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Card, Badge } from "@/components/ui";
+import { Card } from "@/components/ui";
+import { Icon } from "@/components/icons";
+import { PlateBadge } from "@/components/PlateBadge";
+import { PublicShell, SHOP_CONTACT } from "@/components/PublicShell";
 import { PrintButton } from "@/components/PrintButton";
 
 type CertificateJob = {
@@ -40,79 +43,108 @@ export default async function VehicleCertificatePage({
 
   if (!certificate) notFound();
 
+  const jobs = [...certificate.jobs].sort(
+    (x, y) => new Date(y.completed_at ?? y.created_at).getTime() - new Date(x.completed_at ?? x.created_at).getTime()
+  );
+  const firstVisit = jobs.length ? jobs[jobs.length - 1].created_at : null;
+  const lastVisit = jobs.length ? jobs[0].completed_at ?? jobs[0].created_at : null;
+  const lastOdometer = jobs.find((j) => j.odometer)?.odometer ?? null;
+  const certificateId = token.replace(/-/g, "").slice(0, 10).toUpperCase();
+
+  const facts: [string, string][] = [
+    ["Vehicle", [certificate.year, certificate.make, certificate.model].filter(Boolean).join(" ") || "—"],
+    ["Colour", certificate.color ?? "—"],
+    ["Body type", certificate.body_type ?? "—"],
+    ["VIN / chassis", certificate.vin ?? "—"],
+    ["Registered owner", certificate.owner_name],
+    ["Customer since", formatDate(certificate.customer_since)],
+  ];
+
   return (
-    <div className="mx-auto max-w-2xl p-6 md:p-8">
-      <Card className="p-6 md:p-8 print:shadow-none print:border-none">
-        <div className="flex items-start justify-between gap-4 border-b-4 border-zinc-900 pb-4">
-          <div>
-            <h1 className="text-xl font-bold uppercase text-zinc-400">Vehicle Service History Certificate</h1>
-            <div className="mt-3">
-              <Image src="/logoalbahir.png" alt="Al Bahir Garage" width={140} height={40} className="h-10 w-auto object-contain" />
+    <PublicShell>
+      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 print:max-w-none print:p-0">
+        <div className="mb-4 flex items-center justify-between gap-3 print:hidden">
+          <p className="text-sm text-zinc-500">Shared securely by Al Bahir Garage</p>
+          <PrintButton label="Print / save PDF" />
+        </div>
+
+        <Card className="overflow-hidden print:border-none print:shadow-none">
+          <div className="flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <Image src="/logoalbahir.png" alt="Al Bahir Garage" width={180} height={40} className="h-9 w-auto object-contain" />
+              <h1 className="mt-3 text-lg font-semibold tracking-tight text-zinc-900">Vehicle Service History Certificate</h1>
+              <p className="text-xs text-zinc-500">
+                Certificate {certificateId} · Issued {formatDate(new Date())}
+              </p>
             </div>
-            <p className="mt-2 text-sm font-bold text-zinc-900">AL BAHIR VEHICLES REPAIR LLC</p>
+            <div className="flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 py-1 pl-1 pr-3 sm:self-auto">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white">
+                <Icon name="check" className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-xs font-semibold text-emerald-800">Verified workshop record</span>
+            </div>
           </div>
-          <Badge color="green">✓ Verified Record</Badge>
-        </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <div>
-            <p className="text-xs text-zinc-400">Vehicle</p>
-            <p className="font-medium text-zinc-900">
-              {[certificate.year, certificate.make, certificate.model].filter(Boolean).join(" ") || "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-zinc-400">Plate Number</p>
-            <p className="font-medium text-zinc-900">
-              {certificate.plate_number} ({certificate.emirate})
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-zinc-400">Color</p>
-            <p className="font-medium text-zinc-900">{certificate.color ?? "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-zinc-400">Body Type</p>
-            <p className="font-medium text-zinc-900">{certificate.body_type ?? "—"}</p>
-          </div>
-          <div className="col-span-2">
-            <p className="text-xs text-zinc-400">Registered Owner on File</p>
-            <p className="font-medium text-zinc-900">{certificate.owner_name}</p>
-          </div>
-        </div>
-
-        <h2 className="mt-6 mb-2 text-sm font-semibold text-zinc-700">
-          Verified Service History ({certificate.jobs.length} completed job{certificate.jobs.length === 1 ? "" : "s"})
-        </h2>
-        <div className="border border-zinc-300">
-          {certificate.jobs.length === 0 ? (
-            <p className="px-3 py-6 text-center text-sm text-zinc-400">No completed service records yet.</p>
-          ) : (
-            <ul className="divide-y divide-zinc-100">
-              {certificate.jobs.map((job, i) => (
-                <li key={i} className="flex items-start justify-between gap-3 px-3 py-2.5 text-sm">
-                  <div>
-                    <p className="font-medium text-zinc-900">{job.description}</p>
-                    {job.odometer && <p className="text-xs text-zinc-500">Odometer: {job.odometer} KM</p>}
-                  </div>
-                  <p className="shrink-0 text-xs text-zinc-500">
-                    {formatDate(job.completed_at ?? job.created_at)}
-                  </p>
-                </li>
+          <div className="grid gap-6 px-6 py-5 sm:grid-cols-[auto_1fr] sm:items-center">
+            <PlateBadge plateNumber={certificate.plate_number} emirate={certificate.emirate} size="lg" />
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-3">
+              {facts.map(([label, value]) => (
+                <div key={label} className="min-w-0">
+                  <dt className="text-xs font-medium text-zinc-500">{label}</dt>
+                  <dd className="mt-0.5 break-words text-sm text-zinc-900">{value}</dd>
+                </div>
               ))}
-            </ul>
-          )}
-        </div>
+            </dl>
+          </div>
 
-        <p className="mt-4 text-[10px] text-zinc-500">
-          This certificate reflects service records held by Al Bahir Vehicles Repair LLC only and does not include
-          work performed elsewhere. Generated from a secure, unguessable link tied to this specific vehicle.
-        </p>
-      </Card>
+          <div className="grid grid-cols-2 border-y border-zinc-200 sm:grid-cols-4">
+            {[
+              ["Completed services", String(jobs.length)],
+              ["First visit", formatDate(firstVisit)],
+              ["Most recent service", formatDate(lastVisit)],
+              ["Last recorded odometer", lastOdometer ? `${Number(lastOdometer).toLocaleString("en-US")} km` : "—"],
+            ].map(([label, value], i) => (
+              <div key={label} className={`px-6 py-4 ${i > 0 ? "sm:border-l sm:border-zinc-200" : ""} ${i > 1 ? "border-t border-zinc-200 sm:border-t-0" : ""} ${i % 2 === 1 ? "border-l border-zinc-200" : ""}`}>
+                <p className="text-xs font-medium text-zinc-500">{label}</p>
+                <p className="mt-1 text-lg font-semibold tracking-tight text-zinc-900 tabular">{value}</p>
+              </div>
+            ))}
+          </div>
 
-      <div className="mt-4 flex justify-center print:hidden">
-        <PrintButton />
+          <div className="px-6 py-5">
+            <h2 className="mb-3 text-sm font-semibold text-zinc-900">Service record</h2>
+            {jobs.length === 0 ? (
+              <p className="rounded-md border border-dashed border-zinc-300 px-3 py-8 text-center text-sm text-zinc-400">No completed service records yet.</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                  <tr>
+                    <th className="py-2 pr-4 font-medium">Date</th>
+                    <th className="py-2 pr-4 font-medium">Work carried out</th>
+                    <th className="py-2 text-right font-medium">Odometer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.map((job, i) => (
+                    <tr key={i} className="border-b border-zinc-100 last:border-0">
+                      <td className="whitespace-nowrap py-2.5 pr-4 text-zinc-500 tabular">{formatDate(job.completed_at ?? job.created_at)}</td>
+                      <td className="py-2.5 pr-4 text-zinc-900">{job.description}</td>
+                      <td className="whitespace-nowrap py-2.5 text-right text-zinc-600 tabular">
+                        {job.odometer ? `${Number(job.odometer).toLocaleString("en-US")} km` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          <div className="border-t border-zinc-200 bg-zinc-50/70 px-6 py-4 text-[11px] leading-relaxed text-zinc-500">
+            This certificate lists service work recorded by {SHOP_CONTACT.name} only and does not include work done elsewhere.
+            It was generated from a private link tied to this vehicle. For verification call {SHOP_CONTACT.phone}.
+          </div>
+        </Card>
       </div>
-    </div>
+    </PublicShell>
   );
 }
