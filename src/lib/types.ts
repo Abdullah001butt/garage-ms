@@ -128,7 +128,7 @@ export type JobCard = {
   completed_at: string | null;
 };
 
-export type InvoiceStatus = "unpaid" | "partial" | "paid";
+export type InvoiceStatus = "unpaid" | "partial" | "paid" | "credited";
 export type DocumentType = "estimate" | "invoice";
 
 export type Invoice = {

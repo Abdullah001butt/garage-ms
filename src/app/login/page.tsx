@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { signIn } from "@/app/login/actions";
 import { PrimaryButton, Field, Alert } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icons";
@@ -87,6 +88,11 @@ export default async function LoginPage({
           <form action={signIn} className="mt-6 space-y-4">
             <Field label="Email" name="email" type="email" required placeholder="name@albahirgarage.com" />
             <Field label="Password" name="password" type="password" required />
+            <div className="-mt-2 flex justify-end">
+              <Link href="/forgot-password" className="text-[13px] font-medium text-zinc-500 hover:text-zinc-900">
+                Forgot password?
+              </Link>
+            </div>
             <PrimaryButton type="submit" className="w-full">
               Sign in
             </PrimaryButton>

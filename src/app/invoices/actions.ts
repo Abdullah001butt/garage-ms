@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
+import { invoiceFigures } from "@/lib/invoice-math";
 
 export async function applyJobTemplate(invoiceId: string, formData: FormData) {
   const supabase = await createClient();
@@ -181,30 +182,33 @@ export async function deleteInvoiceItem(invoiceId: string, itemId: string) {
   revalidatePath(`/estimates/${invoiceId}`);
 }
 
-async function recalculateInvoiceStatus(invoiceId: string) {
+/** Paid / part paid / unpaid / credited — from items, VAT, discount, payments (net of refunds) and credit notes. */
+export async function recalculateInvoiceStatus(invoiceId: string) {
   const supabase = await createClient();
 
-  const { data: items } = await supabase
-    .from("invoice_items")
-    .select("quantity, unit_price")
-    .eq("invoice_id", invoiceId);
+  const [{ data: items }, { data: invoice }, { data: payments }, { data: credits }] = await Promise.all([
+    supabase.from("invoice_items").select("quantity, unit_price").eq("invoice_id", invoiceId),
+    supabase.from("invoices").select("vat_rate, discount").eq("id", invoiceId).single(),
+    supabase.from("payments").select("amount").eq("invoice_id", invoiceId),
+    supabase.from("credit_notes").select("amount").eq("invoice_id", invoiceId),
+  ]);
 
-  const { data: invoice } = await supabase
-    .from("invoices")
-    .select("vat_rate")
-    .eq("id", invoiceId)
-    .single();
+  const f = invoiceFigures({
+    vat_rate: invoice?.vat_rate ?? 5,
+    discount: invoice?.discount ?? 0,
+    invoice_items: items ?? [],
+    payments: payments ?? [],
+    credit_notes: credits ?? [],
+  });
 
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("amount")
-    .eq("invoice_id", invoiceId);
-
-  const subtotal = (items ?? []).reduce((s, it) => s + it.quantity * it.unit_price, 0);
-  const total = subtotal * (1 + (invoice?.vat_rate ?? 5) / 100);
-  const totalPaid = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
-
-  const status = totalPaid <= 0 ? "unpaid" : totalPaid >= total - 0.01 ? "paid" : "partial";
+  const status =
+    f.credited > 0.01 && f.credited >= f.total - 0.01
+      ? "credited"
+      : f.balance <= 0.01 && f.total > 0
+        ? "paid"
+        : f.paid > 0.01 || f.credited > 0.01
+          ? "partial"
+          : "unpaid";
 
   await supabase
     .from("invoices")

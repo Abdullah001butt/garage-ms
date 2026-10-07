@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useRef, useState } from "react";
 import type { Part } from "@/lib/types";
 import { Badge, EmptyState, Field, SecondaryButton } from "@/components/ui";
@@ -77,7 +78,11 @@ export function InventoryTable({
                   }}
                   className={highlightId === part.id ? "bg-amber-50 transition-colors" : ""}
                 >
-                  <td className="min-w-40 px-4 py-2.5 font-medium text-zinc-900">{part.name}</td>
+                  <td className="min-w-40 px-4 py-2.5 font-medium text-zinc-900">
+                    <Link href={`/inventory/${part.id}`} className="hover:underline" title="Stock history">
+                      {part.name}
+                    </Link>
+                  </td>
                   <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs text-zinc-500">{part.sku ?? "—"}</td>
                   <td className="px-4 py-2.5 text-right tabular">
                     {isLow ? <Badge color="red">{part.stock_qty} low</Badge> : part.stock_qty}

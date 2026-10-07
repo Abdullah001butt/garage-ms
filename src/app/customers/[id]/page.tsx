@@ -131,7 +131,7 @@ export default async function CustomerDetailPage({
   const paidOf = (inv: CustomerInvoiceRow) => inv.payments.reduce((s, p) => s + Number(p.amount), 0);
 
   const invoiceBalance = realInvoices
-    .filter((i) => i.status !== "paid")
+    .filter((i) => i.status === "unpaid" || i.status === "partial")
     .reduce((sum, inv) => sum + Math.max(totalOf(inv) - paidOf(inv), 0), 0);
   const adjustmentBalance = (adjustments ?? []).reduce((s, a) => s + Number(a.amount), 0);
   const accountBalance = invoiceBalance + adjustmentBalance;

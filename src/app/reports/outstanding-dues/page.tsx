@@ -20,6 +20,7 @@ type DueInvoice = {
   customers: { name: string; phone: string } | null;
   invoice_items: { quantity: number; unit_price: number }[];
   payments: { amount: number }[];
+  credit_notes?: { amount: number }[];
 };
 
 const AGING = [
@@ -34,7 +35,7 @@ export default async function OutstandingDuesPage({ searchParams }: { searchPara
   const supabase = await createClient();
   const { data: invoices, error } = await supabase
     .from("invoices")
-    .select("id, invoice_number, created_at, vat_rate, discount, status, customer_id, customers(name, phone), invoice_items(quantity, unit_price), payments(amount)")
+    .select("id, invoice_number, created_at, vat_rate, discount, status, customer_id, customers(name, phone), invoice_items(quantity, unit_price), payments(amount), credit_notes(amount)")
     .eq("document_type", "invoice")
     .in("status", ["unpaid", "partial"])
     .returns<DueInvoice[]>();
@@ -45,7 +46,8 @@ export default async function OutstandingDuesPage({ searchParams }: { searchPara
       const subtotal = inv.invoice_items.reduce((s, it) => s + it.quantity * it.unit_price, 0);
       const total = subtotal + subtotal * (inv.vat_rate / 100) - inv.discount;
       const paid = inv.payments.reduce((s, p) => s + Number(p.amount), 0);
-      return { ...inv, total, paid, balanceDue: Math.max(total - paid, 0), daysOld: Math.floor((nowMs - new Date(inv.created_at).getTime()) / 86400000) };
+      const credited = (inv.credit_notes ?? []).reduce((s, c) => s + Number(c.amount), 0);
+      return { ...inv, total, paid, balanceDue: Math.max(total - credited - paid, 0), daysOld: Math.floor((nowMs - new Date(inv.created_at).getTime()) / 86400000) };
     })
     .filter((r) => r.balanceDue > 0.01);
 

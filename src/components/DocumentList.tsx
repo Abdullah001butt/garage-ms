@@ -22,16 +22,18 @@ type Row = {
   payments: { amount: number }[];
 };
 
-const STATUS_COLOR: Record<string, "green" | "amber" | "red"> = {
+const STATUS_COLOR: Record<string, "green" | "amber" | "red" | "gray"> = {
   paid: "green",
   partial: "amber",
   unpaid: "red",
+  credited: "gray",
 };
 
 const STATUS_LABEL: Record<string, string> = {
   paid: "Paid",
   partial: "Partial",
   unpaid: "Unpaid",
+  credited: "Credited",
 };
 
 export async function DocumentList({

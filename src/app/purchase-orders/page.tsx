@@ -2,8 +2,10 @@ import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { PurchaseOrderStatus } from "@/lib/types";
-import { updatePurchaseOrderStatus } from "@/app/purchase-orders/actions";
-import { Card, PageHeader, Badge, EmptyState, SecondaryButton, SegmentedLinks, theadClass, thClass } from "@/components/ui";
+import { receivePurchaseOrder, updatePurchaseOrderStatus } from "@/app/purchase-orders/actions";
+import { Card, PageHeader, Badge, EmptyState, Field, PrimaryButton, SecondaryButton, SegmentedLinks, inputClass, labelClass, theadClass, thClass } from "@/components/ui";
+import { SlideOver } from "@/components/SlideOver";
+import { formatAed } from "@/lib/format";
 import { RowMenu, RowMenuAction, RowMenuLink, RowMenuSeparator } from "@/components/RowMenu";
 
 type PORow = {
@@ -12,7 +14,10 @@ type PORow = {
   status: PurchaseOrderStatus;
   created_at: string;
   received_at: string | null;
-  parts: { name: string; sku: string | null; supplier_name?: string | null } | null;
+  supplier_id: string | null;
+  unit_cost: number | null;
+  parts: { id: string; name: string; sku: string | null; supplier_name?: string | null; unit_cost: number | null } | null;
+  suppliers: { id: string; name: string } | null;
 };
 
 const STATUS_COLOR: Record<PurchaseOrderStatus, "amber" | "blue" | "green" | "gray"> = {
@@ -32,11 +37,19 @@ const FILTERS: { value: string; label: string }[] = [
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
   const { status } = await searchParams;
   const supabase = await createClient();
-  const { data: orders, error } = await supabase
-    .from("purchase_orders")
-    .select("id, quantity, status, created_at, received_at, parts(name, sku, supplier_name)")
-    .order("created_at", { ascending: false })
-    .returns<PORow[]>();
+  const [{ data: orders, error }, { data: suppliers }] = await Promise.all([
+    supabase
+      .from("purchase_orders")
+      .select("id, quantity, status, created_at, received_at, supplier_id, unit_cost, parts(id, name, sku, supplier_name, unit_cost), suppliers(id, name)")
+      .order("created_at", { ascending: false })
+      .returns<PORow[]>(),
+    supabase.from("suppliers").select("id, name").order("name").returns<{ id: string; name: string }[]>(),
+  ]);
+  // Pre-select the supplier whose name matches the part's supplier field.
+  const guessSupplier = (po: PORow) =>
+    po.supplier_id ??
+    (suppliers ?? []).find((sp) => po.parts?.supplier_name && sp.name.toLowerCase().includes(po.parts.supplier_name.toLowerCase().trim()))?.id ??
+    "";
 
   const all = orders ?? [];
   const isOpen = (o: PORow) => o.status === "pending" || o.status === "ordered";
@@ -88,7 +101,16 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <p className="font-medium text-zinc-900">{po.parts?.name ?? "Deleted part"}</p>
                     {po.parts?.sku && <p className="font-mono text-xs text-zinc-500">{po.parts.sku}</p>}
                   </td>
-                  <td className="hidden px-4 py-3 text-zinc-600 md:table-cell">{po.parts?.supplier_name ?? "—"}</td>
+                  <td className="hidden px-4 py-3 md:table-cell">
+                    {po.suppliers ? (
+                      <Link href={`/suppliers/${po.suppliers.id}`} className="text-zinc-800 hover:underline">
+                        {po.suppliers.name}
+                      </Link>
+                    ) : (
+                      <span className="text-zinc-500">{po.parts?.supplier_name ?? "—"}</span>
+                    )}
+                    {po.unit_cost ? <p className="text-xs tabular text-zinc-500">{formatAed(po.unit_cost * po.quantity)} total</p> : null}
+                  </td>
                   <td className="px-4 py-3 text-right font-medium text-zinc-900 tabular">{po.quantity}</td>
                   <td className="px-4 py-3">
                     <Badge color={STATUS_COLOR[po.status]} dot>
@@ -106,16 +128,51 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                           </SecondaryButton>
                         </form>
                       )}
-                      {po.status === "ordered" && (
-                        <form action={updatePurchaseOrderStatus.bind(null, po.id, "received")}>
-                          <SecondaryButton type="submit" icon="check" className="h-8 px-2.5 text-[13px]">
-                            Mark received
-                          </SecondaryButton>
-                        </form>
+                      {(po.status === "ordered" || po.status === "pending") && (
+                        <SlideOver
+                          id={`receive-${po.id}`}
+                          title={`Receive ${po.quantity} × ${po.parts?.name ?? "part"}`}
+                          description="Stock goes up now. Pick the supplier to add this purchase to their account."
+                          triggerLabel="Receive"
+                          triggerIcon="check"
+                          variant="secondary"
+                        >
+                          <form action={receivePurchaseOrder.bind(null, po.id)} className="space-y-4">
+                            <label className="block">
+                              <span className={labelClass}>Supplier</span>
+                              <select name="supplier_id" defaultValue={guessSupplier(po)} className={inputClass}>
+                                <option value="">No supplier / paid cash</option>
+                                {(suppliers ?? []).map((sp) => (
+                                  <option key={sp.id} value={sp.id}>
+                                    {sp.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <div className="grid grid-cols-2 gap-4">
+                              <Field label="Cost per unit (AED)" name="unit_cost" type="number" step="0.01" defaultValue={po.parts?.unit_cost ?? ""} />
+                              <Field label="Their invoice no." name="reference" placeholder="Optional" />
+                            </div>
+                            <label className="flex items-start gap-2.5 rounded-md border border-zinc-200 bg-zinc-50 p-3 text-[13px] text-zinc-700">
+                              <input type="checkbox" name="on_credit" defaultChecked className="mt-0.5 h-4 w-4 accent-zinc-900" />
+                              <span>
+                                <span className="block font-medium text-zinc-900">Add to supplier account (bought on credit)</span>
+                                Adds quantity × cost to what we owe this supplier.
+                              </span>
+                            </label>
+                            <label className="flex items-center gap-2.5 text-[13px] text-zinc-700">
+                              <input type="checkbox" name="update_cost" defaultChecked className="h-4 w-4 accent-zinc-900" />
+                              Update the part&apos;s cost price to this cost
+                            </label>
+                            <PrimaryButton type="submit" icon="check" className="w-full">
+                              Mark received
+                            </PrimaryButton>
+                          </form>
+                        </SlideOver>
                       )}
                       <RowMenu>
-                        <RowMenuLink href="/inventory" icon="package">
-                          View in parts stock
+                        <RowMenuLink href={po.parts ? `/inventory/${po.parts.id}` : "/inventory"} icon="package">
+                          Stock history
                         </RowMenuLink>
                         {isOpen(po) && (
                           <>

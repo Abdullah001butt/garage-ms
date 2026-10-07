@@ -11,7 +11,7 @@ import { Icon, type IconName } from "@/components/icons";
 
 type PaletteItem = {
   key: string;
-  group: "Actions" | "Go to" | "Customers" | "Vehicles" | "Job Cards";
+  group: "Actions" | "Go to" | "Customers" | "Vehicles" | "Job Cards" | "Invoices" | "Parts" | "Suppliers";
   label: string;
   sublabel?: string;
   href: string;
@@ -32,18 +32,35 @@ const ACTIONS: (PaletteItem & { ownerOnly?: boolean })[] = [
   { key: "a-advance", group: "Actions", label: "Give staff cash advance", href: "/staff/salaries?advance=1", icon: "wallet", keywords: "salary loan advance staff pay", ownerOnly: true },
   { key: "a-salary", group: "Actions", label: "Pay salaries", href: "/staff/salaries", icon: "wallet", keywords: "payslip salary payroll wages", ownerOnly: true },
   { key: "a-supplier", group: "Actions", label: "Add supplier", href: "/suppliers?new=1", icon: "package", keywords: "vendor parts shop credit owe", ownerOnly: true },
+  { key: "a-password", group: "Actions", label: "Change my password", href: "/reset-password", icon: "shield", keywords: "password login security account" },
 ];
 
 const RECORD_GROUP: Record<SearchResult["type"], PaletteItem["group"]> = {
   customer: "Customers",
   vehicle: "Vehicles",
   job: "Job Cards",
+  invoice: "Invoices",
+  estimate: "Invoices",
+  part: "Parts",
+  supplier: "Suppliers",
 };
-const RECORD_ICON: Record<SearchResult["type"], IconName> = { customer: "user", vehicle: "car", job: "wrench" };
+const RECORD_ICON: Record<SearchResult["type"], IconName> = {
+  customer: "user",
+  vehicle: "car",
+  job: "wrench",
+  invoice: "receipt",
+  estimate: "file",
+  part: "package",
+  supplier: "building",
+};
 
 function resultHref(r: SearchResult) {
   if (r.type === "customer") return `/customers/${r.id}`;
-  if (r.type === "vehicle") return `/customers/${r.customerId}`;
+  if (r.type === "vehicle") return `/vehicles/${r.id}/passport`;
+  if (r.type === "invoice") return `/invoices/${r.id}`;
+  if (r.type === "estimate") return `/estimates/${r.id}`;
+  if (r.type === "part") return `/inventory/${r.id}`;
+  if (r.type === "supplier") return `/suppliers/${r.id}`;
   return `/jobs/${r.id}`;
 }
 
@@ -196,7 +213,7 @@ export function GlobalSearch({ role = null }: { role?: Role | null }) {
                       setActiveIndex(0);
                     }}
                     onKeyDown={handleKeyDown}
-                    placeholder="Search customers, plates, jobs — or type a command"
+                    placeholder="Search customers, phones, plates, invoice no., parts — or type a command"
                     className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
                   />
                   {isFetching && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-500" />}

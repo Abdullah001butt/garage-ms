@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
-import { createProfile, updateProfileRole, deleteProfile } from "@/app/staff/actions";
-import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, labelClass, inputClass } from "@/components/ui";
-import { RowMenu, RowMenuDelete } from "@/components/RowMenu";
+import { updateProfileRole, deleteProfile } from "@/app/staff/actions";
+import { createStaffLogin, resetStaffPassword } from "@/app/staff/invite-actions";
+import { CreateStaffLoginForm, ResetStaffPasswordForm } from "@/components/StaffLoginForms";
+import { Card, PageHeader, EmptyState, SecondaryButton } from "@/components/ui";
+import { RowMenu, RowMenuDelete, RowMenuOpenPanel, RowMenuSeparator } from "@/components/RowMenu";
 import { SlideOver } from "@/components/SlideOver";
 import { StatStrip } from "@/components/report-ui";
 import { formatAed } from "@/lib/format";
@@ -26,49 +28,9 @@ export default async function StaffPage() {
             <Link href="/staff/attendance">
               <SecondaryButton type="button" icon="calendar">Attendance & salary</SecondaryButton>
             </Link>
-            <SlideOver title="Add a staff member" description="Give someone a login with the right access level." triggerLabel="Add Staff">
-        <ol className="text-xs text-zinc-500 list-decimal list-inside mb-4 space-y-1">
-          <li>
-            Go to your{" "}
-            <a
-              href="https://supabase.com/dashboard/project/ypucfuidniofjhhlstaf/auth/users"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 hover:decoration-zinc-600"
-            >
-              Supabase Authentication → Users
-            </a>{" "}
-            page and click &quot;Add user&quot; with their email + a temporary password.
-          </li>
-          <li>Copy the new user&apos;s UID from that page.</li>
-          <li>Paste it below along with their name, role, and salary.</li>
-        </ol>
-        <form action={createProfile} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label className="block col-span-full">
-            <span className={labelClass}>User ID (UID from Supabase Auth)</span>
-            <input type="text" name="user_id" required placeholder="00000000-0000-0000-0000-000000000000" className={inputClass} />
-          </label>
-          <label className="block">
-            <span className={labelClass}>Full name</span>
-            <input type="text" name="full_name" required className={inputClass} />
-          </label>
-          <label className="block">
-            <span className={labelClass}>Role</span>
-            <select name="role" className={inputClass}>
-              <option value="receptionist">Receptionist</option>
-              <option value="mechanic">Mechanic</option>
-              <option value="owner">Owner</option>
-            </select>
-          </label>
-          <label className="block col-span-full">
-            <span className={labelClass}>Monthly Salary (AED, optional)</span>
-            <input type="number" name="monthly_salary" step="0.01" className={inputClass} />
-          </label>
-          <div className="col-span-full">
-            <PrimaryButton type="submit">Add Staff Member</PrimaryButton>
-          </div>
-        </form>
-          </SlideOver>
+            <SlideOver title="Add a staff member" description="Creates their login straight away — no Supabase needed." triggerLabel="Add staff">
+              <CreateStaffLoginForm action={createStaffLogin} />
+            </SlideOver>
           </>
         }
       />
@@ -132,7 +94,14 @@ export default async function StaffPage() {
                   </form>
                 </td>
                 <td className="px-4 py-2.5 text-right">
+                  <SlideOver id={`reset-${p.id}`} hideTrigger title={`Reset password · ${p.full_name}`} triggerLabel="Reset">
+                    <ResetStaffPasswordForm action={resetStaffPassword} profileId={p.id} name={p.full_name} />
+                  </SlideOver>
                   <RowMenu>
+                    <RowMenuOpenPanel panelId={`reset-${p.id}`} icon="shield">
+                      Reset password
+                    </RowMenuOpenPanel>
+                    <RowMenuSeparator />
                     <RowMenuDelete action={deleteProfile.bind(null, p.id)} confirmMessage={`Remove staff member "${p.full_name}"? This cannot be undone.`} successMessage="Staff member removed." label="Remove" />
                   </RowMenu>
                 </td>

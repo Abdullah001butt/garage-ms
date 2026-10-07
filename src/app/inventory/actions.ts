@@ -94,6 +94,7 @@ export async function adjustStock(partId: string, formData: FormData) {
   const supabase = await createClient();
 
   const stock_qty = Number(formData.get("stock_qty") ?? 0);
+  const note = String(formData.get("note") ?? "").trim() || "Manual stock count";
 
   const { data: before } = await supabase
     .from("parts")
@@ -101,10 +102,8 @@ export async function adjustStock(partId: string, formData: FormData) {
     .eq("id", partId)
     .maybeSingle();
 
-  const { error } = await supabase
-    .from("parts")
-    .update({ stock_qty })
-    .eq("id", partId);
+  // The RPC records the change in stock history with this note.
+  const { error } = await supabase.rpc("adjust_part_stock", { p_part_id: partId, p_new_qty: stock_qty, p_note: note });
 
   if (error) {
     throw new Error(error.message);
@@ -113,7 +112,9 @@ export async function adjustStock(partId: string, formData: FormData) {
   await logAudit("part.stock_adjust", "part", partId, {
     before: before?.stock_qty,
     after: stock_qty,
+    note,
   });
 
   revalidatePath("/inventory");
+  revalidatePath(`/inventory/${partId}`);
 }

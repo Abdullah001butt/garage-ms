@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatAed, formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { formatInvoiceNumber } from "@/lib/invoice-number";
+import { formatCreditNoteNumber } from "@/lib/invoice-math";
 import { PageHeader, Panel, PanelEmpty, SecondaryButton, tdClass, thClass, theadClass } from "@/components/ui";
 import { StatStrip, pctChange } from "@/components/report-ui";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -38,9 +39,20 @@ export default async function VatReportPage({ searchParams }: { searchParams: Pr
   const prevRows = summarise(previous ?? []);
   const sum = (list: typeof rows, key: "subtotal" | "vat" | "total") => list.reduce((s, r) => s + r[key], 0);
 
-  const net = sum(rows, "subtotal");
-  const vat = sum(rows, "vat");
-  const total = sum(rows, "total");
+  // Credit notes issued in the period reduce output tax.
+  const { data: credits } = await supabase
+    .from("credit_notes")
+    .select("id, credit_number, amount, vat_amount, reason, created_at, invoice_id, customers(name)")
+    .gte("created_at", now.start)
+    .lte("created_at", now.end)
+    .order("created_at")
+    .returns<{ id: string; credit_number: number; amount: number; vat_amount: number; reason: string; created_at: string; invoice_id: string; customers: { name: string } | null }[]>();
+  const creditVat = (credits ?? []).reduce((s, c) => s + Number(c.vat_amount), 0);
+  const creditNet = (credits ?? []).reduce((s, c) => s + Number(c.amount) - Number(c.vat_amount), 0);
+
+  const net = sum(rows, "subtotal") - creditNet;
+  const vat = sum(rows, "vat") - creditVat;
+  const total = sum(rows, "total") - creditNet - creditVat;
 
   return (
     <div className="page">
@@ -66,8 +78,14 @@ export default async function VatReportPage({ searchParams }: { searchParams: Pr
         className="mb-6"
         items={[
           { label: "Net sales (excl. VAT)", value: formatAed(net), delta: pctChange(net, sum(prevRows, "subtotal")), deltaLabel: range.compareLabel },
-          { label: "VAT collected", value: formatAed(vat), delta: pctChange(vat, sum(prevRows, "vat")), deltaLabel: range.compareLabel },
-          { label: "Total invoiced", value: formatAed(total), tone: "positive", hint: "Including VAT" },
+          {
+            label: "VAT payable",
+            value: formatAed(vat),
+            delta: pctChange(vat, sum(prevRows, "vat")),
+            deltaLabel: range.compareLabel,
+            hint: creditVat > 0 ? `After ${formatAed(creditVat)} credit notes` : undefined,
+          },
+          { label: "Total invoiced", value: formatAed(total), tone: "positive", hint: creditNet > 0 ? "Net of credit notes, incl. VAT" : "Including VAT" },
           { label: "Invoices", value: String(rows.length), hint: `${prevRows.length} in previous period` },
         ]}
       />
@@ -132,6 +150,40 @@ export default async function VatReportPage({ searchParams }: { searchParams: Pr
           </div>
         )}
       </Panel>
+
+      {(credits?.length ?? 0) > 0 && (
+        <Panel title="Credit notes in period" count={credits!.length} className="mt-6">
+          <div className="relative overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className={theadClass}>
+                <tr>
+                  <th className={thClass}>Credit note</th>
+                  <th className={thClass}>Customer</th>
+                  <th className={`${thClass} hidden md:table-cell`}>Reason</th>
+                  <th className={`${thClass} text-right`}>VAT</th>
+                  <th className={`${thClass} text-right`}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {credits!.map((c) => (
+                  <tr key={c.id} className="border-b border-zinc-100 last:border-0">
+                    <td className={`${tdClass} whitespace-nowrap`}>
+                      <Link href={`/credit-notes/${c.id}`} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
+                        {formatCreditNoteNumber(c.credit_number, c.created_at)}
+                      </Link>
+                      <p className="text-xs text-zinc-500 tabular">{formatDate(c.created_at)}</p>
+                    </td>
+                    <td className={`${tdClass} font-medium text-zinc-900`}>{c.customers?.name ?? "—"}</td>
+                    <td className={`${tdClass} hidden text-zinc-500 md:table-cell`}>{c.reason}</td>
+                    <td className={`${tdClass} whitespace-nowrap text-right tabular text-red-700`}>− {formatAed(Number(c.vat_amount))}</td>
+                    <td className={`${tdClass} whitespace-nowrap text-right font-medium tabular text-red-700`}>− {formatAed(Number(c.amount))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
     </div>
   );
 }

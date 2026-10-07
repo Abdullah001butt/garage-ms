@@ -19,10 +19,27 @@ import { SendInvoicePdfButton } from "@/components/SendInvoicePdfButton";
 import { Alert, Badge, Panel, PrimaryButton, SecondaryButton, Field, labelClass, inputClass } from "@/components/ui";
 import type { DocumentType, InvoiceItem, JobTemplate, Part, Payment, ShopSettings } from "@/lib/types";
 import { formatInvoiceNumber } from "@/lib/invoice-number";
+import { formatCreditNoteNumber } from "@/lib/invoice-math";
+import { createCreditNote, deleteCreditNote } from "@/app/invoices/credit-actions";
+import { SlideOver } from "@/components/SlideOver";
+import { RowMenu, RowMenuDelete, RowMenuLink } from "@/components/RowMenu";
+
+type CreditNoteRow = {
+  id: string;
+  credit_number: number;
+  amount: number;
+  vat_amount: number;
+  reason: string;
+  refund_amount: number;
+  refund_method: string | null;
+  restocked: boolean;
+  created_by: string | null;
+  created_at: string;
+};
 
 type DocDetail = {
   id: string;
-  status: "unpaid" | "partial" | "paid";
+  status: "unpaid" | "partial" | "paid" | "credited";
   document_type: DocumentType;
   vat_rate: number;
   discount: number;
@@ -38,16 +55,18 @@ type DocDetail = {
   } | null;
 };
 
-const STATUS_COLOR: Record<string, "green" | "amber" | "red"> = {
+const STATUS_COLOR: Record<string, "green" | "amber" | "red" | "gray"> = {
   paid: "green",
   partial: "amber",
   unpaid: "red",
+  credited: "gray",
 };
 
 const STATUS_LABEL: Record<string, string> = {
   paid: "Paid",
   partial: "Partial",
   unpaid: "Unpaid",
+  credited: "Credited",
 };
 
 export async function DocumentDetail({
@@ -89,6 +108,7 @@ export async function DocumentDetail({
         .returns<Payment[]>(),
       supabase.from("job_templates").select("*").order("created_at").returns<JobTemplate[]>(),
     ]);
+  const { data: creditNotes } = await supabase.from("credit_notes").select("*").eq("invoice_id", id).order("created_at").returns<CreditNoteRow[]>();
 
   if (!doc || doc.document_type !== expectedType) {
     notFound();
@@ -97,7 +117,10 @@ export async function DocumentDetail({
   const subtotal = (items ?? []).reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
   const total = subtotal - doc.discount;
   const totalPaid = (payments ?? []).reduce((sum, p) => sum + Number(p.amount), 0);
-  const balanceDue = Math.max(total - totalPaid, 0);
+  const totalCredited = (creditNotes ?? []).reduce((sum, c) => sum + Number(c.amount), 0);
+  const balanceDue = Math.max(total - totalCredited - totalPaid, 0);
+  // Same rule as the server: (items + VAT) − discount − earlier credit notes.
+  const creditable = Math.max(subtotal * (1 + Number(doc.vat_rate) / 100) - doc.discount - totalCredited, 0);
 
   const isEstimate = doc.document_type === "estimate";
   const addItemWithId = addInvoiceItem.bind(null, id);
@@ -124,6 +147,12 @@ export async function DocumentDetail({
       >
         ← Back to {isEstimate ? "estimates" : "invoices"}
       </Link>
+
+      {doc.status === "credited" && (
+        <Alert tone="info" icon="file" className="mb-5 print:hidden" title="This invoice has been cancelled by credit note">
+          {(creditNotes ?? []).map((c) => formatCreditNoteNumber(c.credit_number, c.created_at)).join(", ")} · {formatAed(totalCredited)} credited. It no longer counts as money owed.
+        </Alert>
+      )}
 
       {justSold && (
         <Alert tone="success" icon="check-circle" className="mb-5 print:hidden" title="Sale complete — paid in full">
@@ -225,7 +254,9 @@ export async function DocumentDetail({
                 {payments?.map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-2 px-4 py-2.5 text-sm">
                     <div className="min-w-0">
-                      <p className="font-medium text-zinc-900 tabular">{formatAed(Number(p.amount))}</p>
+                      <p className={`font-medium tabular ${Number(p.amount) < 0 ? "text-red-700" : "text-zinc-900"}`}>
+                        {Number(p.amount) < 0 ? `Refund ${formatAed(-Number(p.amount))}` : formatAed(Number(p.amount))}
+                      </p>
                       <p className="truncate text-xs text-zinc-500">
                         <span className="capitalize">{p.method.replace("_", " ")}</span> ·{" "}
                         {formatDate(p.paid_at)}
@@ -262,6 +293,91 @@ export async function DocumentDetail({
                     </PrimaryButton>
                   </div>
                 </form>
+              )}
+            </Panel>
+          )}
+
+          {!isEstimate && (
+            <Panel
+              title="Credit notes & refunds"
+              count={creditNotes?.length ?? 0}
+              action={
+                creditable > 0.01 ? (
+                  <SlideOver
+                    id="issue-credit-note"
+                    title="Issue credit note"
+                    description="Reduces what the customer owes and the VAT on this invoice. Use it to cancel a bill or give money back."
+                    triggerLabel="Issue"
+                    triggerIcon="file"
+                    variant="secondary"
+                  >
+                    <form action={createCreditNote.bind(null, id)} className="space-y-4">
+                      <Field label="Credit amount incl. VAT (AED)" name="amount" type="number" step="0.01" defaultValue={creditable.toFixed(2)} required />
+                      <p className="-mt-2 text-xs text-zinc-500">Up to {formatAed(creditable)} can be credited. The full amount cancels the invoice.</p>
+                      <Field label="Reason" name="reason" placeholder="e.g. Wrong part billed, job cancelled" required />
+                      <label className="block">
+                        <span className={labelClass}>Give money back?</span>
+                        <select name="refund_method" defaultValue={totalPaid > 0 ? "cash" : "none"} className={inputClass}>
+                          <option value="none">No — just reduce what they owe</option>
+                          <option value="cash">Yes — refund in cash</option>
+                          <option value="card">Yes — refund to card</option>
+                          <option value="bank_transfer">Yes — bank transfer</option>
+                          <option value="ziina">Yes — Ziina</option>
+                        </select>
+                        <span className="mt-1.5 block text-xs text-zinc-500">
+                          Refunds are limited to what was paid ({formatAed(Math.max(totalPaid, 0))}) and show as money out in Cash Flow.
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-2.5 rounded-md border border-zinc-200 bg-zinc-50 p-3 text-[13px] text-zinc-700">
+                        <input type="checkbox" name="restock" className="mt-0.5 h-4 w-4 accent-zinc-900" />
+                        <span>
+                          <span className="block font-medium text-zinc-900">Return this invoice&apos;s parts to stock</span>
+                          Tick when the whole job is cancelled and the parts are back on the shelf.
+                        </span>
+                      </label>
+                      <PrimaryButton type="submit" className="w-full">
+                        Issue credit note
+                      </PrimaryButton>
+                    </form>
+                  </SlideOver>
+                ) : undefined
+              }
+            >
+              {(creditNotes?.length ?? 0) === 0 ? (
+                <p className="px-4 py-4 text-[13px] text-zinc-400">No credit notes. Use one to cancel or refund instead of deleting lines.</p>
+              ) : (
+                <ul className="divide-y divide-zinc-100">
+                  {creditNotes!.map((c) => (
+                    <li key={c.id} className="flex items-start gap-2 px-4 py-2.5 text-sm">
+                      <div className="min-w-0 flex-1">
+                        <Link href={`/credit-notes/${c.id}`} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
+                          {formatCreditNoteNumber(c.credit_number, c.created_at)}
+                        </Link>
+                        <p className="text-xs text-zinc-500">
+                          {formatDate(c.created_at)} · {c.reason}
+                        </p>
+                        {Number(c.refund_amount) > 0 && (
+                          <p className="text-xs text-red-700">
+                            Refunded {formatAed(Number(c.refund_amount))} · {String(c.refund_method).replace("_", " ")}
+                          </p>
+                        )}
+                        {c.restocked && <p className="text-xs text-emerald-700">Parts returned to stock</p>}
+                      </div>
+                      <span className="shrink-0 font-medium tabular text-zinc-900">− {formatAed(Number(c.amount))}</span>
+                      <RowMenu>
+                        <RowMenuLink href={`/credit-notes/${c.id}`} icon="printer">
+                          Print credit note
+                        </RowMenuLink>
+                        <RowMenuDelete
+                          action={deleteCreditNote.bind(null, id, c.id)}
+                          confirmMessage="Delete this credit note and its refund? Returned stock is not taken back."
+                          successMessage="Credit note deleted."
+                          label="Delete"
+                        />
+                      </RowMenu>
+                    </li>
+                  ))}
+                </ul>
               )}
             </Panel>
           )}

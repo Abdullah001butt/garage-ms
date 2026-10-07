@@ -53,6 +53,9 @@ export const ACTION_LABEL: Record<string, string> = {
   "customer.employee_add": "Added employee",
   "customer.employee_remove": "Removed employee link",
   "vehicle.payer_change": "Changed who pays for vehicle",
+  "credit_note.create": "Issued credit note",
+  "credit_note.delete": "Deleted credit note",
+  "staff.password_reset": "Reset staff password",
 };
 
 /** "customer.update" -> "Updated customer details"; falls back to a readable version of the key. */
