@@ -9,17 +9,15 @@ export function Sidebar({ role }: { role: Role | null }) {
   const groups = NAV_GROUPS.filter((g) => !g.ownerOnly || isOwner);
   return (
     <aside style={{ viewTransitionName: "app-sidebar" }} className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-graphite-800 bg-graphite-950 scheme-dark print:hidden">
-      <Link href="/today" className="flex h-14 shrink-0 items-center border-b border-graphite-800 bg-graphite-950 px-4">
-        <span className="flex h-10 items-center rounded-md bg-white px-2.5 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-          <Image
-            src="/logoalbahir.png"
-            alt="Al Bahir Garage"
-            width={220}
-            height={48}
-            className="h-7 w-auto object-contain"
-            priority
-          />
-        </span>
+      <Link href="/today" className="flex h-14 shrink-0 items-center bg-white px-5">
+        <Image
+          src="/logoalbahir.png"
+          alt="Al Bahir Garage"
+          width={220}
+          height={48}
+          className="h-9 w-auto object-contain"
+          priority
+        />
       </Link>
       <NavLinks groups={groups} />
       <div className="border-t border-graphite-800 px-5 py-3">
