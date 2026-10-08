@@ -41,14 +41,16 @@ export function MobileNav({ role }: { role: Role | null }) {
         createPortal(
         <div className="md:hidden fixed inset-0 z-50 print:hidden">
           <div className="absolute inset-0 bg-zinc-950/30" onClick={() => setOpen(false)} aria-hidden="true" />
-          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-2xl">
-            <div className="flex h-14 items-center justify-between border-b border-zinc-200 px-4">
-              <Image src="/logoalbahir.png" alt="Al Bahir Garage" width={160} height={36} className="h-8 w-auto object-contain" />
+          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-graphite-950 shadow-2xl scheme-dark">
+            <div className="flex h-14 items-center justify-between border-b border-graphite-800 px-4">
+              <span className="flex h-10 items-center rounded-md bg-white px-2.5">
+                <Image src="/logoalbahir.png" alt="Al Bahir Garage" width={160} height={36} className="h-7 w-auto object-contain" />
+              </span>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close navigation menu"
-                className="flex h-9 w-9 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-zinc-400 hover:bg-white/10 hover:text-white"
               >
                 <Icon name="x" className="h-5 w-5" />
               </button>

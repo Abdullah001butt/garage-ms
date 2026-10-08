@@ -8,10 +8,10 @@ import type { NavCount } from "@/app/api/nav-counts/route";
 import { NAV_COUNTS_REFRESH } from "@/lib/nav-events";
 
 const TONE: Record<NavCount["tone"], string> = {
-  neutral: "bg-zinc-100 text-zinc-600 ring-zinc-200",
-  red: "bg-red-50 text-red-700 ring-red-200",
-  amber: "bg-amber-50 text-amber-800 ring-amber-200",
-  blue: "bg-sky-50 text-sky-700 ring-sky-200",
+  neutral: "bg-white/10 text-zinc-200 ring-white/10",
+  red: "bg-brand-600 text-white ring-brand-500",
+  amber: "bg-amber-400/15 text-amber-300 ring-amber-400/30",
+  blue: "bg-sky-400/15 text-sky-300 ring-sky-400/30",
 };
 
 
@@ -66,7 +66,7 @@ export function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigat
     <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
       {groups.map((group) => (
         <div key={group.label}>
-          <p className="px-2.5 mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">{group.label}</p>
+          <p className="px-2.5 mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">{group.label}</p>
           <div className="space-y-px">
             {group.items.map((item) => {
               const active = item.href === activeHref;
@@ -77,13 +77,13 @@ export function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigat
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
                   className={`group relative flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[14px] transition-colors ${
-                    active ? "bg-zinc-100 font-semibold text-zinc-900" : "font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                    active ? "bg-white/[0.08] font-semibold text-white" : "font-normal text-zinc-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >
-                  {active && <span className="absolute -left-3 top-1.5 bottom-1.5 w-0.5 rounded-r bg-brand-600" />}
+                  {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-brand-500" />}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className={`h-4 w-4 shrink-0 ${active ? "text-brand-600" : "text-zinc-400 group-hover:text-zinc-600"}`}
+                    className={`h-4 w-4 shrink-0 ${active ? "text-brand-400" : "text-zinc-500 group-hover:text-zinc-300"}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
