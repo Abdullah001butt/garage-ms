@@ -459,3 +459,8 @@ article[data-ctx-open] {
     animation: none;
   }
 }
+
+/* Customers list: hide the company's tree line while its employees are folded */
+tr[data-folded] .tree-stub {
+  display: none;
+}

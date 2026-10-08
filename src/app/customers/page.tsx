@@ -12,6 +12,7 @@ import type { Customer } from "@/lib/types";
 import { Card, PageHeader, EmptyState, PrimaryButton, SecondaryButton, SegmentedLinks, inputClass, theadClass, thClass } from "@/components/ui";
 import { Icon } from "@/components/icons";
 import { PlateBadge } from "@/components/PlateBadge";
+import { EmployeeToggle } from "@/components/EmployeeToggle";
 
 type CustomerRow = Customer & { vehicles: { id: string; plate_number: string; emirate: string }[] };
 
@@ -45,11 +46,7 @@ export default async function CustomersPage({
   if (q) {
     query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%`);
   }
-  if (type === "company" || type === "individual") {
-    query = query.eq("customer_type", type);
-  }
-
-  const [{ data: customers, error }, { data: openInvoices }, { data: adjustments }] = await Promise.all([
+  const [{ data: found, error }, { data: openInvoices }, { data: adjustments }] = await Promise.all([
     query.returns<CustomerRow[]>(),
     supabase
       .from("invoices")
@@ -71,12 +68,37 @@ export default async function CustomersPage({
     balances.set(a.customer_id, (balances.get(a.customer_id) ?? 0) + Number(a.amount));
   }
 
+  // A search that finds a company also brings in its employees, so they can sit under it.
+  let customers = found ?? [];
+  const foundCompanyIds = customers.filter((c) => c.customer_type === "company").map((c) => c.id);
+  if (q && foundCompanyIds.length) {
+    const have = new Set(customers.map((c) => c.id));
+    const { data: staff } = await supabase.from("customers").select("*, vehicles(id, plate_number, emirate)").in("parent_customer_id", foundCompanyIds).returns<CustomerRow[]>();
+    customers = [...customers, ...(staff ?? []).filter((c) => !have.has(c.id))];
+  }
+
   // The shared "Walk-in customer" (counter sales) is bookkeeping, not a real customer.
-  const rows = sortRows(
-    (customers ?? []).filter((c) => !c.is_walk_in),
-    (c) => (sort === "name" ? c.name : sort === "balance" ? balances.get(c.id) ?? 0 : sort === "vehicles" ? c.vehicles.length : c.created_at),
+  const real = customers.filter((c) => !c.is_walk_in);
+  const companyIds = new Set(real.filter((c) => c.customer_type === "company").map((c) => c.id));
+  const isNested = (c: CustomerRow) => !!c.parent_customer_id && companyIds.has(c.parent_customer_id);
+  const visible = real.filter((c) =>
+    type === "company" ? c.customer_type === "company" || isNested(c) : type === "individual" ? c.customer_type === "individual" && !c.parent_customer_id : true
+  );
+  const sortKey = (c: CustomerRow) => (sort === "name" ? c.name : sort === "balance" ? balances.get(c.id) ?? 0 : sort === "vehicles" ? c.vehicles.length : c.created_at);
+  // Companies and individuals are sorted; each company's employees follow it, A–Z.
+  const top = sortRows(
+    visible.filter((c) => !isNested(c)),
+    sortKey,
     dir
   );
+  const employeesOf = new Map<string, CustomerRow[]>();
+  for (const c of visible) if (isNested(c)) employeesOf.set(c.parent_customer_id!, [...(employeesOf.get(c.parent_customer_id!) ?? []), c]);
+  const rows: (CustomerRow & { depth: 0 | 1; last?: boolean })[] = [];
+  for (const c of top) {
+    rows.push({ ...c, depth: 0 });
+    const kids = (employeesOf.get(c.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
+    kids.forEach((k, i) => rows.push({ ...k, depth: 1, last: i === kids.length - 1 }));
+  }
   const sortHref = (field: string, d: string) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -156,13 +178,31 @@ export default async function CustomersPage({
                 const balance = balances.get(customer.id) ?? 0;
                 const isCompany = customer.customer_type === "company";
                 const href = `/customers/${customer.id}`;
+                const child = customer.depth === 1;
+                const kids = isCompany ? (employeesOf.get(customer.id)?.length ?? 0) : 0;
                 return (
-                  <tr key={customer.id} data-split-id={customer.id} {...ctxAttr({ t: "customer", id: customer.id, name: customer.name, phone: customer.phone ?? undefined })} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                  <tr
+                    key={customer.id}
+                    data-split-id={customer.id}
+                    data-parent={child ? customer.parent_customer_id ?? undefined : undefined}
+                    data-company={kids ? customer.id : undefined}
+                    {...ctxAttr({ t: "customer", id: customer.id, name: customer.name, phone: customer.phone ?? undefined })}
+                    className={`group border-b border-zinc-100 last:border-0 ${child ? "bg-zinc-50/50 hover:bg-zinc-50" : "hover:bg-zinc-50/60"}`}
+                  >
                     <td className="w-10 pl-4">
                       <RowCheckbox id={customer.id} label={customer.name} />
                     </td>
-                    <td className="px-4 py-3">
-                      <Link href={href} className="flex items-center gap-3">
+                    <td className={`relative px-4 ${child ? "py-2.5 pl-[3.25rem]" : "py-3"}`}>
+                      {/* Tree lines: company → its employees */}
+                      {kids > 0 && <span aria-hidden="true" className="tree-stub absolute bottom-0 left-[2rem] top-[calc(50%+1rem)] w-px bg-zinc-300" />}
+                      {child && (
+                        <>
+                          <span aria-hidden="true" className={`absolute left-[2rem] top-0 w-px bg-zinc-300 ${customer.last ? "h-1/2" : "bottom-0"}`} />
+                          <span aria-hidden="true" className="absolute left-[2rem] top-1/2 h-px w-3.5 bg-zinc-300" />
+                        </>
+                      )}
+                      <div className="flex items-center justify-between gap-3">
+                      <Link href={href} className="flex min-w-0 items-center gap-3">
                         <Morph name={`cust-icon-${customer.id}`}>
                           <span
                             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
@@ -178,15 +218,19 @@ export default async function CustomersPage({
                           </Morph>
                           <span className="block truncate text-xs text-zinc-500">
                             {isCompany
-                              ? `Company${employeeCount.get(customer.id) ? ` · ${employeeCount.get(customer.id)} employees` : ""}`
-                              : customer.parent_customer_id && nameById.get(customer.parent_customer_id)
-                                ? `Employee · ${nameById.get(customer.parent_customer_id)}`
-                                : "Individual"}
+                              ? `Company${!kids && employeeCount.get(customer.id) ? ` · ${employeeCount.get(customer.id)} employees` : ""}`
+                              : child
+                                ? customer.job_title || "Employee"
+                                : customer.parent_customer_id && nameById.get(customer.parent_customer_id)
+                                  ? `Employee · ${nameById.get(customer.parent_customer_id)}`
+                                  : "Individual"}
                             {customer.city ? ` · ${customer.city}` : ""}
                             <span className="md:hidden"> · {customer.phone}</span>
                           </span>
                         </span>
                       </Link>
+                      {kids > 0 && <EmployeeToggle companyId={customer.id} count={kids} />}
+                      </div>
                     </td>
                     <td className="hidden whitespace-nowrap px-4 py-3 text-zinc-600 tabular md:table-cell">{customer.phone}</td>
                     <td data-split-hide className="hidden px-4 py-3 lg:table-cell">
@@ -231,7 +275,8 @@ export default async function CustomersPage({
         )}
         {rows.length > 0 && (
           <div className="border-t border-zinc-200 bg-zinc-50/60 px-4 py-2 text-xs text-zinc-500">
-            {rows.length} customer{rows.length === 1 ? "" : "s"}
+            {top.length} customer{top.length === 1 ? "" : "s"}
+            {rows.length > top.length ? ` · ${rows.length - top.length} employees shown under their companies` : ""}
           </div>
         )}
       </Card>
