@@ -1,3 +1,4 @@
+import { finalizeWorkbook } from "@/lib/xlsx-charts";
 import ExcelJS from "exceljs";
 import { createClient } from "@/lib/supabase/server";
 import { applyBodyRow, applyTotalRow, startSheet, xlsxResponse, CURRENCY_FORMAT, DATE_FORMAT, NUMBER_FORMAT, type SheetColumn } from "@/lib/xlsx-style";
@@ -56,6 +57,6 @@ export async function GET(request: Request) {
   });
   applyTotalRow(sheet.addRow({ date: "Total", customer: `${rows.length} line items`, total: rows.reduce((s, r) => s + r.line_total, 0) }), columns);
 
-  const buffer = await workbook.xlsx.writeBuffer();
+  const buffer = await finalizeWorkbook(workbook);
   return xlsxResponse(buffer, "custom-report.xlsx");
 }

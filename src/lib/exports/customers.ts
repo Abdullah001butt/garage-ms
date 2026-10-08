@@ -1,6 +1,9 @@
 import ExcelJS from "exceljs";
 import { createClient } from "@/lib/supabase/server";
 import { applyBodyRow, startSheet, DATE_FORMAT, NUMBER_FORMAT, type SheetColumn } from "@/lib/xlsx-style";
+import { buildDashboard, share, INT, PCT } from "@/lib/xlsx-dashboard";
+import { dayKey } from "@/lib/format";
+import { shiftMonth } from "@/lib/salary";
 
 type CustomerRow = {
   name: string;
@@ -44,7 +47,93 @@ export async function buildCustomersWorkbook(ids?: string[]) {
   // The shared walk-in customer (counter sales) is bookkeeping, not a real customer.
   const customers = (rawCustomers ?? []).filter((c) => !c.is_walk_in);
 
+  const vehicles = customers.flatMap((c) => c.vehicles);
+  const companies = customers.filter((c) => c.customer_type === "company").length;
+  const count = <T,>(rows: T[], key: (r: T) => string) => [...rows.reduce((m, r) => m.set(key(r), (m.get(key(r)) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1]);
+  const makes = count(vehicles, (v) => (v.make ?? "").trim() || "Unknown");
+  const emirates = count(vehicles, (v) => v.emirate || "Unknown");
+  const cities = count(customers, (c) => (c.city ?? "").trim() || "Not set");
+  const thisMonth = dayKey(new Date()).slice(0, 7);
+  const months = Array.from({ length: 6 }, (_, i) => shiftMonth(thisMonth, i - 5));
+  const joined = months.map((m) => customers.filter((c) => dayKey(c.created_at).slice(0, 7) === m).length);
+  const shortMonth = (m: string) => new Date(`${m}-15T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", year: "2-digit", timeZone: "UTC" });
+
   const workbook = new ExcelJS.Workbook();
+  buildDashboard(workbook, {
+    kicker: ids?.length ? "Customers · selection" : "Customers & vehicles",
+    title: ids?.length ? `${customers.length} selected customers` : "Customer book",
+    subtitle: `${customers.length} customers  ·  ${vehicles.length} vehicles on file`,
+    kpis: [
+      { label: "Customers", value: customers.length, numFmt: INT, note: `${joined[5]} new this month` },
+      { label: "Companies", value: companies, numFmt: INT, note: `${Math.round(share(companies, customers.length) * 100)}% of customers` },
+      { label: "Individuals", value: customers.length - companies, numFmt: INT },
+      { label: "Vehicles", value: vehicles.length, numFmt: INT, note: customers.length ? `${(vehicles.length / customers.length).toFixed(1)} per customer` : "" },
+    ],
+    groups: [
+      {
+        widths: [18, 12, 10],
+        top: {
+          kind: "info",
+          title: "Report details",
+          rows: [
+            ["Exported", new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dubai" })],
+            ["Customers", customers.length, INT],
+            ["Vehicles", vehicles.length, INT],
+            ["Makes", makes.length, INT],
+            ["Cities", cities.length, INT],
+          ],
+        },
+        tables: [
+          {
+            title: "Customers by city",
+            columns: [{ header: "City" }, { header: "Customers", numFmt: INT, align: "center" }, { header: "Share", numFmt: PCT, bar: true }],
+            rows: cities.slice(0, 10).map(([c, n]) => [c, n, share(n, customers.length)]),
+            empty: "No customers yet",
+          },
+        ],
+      },
+      {
+        widths: [16, 12, 12],
+        top: { kind: "chart", chart: { title: "New customers · 6 months", type: "column", categories: months.map(shortMonth), series: [{ name: "New customers", values: joined }] } },
+        tables: [
+          {
+            title: "Customer type",
+            columns: [{ header: "Type" }, { header: "Customers", numFmt: INT, align: "center" }, { header: "Share", numFmt: PCT, bar: true }],
+            rows: [
+              ["Companies", companies, share(companies, customers.length)],
+              ["Individuals", customers.length - companies, share(customers.length - companies, customers.length)],
+            ],
+            total: ["Total", customers.length, customers.length ? 1 : 0],
+          },
+        ],
+      },
+      {
+        widths: [18, 12, 10],
+        top: { kind: "chart", chart: { title: "Top car makes", type: "bar", labels: "value", categories: makes.slice(0, 7).map(([m]) => m), series: [{ name: "Vehicles", values: makes.slice(0, 7).map(([, n]) => n) }] } },
+        tables: [
+          {
+            title: "Vehicles by make",
+            columns: [{ header: "Make" }, { header: "Vehicles", numFmt: INT, align: "center" }, { header: "Share", numFmt: PCT, bar: true }],
+            rows: makes.slice(0, 12).map(([m, n]) => [m, n, share(n, vehicles.length)]),
+            empty: "No vehicles yet",
+          },
+        ],
+      },
+      {
+        widths: [18, 12, 10],
+        top: { kind: "chart", chart: { title: "Plates by emirate", type: "doughnut", categories: emirates.map(([e]) => e), series: [{ name: "Vehicles", values: emirates.map(([, n]) => n) }] } },
+        tables: [
+          {
+            title: "Plates by emirate",
+            columns: [{ header: "Emirate" }, { header: "Vehicles", numFmt: INT, align: "center" }, { header: "Share", numFmt: PCT, bar: true }],
+            rows: emirates.map(([e, n]) => [e, n, share(n, vehicles.length)]),
+            empty: "No vehicles yet",
+          },
+        ],
+      },
+    ],
+  });
+
   const columns: SheetColumn[] = [
     { header: "Type", key: "customer_type", width: 12 },
     { header: "Customer / Company Name", key: "name", width: 26 },
@@ -71,7 +160,8 @@ export async function buildCustomersWorkbook(ids?: string[]) {
     { header: "Odometer Reading", key: "odometer_reading", width: 16, numFmt: NUMBER_FORMAT },
     { header: "Customer Since", key: "since", width: 16, numFmt: DATE_FORMAT },
   ];
-  const { sheet } = startSheet(workbook, "Customers", {
+  const { sheet } = startSheet(workbook, "All customers", {
+    band: "Customers and their vehicles",
     title: "Customers & Vehicles",
     subtitle: `${customers?.length ?? 0} customers`,
     columns,

@@ -170,6 +170,44 @@ details[open] > summary::before {
   }
 }
 
+/* Rev-counter splash: the arc fills and the needle sweeps to the red line, then idles. */
+.splash-gauge-arc {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: splash-gauge-arc 1s cubic-bezier(0.3, 0.7, 0.2, 1) 0.15s forwards;
+}
+@keyframes splash-gauge-arc {
+  to {
+    stroke-dashoffset: 13;
+  }
+}
+.splash-gauge-needle {
+  transform-origin: 75px 78px;
+  transform: rotate(-90deg);
+  animation:
+    splash-gauge-needle 1s cubic-bezier(0.3, 0.7, 0.2, 1) 0.15s forwards,
+    splash-gauge-idle 0.9s ease-in-out 1.15s infinite alternate;
+}
+@keyframes splash-gauge-needle {
+  0% {
+    transform: rotate(-90deg);
+  }
+  80% {
+    transform: rotate(70deg);
+  }
+  100% {
+    transform: rotate(64deg);
+  }
+}
+@keyframes splash-gauge-idle {
+  from {
+    transform: rotate(64deg);
+  }
+  to {
+    transform: rotate(58deg);
+  }
+}
+
 /* Top-of-screen route progress bar. */
 .route-progress-run {
   width: 0;
@@ -206,8 +244,16 @@ details[open] > summary::before {
 
 @media (prefers-reduced-motion: reduce) {
   .splash-logo,
-  .splash-bar {
+  .splash-bar,
+  .splash-gauge-arc,
+  .splash-gauge-needle {
     animation: none;
+  }
+  .splash-gauge-arc {
+    stroke-dashoffset: 13;
+  }
+  .splash-gauge-needle {
+    transform: rotate(64deg);
   }
 }
 

@@ -1,3 +1,4 @@
+import { finalizeWorkbook } from "@/lib/xlsx-charts";
 import JSZip from "jszip";
 import { buildCustomersWorkbook } from "@/lib/exports/customers";
 import { buildInvoicesWorkbook } from "@/lib/exports/invoices";
@@ -18,11 +19,11 @@ export async function GET() {
   ]);
 
   const zip = new JSZip();
-  zip.file("customers.xlsx", await customers.xlsx.writeBuffer());
-  zip.file("invoices.xlsx", await invoices.xlsx.writeBuffer());
-  zip.file("expenses.xlsx", await expenses.xlsx.writeBuffer());
-  zip.file(`attendance-${month}.xlsx`, await attendance.xlsx.writeBuffer());
-  zip.file(`profit-loss-${month}.xlsx`, await profitLoss.xlsx.writeBuffer());
+  zip.file("customers.xlsx", await finalizeWorkbook(customers));
+  zip.file("invoices.xlsx", await finalizeWorkbook(invoices));
+  zip.file("expenses.xlsx", await finalizeWorkbook(expenses));
+  zip.file(`attendance-${month}.xlsx`, await finalizeWorkbook(attendance));
+  zip.file(`profit-loss-${month}.xlsx`, await finalizeWorkbook(profitLoss));
 
   const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
 

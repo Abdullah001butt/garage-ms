@@ -1,18 +1,28 @@
 import ExcelJS from "exceljs";
 
-// One look for every Excel export: charcoal header, Al Bahir red accent, hairline grid.
+// One look for every Excel export: soft lavender section bands, blush column headers,
+// warm-white stripes and a slate ink — calm, printable, and easy to scan.
 export const XLSX_COLORS = {
-  ink: "FF18181B", // zinc-900
-  text: "FF27272A", // zinc-800
-  muted: "FF71717A", // zinc-500
-  border: "FFE4E4E7", // zinc-200
-  stripe: "FFFAFAFA", // zinc-50
-  totalFill: "FFF4F4F5", // zinc-100
-  brand: "FFD41F31", // Al Bahir red
-  positive: "FF047857", // emerald-700
-  negative: "FFB91C1C", // red-700
-  warning: "FFB45309", // amber-700
+  ink: "FF3F3D56", // slate ink for headings and totals
+  text: "FF4A4858",
+  muted: "FF8A8798",
+  border: "FFEFE4E2",
+  stripe: "FFFCF6F5",
+  totalFill: "FFF6E1DE", // light blush
+  band: "FF8E97BC", // lavender section band
+  bandText: "FFFFFFFF",
+  blush: "FFEAC1BD", // column header
+  blushText: "FF4A3F4B",
+  title: "FF5D6A8F",
+  page: "FFFDF8F7",
+  brand: "FFD41F31", // Al Bahir red, used sparingly
+  positive: "FF2F855A",
+  negative: "FFC0392B",
+  warning: "FFB7791F",
 };
+/** Chart colours in the same palette (RRGGBB, no alpha). */
+export const CHART_COLORS = ["8E97BC", "E8ABA6", "5D6A8F", "F3D4CB", "C3C8DE", "D98C86", "A9B0CF", "EFC3B5"];
+export const TITLE_FONT = "Century Gothic";
 
 export const CURRENCY_FORMAT = '"AED" #,##0.00;[Red]-"AED" #,##0.00;"–"';
 export const NUMBER_FORMAT = "#,##0;[Red]-#,##0;\"–\"";
@@ -56,11 +66,11 @@ export function writeTitleBlock(sheet: ExcelJS.Worksheet, colCount: number, titl
     cell.alignment = { vertical: "middle", horizontal: "left" };
     sheet.getRow(row).height = height;
   };
-  put(1, title, { size: 16, bold: true, color: { argb: XLSX_COLORS.ink } }, 26);
+  put(1, title, { name: TITLE_FONT, size: 20, color: { argb: XLSX_COLORS.title } }, 34);
   put(2, `${SHOP_NAME}  ·  ${SHOP_LINE}`, { size: 9, color: { argb: XLSX_COLORS.muted } }, 15);
-  put(3, [subtitle, `Generated ${generatedStamp()}`].filter(Boolean).join("   ·   "), { size: 9, color: { argb: XLSX_COLORS.muted } }, 15);
-  for (let c = 1; c <= last; c++) sheet.getCell(3, c).border = { bottom: { style: "medium", color: { argb: XLSX_COLORS.brand } } };
-  sheet.getRow(4).height = 8;
+  put(3, [subtitle, `Generated ${generatedStamp()}`].filter(Boolean).join("   ·   "), { size: 9, color: { argb: XLSX_COLORS.muted } }, 16);
+  for (let c = 1; c <= last; c++) sheet.getCell(3, c).border = { bottom: { style: "thin", color: { argb: XLSX_COLORS.band } } };
+  sheet.getRow(4).height = 10;
   return 5;
 }
 
@@ -68,7 +78,7 @@ export function writeTitleBlock(sheet: ExcelJS.Worksheet, colCount: number, titl
 export function startSheet(
   workbook: ExcelJS.Workbook,
   name: string,
-  opts: { title: string; subtitle?: string; columns: SheetColumn[]; freezeColumns?: number; landscape?: boolean }
+  opts: { title: string; subtitle?: string; columns: SheetColumn[]; freezeColumns?: number; landscape?: boolean; band?: string }
 ) {
   const { columns } = opts;
   const headerRowNumber = 5;
@@ -89,6 +99,14 @@ export function startSheet(
   workbook.creator = "Al Bahir Garage";
 
   writeTitleBlock(sheet, columns.length, opts.title, opts.subtitle);
+  // Lavender band naming the table, like a section header on a printed report.
+  sheet.mergeCells(4, 1, 4, columns.length);
+  const band = sheet.getCell(4, 1);
+  band.value = (opts.band ?? name).toUpperCase();
+  band.font = { name: FONT, bold: true, size: 10, color: { argb: XLSX_COLORS.bandText } };
+  band.alignment = { vertical: "middle", horizontal: "center" };
+  for (let c = 1; c <= columns.length; c++) sheet.getCell(4, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: XLSX_COLORS.band } };
+  sheet.getRow(4).height = 22;
 
   const header = sheet.getRow(headerRowNumber);
   header.values = columns.map((c) => c.header);
@@ -105,12 +123,12 @@ function alignFor(col: SheetColumn | undefined): "left" | "right" | "center" {
 
 export function applyHeaderRow(row: ExcelJS.Row, columns?: SheetColumn[]) {
   row.eachCell((cell, colNumber) => {
-    cell.font = { name: FONT, bold: true, size: 10, color: { argb: "FFFFFFFF" } };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XLSX_COLORS.ink } };
+    cell.font = { name: FONT, bold: true, size: 10, color: { argb: XLSX_COLORS.blushText } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XLSX_COLORS.blush } };
     cell.alignment = { vertical: "middle", horizontal: alignFor(columns?.[colNumber - 1]), wrapText: true };
-    cell.border = { bottom: { style: "medium", color: { argb: XLSX_COLORS.brand } } };
+    cell.border = { top: { style: "medium", color: { argb: XLSX_COLORS.band } }, bottom: { style: "thin", color: { argb: "FFE0B0AB" } } };
   });
-  row.height = 24;
+  row.height = 26;
 }
 
 export function applyBodyRow(row: ExcelJS.Row, index: number, columns?: SheetColumn[]) {
@@ -132,7 +150,7 @@ export function applyTotalRow(row: ExcelJS.Row, columns?: SheetColumn[]) {
     const cell = row.getCell(c);
     cell.font = { name: FONT, bold: true, size: 10, color: { argb: XLSX_COLORS.ink } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XLSX_COLORS.totalFill } };
-    cell.border = { top: { style: "medium", color: { argb: XLSX_COLORS.ink } }, bottom: { style: "double", color: { argb: XLSX_COLORS.ink } } };
+    cell.border = { top: { style: "thin", color: { argb: XLSX_COLORS.band } }, bottom: { style: "medium", color: { argb: XLSX_COLORS.band } } };
     cell.alignment = { vertical: "middle", horizontal: alignFor(columns?.[c - 1]) };
   }
 }
@@ -148,13 +166,13 @@ export function sectionRow(sheet: ExcelJS.Worksheet, rowNumber: number, text: st
   sheet.mergeCells(rowNumber, fromCol, rowNumber, toCol);
   const cell = sheet.getCell(rowNumber, fromCol);
   cell.value = text.toUpperCase();
-  cell.font = { name: FONT, bold: true, size: 9, color: { argb: XLSX_COLORS.muted } };
-  cell.alignment = { vertical: "bottom" };
-  for (let c = fromCol; c <= toCol; c++) sheet.getCell(rowNumber, c).border = { bottom: { style: "thin", color: { argb: XLSX_COLORS.ink } } };
+  cell.font = { name: FONT, bold: true, size: 9, color: { argb: XLSX_COLORS.bandText } };
+  cell.alignment = { vertical: "middle", indent: 1 };
+  for (let c = fromCol; c <= toCol; c++) sheet.getCell(rowNumber, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: XLSX_COLORS.band } };
   sheet.getRow(rowNumber).height = 22;
 }
 
-export function xlsxResponse(buffer: ExcelJS.Buffer, filename: string) {
+export function xlsxResponse(buffer: ExcelJS.Buffer | Buffer, filename: string) {
   return new Response(buffer as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
