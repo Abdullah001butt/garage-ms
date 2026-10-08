@@ -32,7 +32,7 @@ export function MobileNav({ role }: { role: Role | null }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
-        className="md:hidden -ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-zinc-600 hover:bg-zinc-100"
+        className="md:hidden -ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-zinc-200 hover:bg-white/10"
       >
         <Icon name="menu" className="h-5 w-5" />
       </button>

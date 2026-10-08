@@ -489,7 +489,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     <span className="block truncate font-medium text-zinc-900">{pay.invoices?.customers?.name ?? "Payment"}</span>
                     <span className="block text-[11px] text-zinc-500">
                       {formatDateTime(pay.paid_at)} · <span className="capitalize">{pay.method.replace("_", " ")}</span>
-                      {pay.invoices && <span className="font-mono"> · {formatInvoiceNumber(pay.invoices.invoice_number, pay.invoices.created_at)}</span>}
+                      {pay.invoices && <span className="font-semibold"> · {formatInvoiceNumber(pay.invoices.invoice_number, pay.invoices.created_at)}</span>}
                     </span>
                   </span>
                   <span className={`shrink-0 font-medium tabular ${Number(pay.amount) < 0 ? "text-red-700" : "text-emerald-700"}`}>{aed(Number(pay.amount))}</span>

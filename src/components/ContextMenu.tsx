@@ -296,7 +296,7 @@ export function ContextMenuHost() {
       className="ctx-in fixed z-[90] w-64 overflow-hidden rounded-xl border border-zinc-200 bg-white/95 p-1 shadow-[0_16px_40px_rgba(16,24,40,0.18)] outline-none backdrop-blur print:hidden"
     >
       <div className="px-2.5 pb-1.5 pt-2">
-        <p className={`truncate text-[13px] font-semibold text-zinc-900 ${data.t === "invoice" ? "font-mono" : ""}`}>{title}</p>
+        <p className={`truncate text-[13px] font-semibold text-zinc-900 ${data.t === "invoice" ? "font-display text-[15px] tracking-[0.02em]" : ""}`}>{title}</p>
         {subtitle && <p className="truncate text-[11px] text-zinc-500">{subtitle}</p>}
       </div>
       <div className="my-1 h-px bg-zinc-100" />

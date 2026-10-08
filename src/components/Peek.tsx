@@ -118,7 +118,7 @@ function CustomerView({ d }: { d: any }) {
             {d.invoices.map((inv: any) => (
               <li key={inv.id} className="flex items-center justify-between gap-3 py-2 text-[13px]">
                 <Link href={`/invoices/${inv.id}`} className="min-w-0 hover:underline">
-                  <span className="block font-mono font-medium text-zinc-900">{inv.number}</span>
+                  <span className="block font-display text-[15px] font-semibold tracking-[0.02em] text-zinc-900">{inv.number}</span>
                   <span className="block text-xs text-zinc-500">{date(inv.created_at)}</span>
                 </Link>
                 <span className="text-right">
@@ -234,7 +234,7 @@ function JobView({ d }: { d: any }) {
             label="Invoice"
             value={
               d.invoice ? (
-                <Link href={`/invoices/${d.invoice.id}`} className="font-mono hover:underline">
+                <Link href={`/invoices/${d.invoice.id}`} className="font-semibold hover:underline">
                   {d.invoice.number}
                 </Link>
               ) : (
@@ -296,7 +296,7 @@ export function PeekPanel({ type, id, onClose, docked = false }: { type: PeekTyp
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">{docked ? "Preview" : "Quick view"} · {type}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <h2 className={`truncate text-lg font-semibold text-zinc-900 ${type === "invoice" ? "font-mono" : ""}`}>{title}</h2>
+            <h2 className={`truncate text-lg font-semibold text-zinc-900 ${type === "invoice" ? "font-display tracking-[0.02em]" : ""}`}>{title}</h2>
             {status && <Pill status={status} />}
           </div>
           {subtitle && <p className="truncate text-[13px] text-zinc-500">{subtitle}</p>}

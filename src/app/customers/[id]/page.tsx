@@ -700,7 +700,7 @@ function InvoiceTable({ rows, totalOf }: { rows: CustomerInvoiceRow[]; totalOf: 
             return (
               <tr key={inv.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
                 <td className="px-4 py-2.5">
-                  <Link href={href} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
+                  <Link href={href} className="font-display text-[15px] font-semibold tracking-[0.02em] text-zinc-900 hover:underline">
                     {isEstimate ? "Estimate" : formatInvoiceNumber(inv.invoice_number, inv.created_at) ?? "Invoice"}
                   </Link>
                   <p className="text-xs text-zinc-500 tabular sm:hidden">{formatDate(inv.created_at)}</p>

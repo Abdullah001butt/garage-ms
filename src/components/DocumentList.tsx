@@ -200,7 +200,7 @@ export async function DocumentList({
                       <RowCheckbox id={doc.id} label={doc.customers?.name} />
                     </td>
                     <td className="px-4 py-3 sm:whitespace-nowrap">
-                      <Link href={href} className="whitespace-nowrap font-mono text-[13px] font-medium text-zinc-900">
+                      <Link href={href} className="whitespace-nowrap font-display text-[15px] font-semibold tracking-[0.02em] text-zinc-900">
                         <Morph name={`doc-${doc.id}`}>
                           <span className="inline-block">{number ?? `EST-${doc.id.slice(0, 6).toUpperCase()}`}</span>
                         </Morph>

@@ -72,9 +72,9 @@ export default async function CreditNotePage({ params }: { params: Promise<{ id:
             </div>
             <div className="text-right">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-600">Tax credit note</p>
-              <p className="mt-1 font-mono text-2xl font-semibold text-zinc-900">{number}</p>
+              <p className="mt-1 font-display text-[28px] font-bold leading-none tracking-[0.01em] text-zinc-900">{number}</p>
               <p className="mt-2 text-zinc-500">Date {formatDate(note.created_at)}</p>
-              {invoiceNo && <p className="text-zinc-500">Against invoice <span className="font-mono text-zinc-900">{invoiceNo}</span></p>}
+              {invoiceNo && <p className="text-zinc-500">Against invoice <span className="font-semibold text-zinc-900">{invoiceNo}</span></p>}
             </div>
           </div>
 

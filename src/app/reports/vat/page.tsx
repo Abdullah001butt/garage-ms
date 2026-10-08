@@ -112,7 +112,7 @@ export default async function VatReportPage({ searchParams }: { searchParams: Pr
                   <tr key={r.id} className="border-b border-zinc-100 hover:bg-zinc-50/60">
                     <td className={`${tdClass} hidden whitespace-nowrap text-zinc-500 tabular sm:table-cell`}>{formatDate(r.created_at)}</td>
                     <td className={`${tdClass} hidden whitespace-nowrap sm:table-cell`}>
-                      <Link href={`/invoices/${r.id}`} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
+                      <Link href={`/invoices/${r.id}`} className="font-display text-[15px] font-semibold tracking-[0.02em] text-zinc-900 hover:underline">
                         {formatInvoiceNumber(r.invoice_number, r.created_at) ?? "Invoice"}
                       </Link>
                     </td>
@@ -168,7 +168,7 @@ export default async function VatReportPage({ searchParams }: { searchParams: Pr
                 {credits!.map((c) => (
                   <tr key={c.id} className="border-b border-zinc-100 last:border-0">
                     <td className={`${tdClass} whitespace-nowrap`}>
-                      <Link href={`/credit-notes/${c.id}`} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
+                      <Link href={`/credit-notes/${c.id}`} className="font-display text-[15px] font-semibold tracking-[0.02em] text-zinc-900 hover:underline">
                         {formatCreditNoteNumber(c.credit_number, c.created_at)}
                       </Link>
                       <p className="text-xs text-zinc-500 tabular">{formatDate(c.created_at)}</p>

@@ -189,11 +189,11 @@ export function GlobalSearch({ role = null }: { role?: Role | null }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-9 min-w-0 w-full items-center gap-2 rounded-md border border-zinc-200 bg-zinc-50 px-3 text-[13px] text-zinc-500 transition-colors hover:border-zinc-300 hover:bg-white"
+        className="flex h-9 min-w-0 w-full items-center gap-2 rounded-md border border-graphite-800 bg-graphite-900 px-3 text-[13px] text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200"
       >
         <Icon name="search" className="h-4 w-4" />
         <span className="min-w-0 flex-1 truncate text-left">Search or jump to…</span>
-        <kbd className="ml-auto hidden rounded border border-zinc-200 bg-white px-1.5 py-px font-sans text-[11px] text-zinc-400 sm:inline">Ctrl K</kbd>
+        <kbd className="ml-auto hidden rounded border border-zinc-600 px-1.5 py-px font-sans text-[11px] text-zinc-400 sm:inline">Ctrl K</kbd>
       </button>
 
       {open &&

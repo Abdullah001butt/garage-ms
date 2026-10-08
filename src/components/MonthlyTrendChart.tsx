@@ -325,7 +325,7 @@ function DrillPanel({ point, onClose }: { point: MonthlyTrendPoint; onClose: () 
                       <span className="block truncate text-[13px] font-medium text-zinc-900">{p.customer ?? "Payment"}</span>
                       <span className="block text-xs text-zinc-500">
                         {day(p.paid_at)} · <span className="capitalize">{p.method.replace("_", " ")}</span>
-                        {p.invoiceNumber && <span className="font-mono"> · {p.invoiceNumber}</span>}
+                        {p.invoiceNumber && <span className="font-semibold"> · {p.invoiceNumber}</span>}
                       </span>
                     </span>
                     <span className={`shrink-0 text-[13px] font-semibold tabular ${p.amount < 0 ? "text-red-700" : "text-zinc-900"}`}>

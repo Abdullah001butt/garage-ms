@@ -70,7 +70,7 @@ export default async function EvaluationsPage({ searchParams }: { searchParams: 
               {rows.map((ev) => (
                 <tr key={ev.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
                   <td className="whitespace-nowrap px-4 py-3">
-                    <Link href={`/evaluations/${ev.id}`} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
+                    <Link href={`/evaluations/${ev.id}`} className="font-display text-[15px] font-semibold tracking-[0.02em] text-zinc-900 hover:underline">
                       {ev.ref_number}
                     </Link>
                   </td>

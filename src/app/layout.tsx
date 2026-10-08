@@ -86,7 +86,7 @@ export default async function RootLayout({
             <>
               <Sidebar role={role} />
               <div className="md:pl-60 flex flex-col min-h-full">
-                <header style={{ viewTransitionName: "app-header" }} className="sticky top-0 z-20 border-b border-zinc-200 bg-white/85 backdrop-blur supports-backdrop-filter:bg-white/75 print:hidden">
+                <header style={{ viewTransitionName: "app-header" }} className="sticky top-0 z-20 border-b border-graphite-800 bg-graphite-950 text-white print:hidden">
                   <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                       <MobileNav role={role} />
@@ -96,17 +96,17 @@ export default async function RootLayout({
                     </div>
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="hidden min-w-0 items-center gap-2.5 sm:flex">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-graphite-800 text-xs font-semibold text-white ring-1 ring-white/10">
                           {initials(profile?.full_name ?? user.email ?? "")}
                         </span>
                         <div className="min-w-0 leading-tight">
-                          <p className="truncate text-[13px] font-medium text-zinc-900">{profile?.full_name ?? user.email}</p>
-                          {role && <p className="text-[11px] capitalize text-zinc-500">{role}</p>}
+                          <p className="truncate text-[13px] font-semibold text-white">{profile?.full_name ?? user.email}</p>
+                          {role && <p className="text-[11px] uppercase tracking-[0.1em] text-zinc-400">{role}</p>}
                         </div>
                       </div>
                       <form action={signOut}>
                         <button
-                          className="flex h-9 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                          className="flex h-9 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-zinc-400 hover:bg-white/10 hover:text-white"
                           aria-label="Sign out"
                         >
                           <Icon name="logout" className="h-4 w-4" />

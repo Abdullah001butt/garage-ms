@@ -360,7 +360,7 @@ export async function DocumentDetail({
                   {creditNotes!.map((c) => (
                     <li key={c.id} className="flex items-start gap-2 px-4 py-2.5 text-sm">
                       <div className="min-w-0 flex-1">
-                        <Link href={`/credit-notes/${c.id}`} className="font-mono text-[13px] font-medium text-zinc-900 hover:underline">
+                        <Link href={`/credit-notes/${c.id}`} className="font-display text-[15px] font-semibold tracking-[0.02em] text-zinc-900 hover:underline">
                           {formatCreditNoteNumber(c.credit_number, c.created_at)}
                         </Link>
                         <p className="text-xs text-zinc-500">

@@ -37,6 +37,19 @@
   --color-brand-800: #931724;
   --color-brand-900: #7a1824;
   --color-brand-950: #430810;
+
+  /* Showroom graphite for the top bar. */
+  --color-graphite-950: #141519;
+  --color-graphite-900: #1f2126;
+  --color-graphite-800: #2e3037;
+}
+
+/* Red action buttons read like a showroom: capitals, a little letter spacing. */
+a.bg-brand-600,
+button.bg-brand-600 {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
 }
 
 html,

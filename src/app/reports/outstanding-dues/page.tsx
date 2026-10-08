@@ -164,7 +164,7 @@ export default async function OutstandingDuesPage({ searchParams }: { searchPara
                           {r.customers?.name ?? "Unknown"}
                         </Link>
                         <p className="text-xs text-zinc-500">
-                          <span className="font-mono">{formatInvoiceNumber(r.invoice_number, r.created_at)}</span>
+                          <span className="font-semibold">{formatInvoiceNumber(r.invoice_number, r.created_at)}</span>
                           <span className="sm:hidden"> · {r.daysOld}d old</span>
                         </p>
                       </td>
