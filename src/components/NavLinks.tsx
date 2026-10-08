@@ -2,7 +2,50 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { NavGroup } from "@/lib/nav-data";
+import type { NavCount } from "@/app/api/nav-counts/route";
+import { NAV_COUNTS_REFRESH } from "@/lib/nav-events";
+
+const TONE: Record<NavCount["tone"], string> = {
+  neutral: "bg-zinc-100 text-zinc-600 ring-zinc-200",
+  red: "bg-red-50 text-red-700 ring-red-200",
+  amber: "bg-amber-50 text-amber-800 ring-amber-200",
+  blue: "bg-sky-50 text-sky-700 ring-sky-200",
+};
+
+
+let cache: Record<string, NavCount> = {};
+
+function useNavCounts(pathname: string) {
+  const [counts, setCounts] = useState<Record<string, NavCount>>(cache);
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      fetch("/api/nav-counts", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (alive && d) {
+            cache = d;
+            setCounts(d);
+          }
+        })
+        .catch(() => {});
+    load();
+    const timer = setInterval(load, 45000);
+    const onFocus = () => document.visibilityState === "visible" && load();
+    const onRefresh = () => setTimeout(load, 400);
+    document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener(NAV_COUNTS_REFRESH, onRefresh);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener(NAV_COUNTS_REFRESH, onRefresh);
+    };
+  }, [pathname]);
+  return counts;
+}
 
 function matches(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -12,6 +55,7 @@ function matches(pathname: string, href: string) {
 // a clear active state so you always know which page you're on.
 export function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => void }) {
   const pathname = usePathname();
+  const counts = useNavCounts(pathname);
   // The most specific match wins, so /staff/salaries highlights "Salaries", not "Staff".
   const activeHref = groups
     .flatMap((g) => g.items.map((i) => i.href))
@@ -47,7 +91,16 @@ export function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigat
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                   </svg>
-                  {item.label}
+                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  {counts[item.href] && (
+                    <span
+                      key={counts[item.href].count}
+                      title={counts[item.href].title}
+                      className={`count-pop ml-auto inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular ring-1 ring-inset ${TONE[counts[item.href].tone]}`}
+                    >
+                      {counts[item.href].count > 99 ? "99+" : counts[item.href].count}
+                    </span>
+                  )}
                 </Link>
               );
             })}

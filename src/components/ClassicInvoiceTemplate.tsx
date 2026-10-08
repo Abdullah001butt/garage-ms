@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { formatDate } from "@/lib/format";
 import { useState } from "react";
 import type { InvoiceItem, ShopSettings } from "@/lib/types";
@@ -177,13 +178,9 @@ export function ClassicInvoiceTemplate({
                   </td>
                   <td className="py-1.5 text-right">{(item.quantity * item.unit_price).toFixed(2)}</td>
                   <td className="py-1.5 text-right print:hidden">
-                    <button
-                      type="button"
-                      onClick={() => onDeleteItem(item.id)}
-                      className="text-xs text-red-500 hover:underline"
-                    >
+                    <ConfirmSubmitButton action={async () => void (await onDeleteItem(item.id))} successMessage="Line removed." className="text-xs text-red-500 hover:underline">
                       Remove
-                    </button>
+                    </ConfirmSubmitButton>
                   </td>
                 </tr>
               );

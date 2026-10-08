@@ -1,5 +1,6 @@
 "use client";
 
+import { ctxAttr } from "@/lib/ctx";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useToast } from "@/components/Toast";
@@ -16,7 +17,8 @@ type JobRow = {
   mechanic_name: string | null;
   created_at: string;
   vehicles: { plate_number: string; emirate: string; make: string | null; model: string | null } | null;
-  customers: { name: string } | null;
+  customer_id?: string;
+  customers: { name: string; phone?: string | null } | null;
 };
 
 const COLUMNS: { status: JobStatus; label: string; dot: string }[] = [
@@ -126,6 +128,17 @@ export function JobsBoard({
                 return (
                   <article
                     key={job.id}
+                    {...ctxAttr({
+                      t: "job",
+                      id: job.id,
+                      status,
+                      plate: job.vehicles?.plate_number,
+                      title: [job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" "),
+                      customer: job.customers?.name,
+                      customerId: job.customer_id,
+                      phone: job.customers?.phone ?? undefined,
+                      invoiced: status === "completed" && !uninvoiced.has(job.id),
+                    })}
                     draggable
                     onDragStart={(e) => {
                       e.dataTransfer.setData("text/job-id", job.id);

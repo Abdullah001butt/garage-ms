@@ -1,6 +1,9 @@
 // Human-readable names for audit_log actions (shared by the Audit Log page and activity timelines).
 export const ACTION_LABEL: Record<string, string> = {
   "job.status_change": "Changed job status",
+  "job.create": "Opened job card",
+  "import.customers": "Imported customers from Excel",
+  "import.parts": "Imported parts from Excel",
   "invoice.create": "Created invoice",
   "estimate.create": "Created estimate",
   "estimate.convert_to_invoice": "Converted estimate to invoice",

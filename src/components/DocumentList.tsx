@@ -1,3 +1,4 @@
+import { ctxAttr } from "@/lib/ctx";
 import { SplitView } from "@/components/SplitView";
 import { Morph } from "@/components/Morph";
 import { formatDate, formatAed } from "@/lib/format";
@@ -181,7 +182,20 @@ export async function DocumentList({
                 const number =
                   documentType === "invoice" ? formatInvoiceNumber(doc.invoice_number, doc.created_at) : null;
                 return (
-                  <tr key={doc.id} data-split-id={doc.id} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                  <tr
+                    key={doc.id}
+                    data-split-id={doc.id}
+                    {...ctxAttr({
+                      t: "invoice",
+                      id: doc.id,
+                      doc: documentType,
+                      number: number ?? `EST-${doc.id.slice(0, 6).toUpperCase()}`,
+                      status: doc.status,
+                      balance: documentType === "invoice" ? Math.round(balanceOf(doc) * 100) / 100 : undefined,
+                      customer: doc.customers?.name,
+                      phone: doc.customers?.phone ?? undefined,
+                    })}
+                    className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
                     <td className="w-10 pl-4">
                       <RowCheckbox id={doc.id} label={doc.customers?.name} />
                     </td>

@@ -348,3 +348,68 @@ details[open] > summary::before {
     animation: none;
   }
 }
+
+/* Sidebar counters pop when their number changes */
+@keyframes count-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+  }
+}
+.count-pop {
+  animation: count-pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .count-pop {
+    animation: none;
+  }
+}
+
+/* Undo window: a bar that runs out with the time left */
+@keyframes toast-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.toast-countdown {
+  animation-name: toast-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+/* Page dims while a delete waits out its undo window */
+main.deleting {
+  opacity: 0.4;
+  filter: grayscale(0.5);
+  pointer-events: none;
+  transition: opacity 200ms, filter 200ms;
+}
+
+/* Right-click menu */
+@keyframes ctx-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-2px);
+  }
+}
+.ctx-in {
+  animation: ctx-in 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top left;
+}
+[data-ctx-open],
+[data-ctx-open] > td {
+  background: #f4f4f5 !important;
+}
+article[data-ctx-open] {
+  box-shadow: 0 0 0 2px #18181b;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ctx-in {
+    animation: none;
+  }
+}

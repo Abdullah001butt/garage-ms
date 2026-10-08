@@ -185,7 +185,7 @@ export function RowMenuSeparator() {
   return <div className="my-1 h-px bg-zinc-100" role="separator" />;
 }
 
-/** Destructive item: confirmation dialog + Undo window (see ConfirmSubmitButton). */
+/** Destructive item: hides at once, deletes after an Undo window (see ConfirmSubmitButton). */
 export function RowMenuDelete({
   action,
   confirmMessage,

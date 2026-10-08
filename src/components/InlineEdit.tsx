@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useToast } from "@/components/Toast";
+import { useUndo } from "@/components/Undo";
 import type { InlineResult } from "@/app/inline-actions";
 
 type Option = { value: string; label: string };
@@ -44,6 +45,7 @@ export function InlineEdit({
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
+  const { done } = useUndo();
 
   useEffect(() => {
     if (editing && kind !== "select") inputRef.current?.select();
@@ -62,6 +64,15 @@ export function InlineEdit({
       }
       setFlash(true);
       setTimeout(() => setFlash(false), 900);
+      const label_ = (v: string) => (kind === "select" ? (options?.find((o) => o.value === v)?.label ?? (v || "—")) : v || "—");
+      const before = value;
+      done({
+        message: `${label}: ${label_(before)} → ${label_(next)}`,
+        undo: async () => {
+          const r = await action(before);
+          if (!r.ok) throw new Error(r.error);
+        },
+      });
     });
   }
 

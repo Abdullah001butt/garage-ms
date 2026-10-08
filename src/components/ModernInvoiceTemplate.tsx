@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { formatDate } from "@/lib/format";
@@ -176,9 +177,9 @@ export function ModernInvoiceTemplate({
                     </td>
                     <td className="py-2.5 text-right font-medium tabular-nums text-zinc-900">{aed(item.quantity * item.unit_price)}</td>
                     <td className="py-2.5 text-right print:hidden">
-                      <button type="button" onClick={() => onDeleteItem(item.id)} className="text-[11px] font-medium text-zinc-400 hover:text-red-600">
+                      <ConfirmSubmitButton action={async () => void (await onDeleteItem(item.id))} successMessage="Line removed." className="text-[11px] font-medium text-zinc-400 hover:text-red-600">
                         Remove
-                      </button>
+                      </ConfirmSubmitButton>
                     </td>
                   </tr>
                 );

@@ -1,3 +1,4 @@
+import { ctxAttr } from "@/lib/ctx";
 import { SplitView } from "@/components/SplitView";
 import { Morph } from "@/components/Morph";
 import Link from "next/link";
@@ -103,6 +104,11 @@ export default async function CustomersPage({
         description="Individuals and companies, their vehicles and account balances."
         action={
           <>
+            <Link href="/import">
+              <SecondaryButton type="button" icon="upload">
+                Import
+              </SecondaryButton>
+            </Link>
             <a href="/customers/export">
               <SecondaryButton type="button" icon="download">
                 Export
@@ -151,7 +157,7 @@ export default async function CustomersPage({
                 const isCompany = customer.customer_type === "company";
                 const href = `/customers/${customer.id}`;
                 return (
-                  <tr key={customer.id} data-split-id={customer.id} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                  <tr key={customer.id} data-split-id={customer.id} {...ctxAttr({ t: "customer", id: customer.id, name: customer.name, phone: customer.phone ?? undefined })} className="group border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
                     <td className="w-10 pl-4">
                       <RowCheckbox id={customer.id} label={customer.name} />
                     </td>

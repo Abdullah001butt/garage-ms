@@ -15,6 +15,7 @@ import { invoiceFigures } from "@/lib/invoice-math";
 import { formatInvoiceNumber } from "@/lib/invoice-number";
 import { PlateBadge } from "@/components/PlateBadge";
 import Link from "next/link";
+import { RevenueHeatmap, type HeatmapDay } from "@/components/RevenueHeatmap";
 
 type InvoiceRow = {
   id: string;
@@ -208,6 +209,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const owedTotal = owedRows.reduce((sum, [, r]) => sum + r.balance, 0);
   const lowParts = (parts ?? []).filter((p) => p.stock_qty <= p.reorder_threshold).sort((a, b) => a.stock_qty - b.stock_qty);
 
+  const heatDays: Record<string, HeatmapDay> = {};
+  for (const p of payments ?? []) {
+    if (!p.paid_at) continue;
+    const k = dayKey(p.paid_at);
+    const e = (heatDays[k] ??= { amount: 0, count: 0 });
+    e.amount += Number(p.amount);
+    e.count += 1;
+  }
+  const todayKey = dayKey(new Date());
+
   const mixTotal = laborTotal + partsTotal + serviceTotal;
   const totalJobs = jobCounts.pending + jobCounts.in_progress + jobCounts.completed;
   const vs = range.compareLabel;
@@ -251,6 +262,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <MiniStat icon="package" label="Low stock parts" value={String(lowStockCount)} hint="At or below reorder level" warn={lowStockCount > 0} />
           <MiniStat icon="trending" label="Shop utilisation" value={`${utilization}%`} hint={`${pendingPOs} open purchase orders`} />
         </div>
+      ),
+    },
+    {
+      id: "heatmap",
+      title: "Year at a glance",
+      description: "Takings every day for 12 months — click a day for its cash flow",
+      sizes: [4, 6],
+      size: 6,
+      node: (
+        <Panel title="Year at a glance" action={<span className="text-xs text-zinc-500">Payments received per day</span>} className="h-full">
+          <div className="p-4">
+            <RevenueHeatmap days={heatDays} today={todayKey} />
+          </div>
+        </Panel>
       ),
     },
     {

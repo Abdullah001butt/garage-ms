@@ -1,3 +1,6 @@
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import { AutoPrint } from "@/components/AutoPrint";
+import { Suspense } from "react";
 import { Morph } from "@/components/Morph";
 import { updateInvoiceItemInline } from "@/app/inline-actions";
 import { formatDate, formatAed } from "@/lib/format";
@@ -213,6 +216,9 @@ export async function DocumentDetail({
         </div>
       </div>
 
+      <Suspense fallback={null}>
+        <AutoPrint />
+      </Suspense>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] print:block">
         <div className="min-w-0">
           <InvoiceDesign
@@ -269,11 +275,9 @@ export async function DocumentDetail({
                         {p.notes ? ` · ${p.notes}` : ""}
                       </p>
                     </div>
-                    <form action={deletePayment.bind(null, id, p.id)}>
-                      <button type="submit" className="text-xs font-medium text-zinc-500 hover:text-red-600">
-                        Remove
-                      </button>
-                    </form>
+                    <ConfirmSubmitButton action={deletePayment.bind(null, id, p.id)} successMessage="Payment removed.">
+                      Remove
+                    </ConfirmSubmitButton>
                   </li>
                 ))}
                 {payments?.length === 0 && <li className="px-4 py-4 text-[13px] text-zinc-400">No payments recorded yet.</li>}

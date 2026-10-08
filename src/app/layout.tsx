@@ -16,6 +16,7 @@ import { getCurrentUserAndProfile } from "@/lib/auth";
 import { signOut } from "@/app/login/actions";
 import { Icon } from "@/components/icons";
 import { PageTransition } from "@/components/PageTransition";
+import { ContextMenuHost } from "@/components/ContextMenu";
 
 function initials(name: string) {
   const parts = name.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
@@ -108,6 +109,7 @@ export default async function RootLayout({
                   <PageTransition>{children}</PageTransition>
                 </main>
                 <PeekHost />
+                <ContextMenuHost />
               </div>
             </>
           )}

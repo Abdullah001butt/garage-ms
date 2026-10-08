@@ -1,5 +1,6 @@
 "use client";
 
+import { ctxAttr } from "@/lib/ctx";
 import Link from "next/link";
 import { Fragment, useRef, useState } from "react";
 import type { Part } from "@/lib/types";
@@ -75,6 +76,7 @@ export function InventoryTable({
               return (
                 <Fragment key={part.id}>
                 <tr
+                  {...ctxAttr({ t: "part", id: part.id, name: part.name, sku: part.sku })}
                   ref={(el) => {
                     rowRefs.current[part.id] = el;
                   }}

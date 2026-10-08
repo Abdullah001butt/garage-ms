@@ -5,6 +5,8 @@ import { createPurchaseOrder } from "@/app/purchase-orders/actions";
 import { Card, PageHeader, PrimaryButton, Field, labelClass, inputClass, Alert } from "@/components/ui";
 import { SlideOver } from "@/components/SlideOver";
 import { InventoryTable } from "@/components/InventoryTable";
+import Link from "next/link";
+import { Icon } from "@/components/icons";
 
 export default async function InventoryPage() {
   const supabase = await createClient();
@@ -22,6 +24,11 @@ export default async function InventoryPage() {
         title="Parts Stock"
         description="Live inventory levels across all parts on the shelf."
         action={
+          <>
+          <Link href="/import" className="inline-flex h-9 items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3.5 text-sm font-medium text-zinc-800 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:bg-zinc-50">
+            <Icon name="upload" className="h-4 w-4 text-zinc-500" />
+            Import
+          </Link>
           <SlideOver title="Add a part" description="New stock item with pricing and reorder level." triggerLabel="Add Part">
         <form action={createPart} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="block col-span-full">
@@ -40,6 +47,7 @@ export default async function InventoryPage() {
           </div>
         </form>
           </SlideOver>
+          </>
         }
       />
 

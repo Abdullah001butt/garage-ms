@@ -1,3 +1,4 @@
+import { ctxAttr } from "@/lib/ctx";
 import { SplitView } from "@/components/SplitView";
 import { formatDate } from "@/lib/format";
 import { PeekButton } from "@/components/Peek";
@@ -18,7 +19,8 @@ type JobRow = {
   mechanic_name: string | null;
   created_at: string;
   vehicles: { plate_number: string; emirate: string; make: string | null; model: string | null } | null;
-  customers: { name: string } | null;
+  customer_id: string;
+  customers: { name: string; phone: string | null } | null;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -45,7 +47,7 @@ export default async function JobsPage({
   let query = supabase
     .from("job_cards")
     .select(
-      "id, description, status, mechanic_name, created_at, vehicles(plate_number, emirate, make, model), customers(name)"
+      "id, description, status, mechanic_name, created_at, customer_id, vehicles(plate_number, emirate, make, model), customers(name, phone)"
     )
     .order("created_at", { ascending: false });
 
@@ -128,7 +130,21 @@ export default async function JobsPage({
               </thead>
               <tbody>
                 {allJobs.map((job) => (
-                  <tr key={job.id} data-split-id={job.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
+                  <tr
+                    key={job.id}
+                    data-split-id={job.id}
+                    {...ctxAttr({
+                      t: "job",
+                      id: job.id,
+                      status: job.status,
+                      plate: job.vehicles?.plate_number,
+                      title: [job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" "),
+                      customer: job.customers?.name,
+                      customerId: job.customer_id,
+                      phone: job.customers?.phone ?? undefined,
+                      invoiced: invoicedSet.has(job.id),
+                    })}
+                    className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60">
                     <td className="px-4 py-3">
                       <Link href={`/jobs/${job.id}`} className="flex items-center gap-3">
                         {job.vehicles && (
