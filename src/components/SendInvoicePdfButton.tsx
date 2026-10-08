@@ -25,7 +25,7 @@ export function SendInvoicePdfButton({
       }
 
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import("html2canvas"),
+        import("html2canvas-pro"),
         import("jspdf"),
       ]);
 
@@ -46,8 +46,12 @@ export function SendInvoicePdfButton({
         format: "a4",
       });
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * pageWidth) / canvas.width;
-      pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, imgHeight);
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      // A long invoice is shrunk to fit one A4 page (centred) instead of running off the bottom.
+      const fitScale = Math.min(1, pageHeight / ((canvas.height * pageWidth) / canvas.width));
+      const imgWidth = pageWidth * fitScale;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "JPEG", (pageWidth - imgWidth) / 2, 0, imgWidth, imgHeight);
 
       const pdfBlob = pdf.output("blob");
       const filePath = `${invoiceId}.pdf`;

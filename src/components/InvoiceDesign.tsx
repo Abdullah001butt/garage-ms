@@ -3,12 +3,16 @@
 import { useState, type ComponentProps } from "react";
 import { ClassicInvoiceTemplate } from "@/components/ClassicInvoiceTemplate";
 import { ModernInvoiceTemplate } from "@/components/ModernInvoiceTemplate";
+import { ShowroomInvoiceTemplate } from "@/components/ShowroomInvoiceTemplate";
 
-type Props = Omit<ComponentProps<typeof ModernInvoiceTemplate>, "showVat"> & { defaultStyle?: "classic" | "modern" };
+export type InvoiceStyle = "classic" | "modern" | "showroom";
+const STYLES: InvoiceStyle[] = ["classic", "modern", "showroom"];
 
-/** Classic / Modern switch above the document. Print and PDF use whichever is showing. */
-export function InvoiceDesign({ defaultStyle = "classic", ...props }: Props) {
-  const [style, setStyle] = useState<"classic" | "modern">(defaultStyle);
+type Props = Omit<ComponentProps<typeof ShowroomInvoiceTemplate>, "showVat"> & { defaultStyle?: InvoiceStyle };
+
+/** Classic / Modern / Showroom switch above the document. Print and PDF use whichever is showing. */
+export function InvoiceDesign({ defaultStyle = "classic", odometer, mechanicName, ...props }: Props) {
+  const [style, setStyle] = useState<InvoiceStyle>(defaultStyle);
   const [showVat, setShowVat] = useState(false);
 
   return (
@@ -19,7 +23,7 @@ export function InvoiceDesign({ defaultStyle = "classic", ...props }: Props) {
           Show VAT on printed {props.documentLabel === "ESTIMATE" ? "estimate" : "invoice"}
         </label>
         <div className="inline-flex rounded-md border border-zinc-200 bg-zinc-50 p-0.5" role="group" aria-label="Document design">
-          {(["classic", "modern"] as const).map((s) => (
+          {STYLES.map((s) => (
             <button
               key={s}
               type="button"
@@ -32,7 +36,13 @@ export function InvoiceDesign({ defaultStyle = "classic", ...props }: Props) {
           ))}
         </div>
       </div>
-      {style === "modern" ? <ModernInvoiceTemplate {...props} showVat={showVat} /> : <ClassicInvoiceTemplate {...props} showVat={showVat} />}
+      {style === "showroom" ? (
+        <ShowroomInvoiceTemplate {...props} odometer={odometer} mechanicName={mechanicName} showVat={showVat} />
+      ) : style === "modern" ? (
+        <ModernInvoiceTemplate {...props} showVat={showVat} />
+      ) : (
+        <ClassicInvoiceTemplate {...props} showVat={showVat} />
+      )}
     </div>
   );
 }

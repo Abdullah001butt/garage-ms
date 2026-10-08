@@ -187,7 +187,7 @@ export type ShopSettings = {
   invoice_disclaimer: string | null;
   default_service_interval_days: number;
   google_review_link: string | null;
-  invoice_style?: "classic" | "modern" | null;
+  invoice_style?: "classic" | "modern" | "showroom" | null;
   created_at: string;
 };
 

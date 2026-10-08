@@ -85,7 +85,7 @@ export default async function RootLayout({
           ) : (
             <>
               <Sidebar role={role} />
-              <div className="md:pl-60 flex flex-col min-h-full">
+              <div className="md:pl-60 print:pl-0! flex flex-col min-h-full">
                 <header style={{ viewTransitionName: "app-header" }} className="sticky top-0 z-20 border-b border-graphite-800 bg-graphite-950 text-white print:hidden">
                   <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
                     <div className="flex min-w-0 flex-1 items-center gap-2">

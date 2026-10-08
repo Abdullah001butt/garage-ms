@@ -52,10 +52,12 @@ type DocDetail = {
   paid_at: string | null;
   job_card_id: string | null;
   invoice_number: number | null;
-  customers: { name: string; phone: string; address: string | null } | null;
+  customers: { name: string; phone: string; address: string | null; trn_number?: string | null } | null;
   job_cards: {
     description: string;
     driver_name?: string | null;
+    odometer?: number | null;
+    mechanic_name?: string | null;
     vehicles: { plate_number: string; make: string | null; model: string | null; year: number | null; share_token?: string | null } | null;
   } | null;
 };
@@ -93,7 +95,7 @@ export async function DocumentDetail({
       supabase
         .from("invoices")
         .select(
-          "id, status, document_type, vat_rate, discount, created_at, paid_at, job_card_id, invoice_number, customers(name, phone, address), job_cards(description, driver_name, vehicles(plate_number, make, model, year, share_token))"
+          "id, status, document_type, vat_rate, discount, created_at, paid_at, job_card_id, invoice_number, customers(name, phone, address, trn_number), job_cards(description, driver_name, odometer, mechanic_name, vehicles(plate_number, make, model, year, share_token))"
         )
         .eq("id", id)
         .single<DocDetail>(),
@@ -222,7 +224,7 @@ export async function DocumentDetail({
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] print:block">
         <div className="min-w-0">
           <InvoiceDesign
-            defaultStyle={settings?.invoice_style === "modern" ? "modern" : "classic"}
+            defaultStyle={settings?.invoice_style === "modern" || settings?.invoice_style === "showroom" ? settings.invoice_style : "classic"}
             qrPath={doc.job_cards?.vehicles?.share_token ? `/certificate/${doc.job_cards.vehicles.share_token}` : null}
             documentLabel={isEstimate ? "ESTIMATE" : "INVOICE"}
             createdAt={doc.created_at}
@@ -235,10 +237,13 @@ export async function DocumentDetail({
               name: doc.customers?.name ?? "",
               phone: doc.customers?.phone ?? "",
               address: doc.customers?.address ?? null,
+              trn: doc.customers?.trn_number ?? null,
             }}
             vehicle={doc.job_cards?.vehicles ?? null}
             jobDescription={doc.job_cards?.description ?? null}
             driverName={doc.job_cards?.driver_name ?? null}
+            odometer={doc.job_cards?.odometer ?? null}
+            mechanicName={doc.job_cards?.mechanic_name ?? null}
             onDeleteItem={deleteItemWithId}
             onEditItem={updateInvoiceItemInline.bind(null, id)}
             linesLocked={doc.status === "credited" || (creditNotes ?? []).length > 0}

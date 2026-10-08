@@ -18,7 +18,8 @@ export async function updateShopSettings(settingsId: string, formData: FormData)
   const payment_method_note = String(formData.get("payment_method_note") ?? "").trim() || null;
   const payment_instructions = String(formData.get("payment_instructions") ?? "").trim() || null;
   const invoice_disclaimer = String(formData.get("invoice_disclaimer") ?? "").trim() || null;
-  const invoice_style = formData.get("invoice_style") === "modern" ? "modern" : "classic";
+  const pickedStyle = formData.get("invoice_style");
+  const invoice_style = pickedStyle === "modern" || pickedStyle === "showroom" ? pickedStyle : "classic";
   const default_service_interval_days = Number(formData.get("default_service_interval_days") ?? 90);
   const google_review_link = String(formData.get("google_review_link") ?? "").trim() || null;
 

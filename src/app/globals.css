@@ -312,6 +312,13 @@ details[open] > summary::before {
     background: #fff !important;
   }
 
+  /* Printed documents keep their dark bands and tinted rows. */
+  #invoice-printable,
+  #invoice-printable * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
   .print\:full-width {
     max-width: none !important;
     width: 100% !important;

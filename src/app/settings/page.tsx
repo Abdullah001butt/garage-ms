@@ -69,10 +69,11 @@ export default async function SettingsPage() {
                 <Field label="Payment instructions (bold line)" name="payment_instructions" defaultValue={settings.payment_instructions ?? ""} />
                 <fieldset className="sm:col-span-2">
                   <legend className={labelClass}>Default invoice design</legend>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-3">
                     {[
                       { value: "classic", title: "Classic", text: "The current serif layout with red headings." },
                       { value: "modern", title: "Modern", text: "Clean branded layout with a QR code to the car's service history." },
+                      { value: "showroom", title: "Showroom", text: "Graphite title band, amount in words, VAT summary and signature lines." },
                     ].map((o) => (
                       <label key={o.value} className="flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 p-3 has-checked:border-zinc-900 has-checked:bg-zinc-50">
                         <input type="radio" name="invoice_style" value={o.value} defaultChecked={(settings.invoice_style ?? "classic") === o.value} className="mt-0.5 accent-zinc-900" />
