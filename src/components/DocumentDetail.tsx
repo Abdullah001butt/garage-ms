@@ -174,7 +174,7 @@ export async function DocumentDetail({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Morph name={`doc-${doc.id}`}>
-              <h1 className="font-mono text-xl font-semibold tracking-tight text-zinc-900">{docNumber}</h1>
+              <h1 className="font-display text-[28px] font-bold uppercase leading-none tracking-[0.01em] text-zinc-900 sm:text-[32px]">{docNumber}</h1>
             </Morph>
             {!isEstimate && (
               <Badge color={STATUS_COLOR[doc.status]} dot>

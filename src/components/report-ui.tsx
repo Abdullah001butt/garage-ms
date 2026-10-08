@@ -53,9 +53,9 @@ export function StatStrip({ items, className = "" }: { items: StatItem[]; classN
     >
       {items.map((s) => (
         <div key={s.label} className="min-w-0 bg-white p-4 sm:p-5">
-          <p className="truncate text-[13px] font-medium text-zinc-500">{s.label}</p>
-          <div className="mt-1.5 flex items-end justify-between gap-2">
-            <p className={`whitespace-nowrap text-xl font-semibold tracking-tight tabular sm:text-2xl ${TONE[s.tone ?? "default"]}`}>{s.value}</p>
+          <p className="truncate label-caps">{s.label}</p>
+          <div className="mt-2 flex items-end justify-between gap-2">
+            <p className={`whitespace-nowrap font-display text-[28px] font-semibold leading-none tabular sm:text-[32px] ${TONE[s.tone ?? "default"]}`}>{s.value}</p>
             {s.spark && <Sparkline values={s.spark} labels={s.sparkLabels} unit={s.sparkUnit} className="mb-1 hidden shrink-0 xl:block" tone={s.tone === "negative" ? "negative" : "default"} />}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">

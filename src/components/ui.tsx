@@ -28,8 +28,8 @@ export function PageHeader({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6 print:hidden">
       <div className="min-w-0">
-        <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-[22px]">{title}</h1>
-        {description && <p className="mt-1 text-sm text-zinc-500">{description}</p>}
+        <h1 className="font-display text-[28px] font-bold uppercase leading-none tracking-[0.01em] text-zinc-900 sm:text-[32px]">{title}</h1>
+        {description && <p className="mt-1.5 text-sm text-zinc-500">{description}</p>}
       </div>
       {action && <div className="flex shrink-0 flex-wrap items-center gap-2">{action}</div>}
     </div>
@@ -50,7 +50,7 @@ export function SectionHeader({
   return (
     <div className={`mb-3 flex items-end justify-between gap-3 ${className}`}>
       <div className="min-w-0">
-        <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
+        <h2 className="font-display text-[15px] font-bold uppercase tracking-[0.06em] text-zinc-900">{title}</h2>
         {description && <p className="mt-0.5 text-xs text-zinc-500">{description}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
@@ -76,7 +76,7 @@ export function Panel({
     <Card className={`overflow-hidden ${className}`}>
       <div className="flex h-11 items-center justify-between gap-3 border-b border-zinc-200 px-4">
         <div className="flex min-w-0 items-center gap-2">
-          <h2 className="truncate text-sm font-semibold text-zinc-900">{title}</h2>
+          <h2 className="truncate font-display text-[15px] font-bold uppercase tracking-[0.06em] text-zinc-900">{title}</h2>
           {count !== undefined && count > 0 && (
             <span className="rounded-full bg-zinc-100 px-1.5 py-px text-[11px] font-medium text-zinc-600 tabular">{count}</span>
           )}
@@ -311,8 +311,8 @@ export function StatCard({
   };
   return (
     <Card className="p-4">
-      <p className="text-[13px] font-medium text-zinc-500">{label}</p>
-      <p className={`mt-1.5 whitespace-nowrap text-xl font-semibold tracking-tight tabular sm:text-2xl ${accentClass[accent]}`}>{value}</p>
+      <p className="label-caps">{label}</p>
+      <p className={`mt-2 whitespace-nowrap font-display text-[28px] font-semibold leading-none tabular sm:text-[32px] ${accentClass[accent]}`}>{value}</p>
       {hint && <p className="mt-1 text-xs text-zinc-500">{hint}</p>}
     </Card>
   );

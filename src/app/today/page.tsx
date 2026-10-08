@@ -83,8 +83,8 @@ function KpiTile({
     <Link href={href} className="group">
       <Card className="flex h-full items-start justify-between gap-3 p-4 transition-colors group-hover:border-zinc-300">
         <div className="min-w-0">
-          <p className="text-[13px] font-medium text-zinc-500">{label}</p>
-          <p className={`mt-1.5 text-xl font-semibold tracking-tight whitespace-nowrap tabular sm:text-2xl ${tone === "warn" ? "text-red-700" : "text-zinc-900"}`}>
+          <p className="label-caps">{label}</p>
+          <p className={`mt-2 whitespace-nowrap font-display text-[28px] font-semibold leading-none tabular sm:text-[32px] ${tone === "warn" ? "text-red-700" : "text-zinc-900"}`}>
             {value}
           </p>
           <p className="mt-1 line-clamp-2 text-xs text-zinc-500 sm:truncate">{hint}</p>

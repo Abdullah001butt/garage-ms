@@ -27,7 +27,7 @@ export function PlateBadge({
       } ${className}`}
     >
       {code && (
-        <span className={`shrink-0 font-sans font-black leading-none text-zinc-900 ${isLg ? "text-4xl" : "text-sm"}`}>
+        <span className={`shrink-0 font-display font-bold leading-none text-zinc-900 ${isLg ? "text-[40px]" : "text-[15px]"}`}>
           {code}
         </span>
       )}
@@ -36,7 +36,7 @@ export function PlateBadge({
           <EmirateLogo emirate={emirate} size={isLg ? "md" : "xs"} />
         </span>
       )}
-      <span className={`shrink-0 font-sans font-black leading-none text-zinc-900 ${isLg ? "text-4xl" : "text-base"}`}>
+      <span className={`shrink-0 font-display font-bold leading-none tracking-[0.02em] text-zinc-900 ${isLg ? "text-[40px]" : "text-[17px]"}`}>
         {number}
       </span>
     </span>

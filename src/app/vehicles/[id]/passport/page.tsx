@@ -165,7 +165,7 @@ export default async function VehiclePassportPage({
           <PlateBadge plateNumber={vehicle.plate_number} emirate={vehicle.emirate} size="lg" />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-[22px]">
+              <h1 className="font-display text-[28px] font-bold uppercase leading-none tracking-[0.01em] text-zinc-900 sm:text-[32px]">
                 {title}
                 {vehicle.year ? <span className="font-normal text-zinc-400"> {vehicle.year}</span> : null}
               </h1>

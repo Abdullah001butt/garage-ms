@@ -115,7 +115,7 @@ export function JobsBoard({
             <header className="flex h-11 items-center justify-between px-3">
               <div className="flex items-center gap-2">
                 <span className={`h-2 w-2 rounded-full ${col.dot}`} />
-                <h2 className="text-[13px] font-semibold text-zinc-800">{col.label}</h2>
+                <h2 className="font-display text-[15px] font-bold uppercase tracking-[0.06em] text-zinc-900">{col.label}</h2>
               </div>
               <span className="rounded-full bg-white px-2 py-px text-[11px] font-medium text-zinc-600 ring-1 ring-zinc-200 tabular">
                 {colJobs.length}

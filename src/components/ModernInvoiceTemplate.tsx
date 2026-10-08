@@ -76,7 +76,7 @@ export function ModernInvoiceTemplate({
 
   return (
     <FitToWidth width={760}>
-      <div id="invoice-printable" className="overflow-hidden rounded-xl border border-zinc-200 bg-white text-[12.5px] leading-snug text-zinc-800 shadow-sm print:rounded-none print:border-none print:shadow-none">
+      <div id="invoice-printable" className="font-doc overflow-hidden rounded-xl border border-zinc-200 bg-white text-[12.5px] leading-snug text-zinc-800 shadow-sm print:rounded-none print:border-none print:shadow-none">
         <div className="h-1.5 bg-brand-600" />
         <div className="p-9 print:p-0 print:pt-6">
           {/* Header */}

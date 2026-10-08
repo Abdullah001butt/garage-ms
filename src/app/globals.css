@@ -8,8 +8,20 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-barlow);
+  --font-display: var(--font-barlow-condensed);
+  --font-doc: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Small spaced-out caps for labels above numbers ("COLLECTED TODAY"). */
+@utility label-caps {
+  font-size: 11px;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-zinc-500);
 }
 
 /* Brand palette derived from the Al Bahir logo red (#F03848). */

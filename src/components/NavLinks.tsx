@@ -66,7 +66,7 @@ export function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigat
     <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
       {groups.map((group) => (
         <div key={group.label}>
-          <p className="px-2.5 mb-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400">{group.label}</p>
+          <p className="px-2.5 mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">{group.label}</p>
           <div className="space-y-px">
             {group.items.map((item) => {
               const active = item.href === activeHref;
@@ -76,8 +76,8 @@ export function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigat
                   href={item.href}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
-                  className={`group relative flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors ${
-                    active ? "bg-zinc-100 text-zinc-900" : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                  className={`group relative flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[14px] transition-colors ${
+                    active ? "bg-zinc-100 font-semibold text-zinc-900" : "font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
                   }`}
                 >
                   {active && <span className="absolute -left-3 top-1.5 bottom-1.5 w-0.5 rounded-r bg-brand-600" />}

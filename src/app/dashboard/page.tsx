@@ -301,7 +301,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       node: (
         <Panel title="Revenue mix" action={<span className="text-xs text-zinc-500">Invoices in period</span>} className="h-full">
           <div className="space-y-4 p-4">
-            <p className="text-2xl font-semibold tracking-tight text-zinc-900 tabular">{aed(mixTotal)}</p>
+            <p className="font-display text-[28px] font-semibold leading-none tabular sm:text-[32px] text-zinc-900">{aed(mixTotal)}</p>
             <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-zinc-100">
               {mixTotal > 0 && (
                 <>
@@ -413,8 +413,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       node: (
         <Panel title="Money owed to you" count={owedRows.length} className="h-full" action={<Link href="/reports/outstanding-dues" className="font-medium text-zinc-500 hover:text-zinc-900">View all</Link>}>
           <div className="border-b border-zinc-100 px-4 py-3">
-            <p className="text-xs text-zinc-500">Total outstanding</p>
-            <p className="text-xl font-semibold tracking-tight text-red-700 tabular">{aed(owedTotal)}</p>
+            <p className="label-caps">Total outstanding</p>
+            <p className="mt-1 font-display text-[28px] font-semibold leading-none tabular sm:text-[32px] text-red-700">{aed(owedTotal)}</p>
           </div>
           {owedRows.length === 0 ? (
             <PanelEmpty message="Nobody owes you anything right now." />
@@ -584,8 +584,8 @@ function MiniStat({
         <Icon name={icon} className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="line-clamp-2 text-xs font-medium text-zinc-500 sm:truncate">{label}</p>
-        <p className={`text-lg font-semibold leading-tight tabular ${warn ? "text-amber-700" : "text-zinc-900"}`}>{value}</p>
+        <p className="line-clamp-2 label-caps sm:truncate">{label}</p>
+        <p className={`mt-0.5 font-display text-[24px] font-semibold leading-none tabular ${warn ? "text-amber-700" : "text-zinc-900"}`}>{value}</p>
         <p className="line-clamp-2 text-[11px] text-zinc-400 sm:truncate">{hint}</p>
       </div>
     </Card>
@@ -595,7 +595,7 @@ function MiniStat({
 function PipelineCount({ label, value, dot }: { label: string; value: number; dot: string }) {
   return (
     <div className="rounded-md bg-zinc-50 px-2 py-2">
-      <p className="text-base font-semibold text-zinc-900 tabular">{value}</p>
+      <p className="font-display text-[20px] font-semibold leading-tight text-zinc-900 tabular">{value}</p>
       <p className="flex items-center justify-center gap-1 text-[11px] text-zinc-500">
         <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
         {label}

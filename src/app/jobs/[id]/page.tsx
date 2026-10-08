@@ -174,7 +174,7 @@ export default async function JobDetailPage({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Morph name={`title-job-${job.id}`}>
-                <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-[22px]">
+                <h1 className="font-display text-[28px] font-bold uppercase leading-none tracking-[0.01em] text-zinc-900 sm:text-[32px]">
                   {[job.vehicles?.make, job.vehicles?.model, job.vehicles?.year].filter(Boolean).join(" ") || "Job card"}
                 </h1>
               </Morph>

@@ -248,7 +248,7 @@ export default async function CustomerDetailPage({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Morph name={`cust-${customer.id}`}>
-                <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-[22px]">{customer.name}</h1>
+                <h1 className="font-display text-[28px] font-bold uppercase leading-none tracking-[0.01em] text-zinc-900 sm:text-[32px]">{customer.name}</h1>
               </Morph>
               <Badge color={isCompany ? "indigo" : "slate"}>{isCompany ? "Company" : parentCompany ? "Employee" : "Individual"}</Badge>
               {isCompany && employees.length > 0 && <Badge color="slate">{employees.length} employees</Badge>}
